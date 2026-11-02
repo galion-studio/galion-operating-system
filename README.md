@@ -20,9 +20,20 @@ Galion OS puts Hermes, your own AI agent, at the centre of your computer. There 
 - A calm, warm, listening tone. No spinners: agents show up as soft glowing presences while they work.
 - Gentle sounds for starting, finishing, notices and questions, which stay silent at night or when you mute them.
 
+## Profiles
+
+**Galion OS Voice** is the first image profile: voice-first, no display server, one dot, Hermes running off-device on the side band. The Hermes-centred GUI profile (one window + prompt field) described above is a later profile built on the same base, and both share `galion-init` and the Obsidian Open Mind contract.
+
+| Profile | Ships | Display | Hermes | Shared base |
+|---|---|---|---|---|
+| Galion OS Voice | First | None: no X11, Wayland or compositor; at most one dot on `/dev/fb0` | Off-device, on the side band, never in the 80 ms audio path | `galion-init`, Obsidian Open Mind contract |
+| Hermes GUI | Later | One window + prompt field | Centre of the screen | `galion-init`, Obsidian Open Mind contract |
+
+Hermes stays the centre for knowledge and tools in both. Galion Voice also runs on plain Linux, so neither profile is required to use it.
+
 ## Status
 
-Galion OS is the direction we're building towards, starting with Open Mind and Hermes. Downloads will be listed here once the first image is ready.
+Galion OS is the direction we're building towards, starting with Open Mind and Hermes. The Galion OS Voice profile comes first. Downloads will be listed here once the first image is ready.
 
 ## Licence
 
