@@ -1,0 +1,28 @@
+name: Research note
+description: Propose a note for Galion Labs. Say what is known, what is guessed, and what is open.
+title: "[Research] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A research note is a proposal. It becomes part of the project when a maintainer merges it. Do not present a plan as a shipped feature.
+  - type: textarea
+    id: question
+    attributes:
+      label: The question
+      description: What you want to look into, in a few sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: known
+    attributes:
+      label: What is already known
+      description: Point at a file, a repository, or a public source.
+    validations:
+      required: false
+  - type: textarea
+    id: open
+    attributes:
+      label: What is still open
+    validations:
+      required: true

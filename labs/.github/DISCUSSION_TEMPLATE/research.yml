@@ -1,0 +1,18 @@
+title: "[Research] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Talk through a research question before anyone writes the note. Mark guesses as guesses.
+  - type: textarea
+    id: question
+    attributes:
+      label: The question
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources you already trust
+    validations:
+      required: false
