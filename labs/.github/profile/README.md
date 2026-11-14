@@ -27,7 +27,7 @@ The dot above appears once that brand guide is on the default branch. The marks 
 
 The organisation greeting is ready to publish. **The GitHub organisation itself is created by Maciej Grajczyk in the GitHub UI.** An API call cannot create it.
 
-No operating-system image is published yet. The voice student model is not shipped. The learned emotion detector is in development. Billing is not implemented (`paid_tiers` stays false). Galion OS is free forever and open source. Plus is Galion One at $20 / €20 per month. Ultra is Galion Research at $220 / €220 one-time.
+No operating-system image is published yet. The voice student model is not shipped. The learned emotion detector is in development. Billing is not implemented (`paid_tiers` stays false). Galion OS is free forever and open source. Plus is Galion One at $20 / €20 per month. Ultra is Galion Research at $220 / €220 per month.
 
 Galion Labs is free to join.
 

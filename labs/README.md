@@ -2,7 +2,7 @@
 
 *Maciej Grajczyk · 2026-11-09 (Europe/Zagreb, CET, UTC+1).*
 
-Galion Labs is the open community and research arm of Galion. It is where people read the work, argue with it in the open, and propose the next note. Galion OS is free forever and open source. Galion One is Plus, at $20 / €20 per month. Galion Research is Ultra, at $220 / €220 one-time. Galion Voice is the voice model inside Galion One, not a separate product. Labs is how that work meets other people.
+Galion Labs is the open community and research arm of Galion. It is where people read the work, argue with it in the open, and propose the next note. Galion OS is free forever and open source. Galion One is Plus, at $20 / €20 per month. Galion Research is Ultra, at $220 / €220 per month. Galion Voice is the voice model inside Galion One, not a separate product. Labs is how that work meets other people.
 
 Labs is not Plus or Ultra. Joining the community is free. The prices are in the [brand guide](../docs/brand/BRANDING-V2.md). Billing is not implemented. `paid_tiers` stays false.
 

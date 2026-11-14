@@ -24,7 +24,7 @@ Write the names as they are in this table. The spelling is **Galion**.
 | **Galion Studio** | The maker. Maciej Grajczyk. The GitHub organisation is `galion-studio`. | Galion Studio on a byline. `galion-studio` in a URL. |
 | **Galion Operating System**, then **Galion OS** | The operating system. Free, open source, Linux-based, CPU-first. | The long name once on a page, then Galion OS. |
 | **Obsidian Open Mind**, then **Open Mind** | The desktop layer inside Galion OS. The owner calls this layer the Obsidian desktop. Memory, tools, and agents live here. | Full name on first use. Open Mind after that. Two words, capital O and capital M. |
-| **Galion Research** | The research product inside that desktop. Curious, analytical, knowledge-seeking. Ultra, $220 / €220 one-time. Billing is not live. The research path behind the voice is Hermes. | Galion Research. |
+| **Galion Research** | The research product inside that desktop. Curious, analytical, knowledge-seeking. Ultra, $220 / €220 per month. Billing is not live. The research path behind the voice is Hermes. | Galion Research. |
 | **Galion One** | The companion inside that desktop. Plus, $20 / €20 per month. Billing is not live. | Galion One. |
 | **Galion Voice** | The voice model inside Galion One. Not a separate product, and not a price. The product surface of that model is one dot. | Galion Voice in prose. `galion-voice` for a crate. |
 | **Galion OS Voice** | The first image profile of the operating system. Roadmap. No display server. At most one dot. | Galion OS Voice when the image profile is the subject. It is a different phrase from Galion Voice. |
@@ -34,7 +34,7 @@ Write the names as they are in this table. The spelling is **Galion**.
 | **Galion Labs** | The open community and research arm. | Galion Labs. |
 | **Free forever** | Galion OS. Open source. MIT. | Free forever. |
 | **Plus** | Galion One. $20 / €20 per month. Billing is not live. | Plus. |
-| **Ultra** | Galion Research. $220 / €220 one-time. Billing is not live. | Ultra. |
+| **Ultra** | Galion Research. $220 / €220 per month. Billing is not live. | Ultra. |
 
 A few forms stay retired, because the Open Mind guide already retired them. Write "Open Mind", and write "desktop layer" when you mean where it sits inside Galion OS. Leave "OpenMind", "Open-Mind", and "OM" out of prose. Crate names that already contain `openmind` stay as they are in code.
 
@@ -291,7 +291,7 @@ Three prices. One of them is free forever. None of them is a live charge.
 |---|---|---|---|
 | **Free forever** | Open source | Galion OS. MIT. No account and no licence key. | The operating system. No image is published from this repository. |
 | **Plus** | $20 / €20 per month | Galion One, the companion. Galion Voice is the voice model inside Galion One. It is not a separate product and it has no price of its own. | The price is written down. Billing is not live. |
-| **Ultra** | $220 / €220 one-time | Galion Research. One payment, not a month. | The price is written down. Billing is not live. |
+| **Ultra** | $220 / €220 per month | Galion Research. | The price is written down. Billing is not live. |
 
 `paid_tiers` stays false. A page may show these prices. It does not go to a checkout. A page does not say "buy", "subscribe now", or "add to cart". It does not contain a payment form.
 
