@@ -4,7 +4,7 @@
 
 Galion Operating System (Galion OS) ships as image profiles on one shared base. **Galion OS Voice** is the first profile. The **Hermes GUI** is a later profile. These notes are the long form of that split. The root README stays the short public page; the one-paragraph profile line for that page is the open README change in [pull request #1](https://github.com/galion-studio/galion-operating-system/pull/1).
 
-Galion Voice, the voice program, also runs on plain Linux. Neither OS image is required to use it.
+Galion Voice, the voice model inside Galion One, also runs on plain Linux. It is not a separate product. Neither OS image is required to use it.
 
 ## The two profiles
 
@@ -17,8 +17,8 @@ Hermes stays the centre for knowledge and tools in both profiles. The difference
 
 ## What every profile keeps
 
-- **Free download.** Galion OS is MIT. Galion Voice is a free download. There is no paid tier, account, or licence key for the voice program.
-- **One family of names.** Write "Galion Operating System" once, then "Galion OS". Write "Galion Voice" for the program and `galion-voice` for its crates. Obsidian Open Mind names the model layer in this family, a different project from the Obsidian note-taking app. The name Galion One belongs to a separate product.
+- **Free forever for the operating system.** Galion OS is MIT. Galion Voice is the voice model inside Galion One, not a separate product. Billing is not live. There is no account or licence key in these documents.
+- **One family of names.** Write "Galion Operating System" once, then "Galion OS". Write "Galion Voice" for the model inside Galion One, and `galion-voice` for its crates. Obsidian Open Mind names the desktop layer in this family, a different project from the Obsidian note-taking app. Galion One is the companion. Galion Research is the research product.
 - **One gradient.** Deep obsidian black (`#0A0A0C`), a slow wash from amber (`#F5A524`) to violet (`#7C3AED`), deeper toward the edges.
 - **One clock.** The 80 ms frame is the scheduling quantum: you, me, and feeling. A late frame is a pause.
 - **One init.** Both profiles boot through `galion-init` and speak the Obsidian Open Mind contract.

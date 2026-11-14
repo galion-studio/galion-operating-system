@@ -29,7 +29,7 @@ Galion OS puts Hermes, your own AI agent, at the centre of your computer. There 
 | Galion OS Voice | First | None: no X11, Wayland or compositor; at most one dot on `/dev/fb0` | Off-device, on the side band, never in the 80 ms audio path | `galion-init`, Obsidian Open Mind contract |
 | Hermes GUI | Later | One window + prompt field | Centre of the screen | `galion-init`, Obsidian Open Mind contract |
 
-Hermes stays the centre for knowledge and tools in both. Galion Voice also runs on plain Linux, so neither profile is required to use it.
+Hermes stays the centre for knowledge and tools in both. Galion Voice, the voice model inside Galion One, also runs on plain Linux. It is not a separate product, so neither profile is required to use it.
 
 ## Status
 

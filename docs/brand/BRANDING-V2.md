@@ -24,16 +24,17 @@ Write the names as they are in this table. The spelling is **Galion**.
 | **Galion Studio** | The maker. Maciej Grajczyk. The GitHub organisation is `galion-studio`. | Galion Studio on a byline. `galion-studio` in a URL. |
 | **Galion Operating System**, then **Galion OS** | The operating system. Free, open source, Linux-based, CPU-first. | The long name once on a page, then Galion OS. |
 | **Obsidian Open Mind**, then **Open Mind** | The desktop layer inside Galion OS. The owner calls this layer the Obsidian desktop. Memory, tools, and agents live here. | Full name on first use. Open Mind after that. Two words, capital O and capital M. |
-| **Galion Research** | A consumer product inside that desktop. Curious, analytical, knowledge-seeking. Free and open source. The research path behind the voice is Hermes. | Galion Research. |
-| **Galion One** | A consumer product inside that desktop. The companion. Free and open source. | Galion One. |
-| **Galion Voice** | The voice program. The product surface is one dot. | Galion Voice in prose. `galion-voice` for a crate. |
+| **Galion Research** | The research product inside that desktop. Curious, analytical, knowledge-seeking. Ultra, $220 / €220 one-time. Billing is not live. The research path behind the voice is Hermes. | Galion Research. |
+| **Galion One** | The companion inside that desktop. Plus, $20 / €20 per month. Billing is not live. | Galion One. |
+| **Galion Voice** | The voice model inside Galion One. Not a separate product, and not a price. The product surface of that model is one dot. | Galion Voice in prose. `galion-voice` for a crate. |
 | **Galion OS Voice** | The first image profile of the operating system. Roadmap. No display server. At most one dot. | Galion OS Voice when the image profile is the subject. It is a different phrase from Galion Voice. |
 | **Hermes GUI** | The later image profile. One window, one gradient, one prompt field. Roadmap. | Hermes GUI. |
 | **Samantha V2** | The conversational voice persona of Galion One and Galion Voice. | Samantha, or Samantha V2 when the version matters. |
 | **Jarvis** | The calm, precise command layer beside Samantha. | Jarvis. |
 | **Galion Labs** | The open community and research arm. | Galion Labs. |
-| **Local** | Self-hosting on hardware you control. Free forever. | Local. |
-| **Plus**, **Ultra** | Optional hosted subscriptions for people without that hardware. Planned prices. Billing is not implemented. | Always with the word planned. |
+| **Free forever** | Galion OS. Open source. MIT. | Free forever. |
+| **Plus** | Galion One. $20 / €20 per month. Billing is not live. | Plus. |
+| **Ultra** | Galion Research. $220 / €220 one-time. Billing is not live. | Ultra. |
 
 A few forms stay retired, because the Open Mind guide already retired them. Write "Open Mind", and write "desktop layer" when you mean where it sits inside Galion OS. Leave "OpenMind", "Open-Mind", and "OM" out of prose. Crate names that already contain `openmind` stay as they are in code.
 
@@ -284,17 +285,15 @@ A developer console is a developer tool. It is not the interface.
 
 ## 8. Pricing language
 
-Three ways to run Galion. One of them is free forever. Two are planned hosts. None of them is a live charge.
+Three prices. One of them is free forever. None of them is a live charge.
 
 | Tier | Price | What it is | Status |
 |---|---|---|---|
-| **Local** | Free forever | Galion OS, Open Mind, Galion Research, Galion One, and Galion Voice on hardware you control. MIT. No account and no licence key. | The code and the documents are what exist today. No OS image is published from this repository. The voice student model is not shipped. |
-| **Plus** | $20 / €20 per month | A hosted computer for a person without the hardware to self-host. Hosted voice is part of Plus. | Planned. Billing is not implemented. |
-| **Ultra** | $220 / €220 per month | A fuller hosted computer, still CPU-only, for one subscriber. Hosted voice is part of Ultra. | Planned. Billing is not implemented. |
+| **Free forever** | Open source | Galion OS. MIT. No account and no licence key. | The operating system. No image is published from this repository. |
+| **Plus** | $20 / €20 per month | Galion One, the companion. Galion Voice is the voice model inside Galion One. It is not a separate product and it has no price of its own. | The price is written down. Billing is not live. |
+| **Ultra** | $220 / €220 one-time | Galion Research. One payment, not a month. | The price is written down. Billing is not live. |
 
-On your own machine, Galion Voice stays a free program. Hosted voice, where Galion runs the voice for you, is planned as part of Plus and Ultra. There is no separate free hosted voice tier, and there is no paid lock in the software.
-
-`paid_tiers` stays false. A page may show the planned prices. It may say "Join the waitlist" or "Coming soon". The waitlist link goes to a GitHub issue list, or it stays on the page. It does not go to a checkout. A page does not say "buy", "subscribe now", or "add to cart". It does not contain a payment form.
+`paid_tiers` stays false. A page may show these prices. It does not go to a checkout. A page does not say "buy", "subscribe now", or "add to cart". It does not contain a payment form.
 
 Putting a paid tier into the voice licence lock is an owner change, with counsel, and a line in the voice ledger. This guide does not make that change.
 
@@ -302,9 +301,18 @@ Galion Labs is not a tier. The community is free to join.
 
 ## 9. Landing pages
 
-The pages in [`../../site/`](../../site/) are static HTML and CSS. They use the type in section 5, the voice-ground palette, and the marks in section 6. They carry the planned pricing in section 8, and they give Samantha V2 her own section on the Galion One page and the Galion Voice page.
+galion.app is the only domain. The pages in [`../../site/`](../../site/) are static HTML and CSS for that domain. They use the type in section 5, the voice-ground palette, and the marks in section 6. One nav links the paths below. They carry the pricing in section 8. Samantha V2 has her own section on the Galion One page and on the voice-model page.
 
-They are a design you can open on your own machine. Publishing them to a host is a separate decision. This repository does not deploy them.
+| Path | Page |
+|---|---|
+| `/` | Galion OS, the home page |
+| `/one/` | Galion One |
+| `/research/` | Galion Research |
+| `/operating-system/` | The operating system: profiles and documents |
+| `/voice/` | Galion Voice, the voice model inside Galion One |
+| `/labs/` | Galion Labs |
+
+They are a design you can open on your own machine. Publishing them is a separate decision. This repository does not deploy them, and it does not change DNS.
 
 ## 10. Writing rules, collected
 

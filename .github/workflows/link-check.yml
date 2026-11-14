@@ -1,0 +1,27 @@
+name: Link check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Validate HTML and SVG
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/vnu.jar" https://github.com/validator/validator/releases/download/latest/vnu.jar
+          java -jar "$RUNNER_TEMP/vnu.jar" --errors-only --skip-non-html --also-check-svg site docs/brand/marks
+
+      - name: Check links
+        run: python3 scripts/check_links.py
