@@ -40,7 +40,7 @@ Silence is not acceptance. A merged commit is the record.
 
 ## Money
 
-Local use is free forever. Plus at $20 / €20 per month and Ultra at $220 / €220 per month are planned prices for optional hosted computers. Billing is not implemented. A governance change does not switch `paid_tiers` to true. That switch is an owner edit of the voice licence lock, with counsel, recorded by the owner.
+Galion OS is free forever and open source. Plus is Galion One at $20 / €20 per month. Ultra is Galion Research at $220 / €220 one-time. Billing is not implemented. A governance change does not switch `paid_tiers` to true. That switch is an owner edit of the voice licence lock, with counsel, recorded by the owner.
 
 Galion Labs itself has no fee.
 

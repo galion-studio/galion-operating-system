@@ -2,7 +2,7 @@
 
 Galion Labs is the open community and research arm of Galion.
 
-Galion OS is a free, open-source, Linux-based, CPU-first system. Obsidian Open Mind is the desktop layer. Inside it live Galion Research and Galion One, both free and open source. Galion Voice is the voice, and its surface is one dot.
+Galion OS is a free, open-source, Linux-based, CPU-first system. Obsidian Open Mind is the desktop layer. Galion One is Plus. Galion Research is Ultra. Galion Voice is the voice model inside Galion One, not a separate product. Its surface is one dot.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/galion-studio/galion-operating-system/main/docs/brand/marks/mark-dot-tile.svg" alt="Galion dot" width="72" height="72">
@@ -27,9 +27,9 @@ The dot above appears once that brand guide is on the default branch. The marks 
 
 The organisation greeting is ready to publish. **The GitHub organisation itself is created by Maciej Grajczyk in the GitHub UI.** An API call cannot create it.
 
-No operating-system image is published yet. The voice student model is not shipped. The learned emotion detector is in development. Billing is not implemented (`paid_tiers` stays false). Plus at $20 / €20 per month and Ultra at $220 / €220 per month are planned prices for optional hosted computers, for people without the hardware to self-host.
+No operating-system image is published yet. The voice student model is not shipped. The learned emotion detector is in development. Billing is not implemented (`paid_tiers` stays false). Galion OS is free forever and open source. Plus is Galion One at $20 / €20 per month. Ultra is Galion Research at $220 / €220 one-time.
 
-Local use is free forever. Galion Labs is free to join.
+Galion Labs is free to join.
 
 Steward: Maciej Grajczyk, Galion Studio.
 
