@@ -17,7 +17,7 @@ These points come from files that exist today. They are the floor of the plan.
 | Galion OS is free forever, MIT, Linux and Rust, CPU-first. No account and no licence key. No image is published from this repository. | [README.md](../README.md), [brand guide](brand/BRANDING-V2.md) |
 | Two profiles share `galion-init` and the Obsidian Open Mind contract. Galion OS Voice is first: no X11, Wayland, or compositor. The Hermes GUI is later: one window, one gradient, one prompt field. | [voice-first.md](voice-profile/voice-first.md), [hermes-later.md](voice-profile/hermes-later.md) |
 | The voice image builder is unchosen. The note names buildroot or a custom initramfs and does not pick. Updates by A/B image swap are a design hold, and they are unimplemented. The voice archive, when it exists, is signed with keyless cosign. | [voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §4 and §6 |
-| `openmind-desktop` is the local control console in [galion-studio/obsidian-open-mind](https://github.com/galion-studio/obsidian-open-mind), crate `openmind-desktop`. It is a loopback page: stack list, one prompt, file gate, read-only probes, seven tones tuned from 432 Hz. It calls no model. Default bind is `127.0.0.1:18081`. A non-loopback address is refused before a socket exists. | [Cargo.toml](https://github.com/galion-studio/obsidian-open-mind/blob/main/crates/openmind-desktop/Cargo.toml), [desktop README](https://github.com/galion-studio/obsidian-open-mind/blob/main/docs/desktop/README.md) |
+| `openmind-desktop` is the local control console in [galion-studio/obsidian-open-mind](https://github.com/galion-studio/obsidian-open-mind), crate `openmind-desktop`. It is a loopback page: stack list, one prompt, file gate, read-only probes, seven tones tuned from 432 Hz. It calls no model. The listen address is configurable. A non-loopback address is refused before a socket exists. The port number is not fixed here. | [Cargo.toml](https://github.com/galion-studio/obsidian-open-mind/blob/main/crates/openmind-desktop/Cargo.toml), [desktop README](https://github.com/galion-studio/obsidian-open-mind/blob/main/docs/desktop/README.md) |
 | The only CI job for that crate runs on `ubuntu-latest` (Linux x86_64). It builds, tests, and writes a local tarball. It does not upload the tarball and it does not create a release. `package-local.sh` can take `--target TRIPLE` when the toolchain already has that triple. No aarch64 job is in that workflow. | [openmind-desktop.yml](https://github.com/galion-studio/obsidian-open-mind/blob/main/.github/workflows/openmind-desktop.yml), [package-local.sh](https://github.com/galion-studio/obsidian-open-mind/blob/main/scripts/desktop/package-local.sh) |
 | The Open Mind release archive, when the owner enables it, is `obsidian-open-mind-<tag>-x86_64-linux.tar.gz`. The binaries it copies are `galion-one`, `galion-desk`, `room`, `desk-hermes`, and `link-watch`. `openmind-desktop` is not in that list. Signing there is keyless cosign over GitHub OIDC, and the job stays off unless the repository is public and `RELEASE_ENABLED` is `true`. | [release.yml](https://github.com/galion-studio/obsidian-open-mind/blob/main/.github/workflows/release.yml) |
 | On the console, Galion One and Hermes are stack rows in state `planned`. The page does not start them. `GET /one` and `GET /research` are short entry pages inside the same binary. They are not the marketing pages in this repository, and they are not the research app. | `crates/openmind-desktop/src/stack.rs` and `page.rs` in obsidian-open-mind |
@@ -78,13 +78,15 @@ Ships as the release binary `openmind-desktop`, built the way [package-local.sh]
 
 On the image the plan places that binary at `/opt/galion/openmind-desktop/openmind-desktop`. The prefix `/opt/galion/` is the prefix already used by `deploy/galion-one.service` in obsidian-open-mind. The directory `openmind-desktop` under it is this plan. The unit file for it does not exist yet.
 
-The process starts as:
+The process starts on loopback. The port is configurable. With no address, the binary uses its own default. That default is the one the obsidian-open-mind change sets when it moves the console off port 18081, which clashes with a staging page on the server. This plan does not choose the replacement number.
 
 ```sh
 /opt/galion/openmind-desktop/openmind-desktop --listen
 ```
 
-That is `127.0.0.1:18081`. The voice packaging note names the unprivileged user `galion` for the voice binaries on plain Linux. **Open question.** Whether this process runs as that same account.
+An address may be passed to `--listen` when the image needs a different loopback port. A non-loopback address is still refused.
+
+The voice packaging note names the unprivileged user `galion` for the voice binaries on plain Linux. **Open question.** Whether this process runs as that same account. **Open question.** The numeric default port, which belongs to that obsidian-open-mind change and not to this note.
 
 The binary's own routes stay what the crate serves today:
 
@@ -145,7 +147,7 @@ The policy for this image:
 3. Silence mode is opt-in. A new image is not in Silence. A person turns Silence on. The image does not ask them to opt in before the first resonance.
 4. Silence, once chosen, is the mode on the next boot as well.
 5. A missing sound device still finishes boot. The voice profile already treats a missing `/dev/fb0` as a normal boot. The desktop image treats a missing playback device the same way: the console still comes up.
-6. Listeners bind after the loopback interface exists. `openmind-desktop --listen`, then `node src/server.js` in `/opt/galion/research`.
+6. Listeners bind after the loopback interface exists. `openmind-desktop --listen` on its configurable loopback port, then `node src/server.js` in `/opt/galion/research`. The desktop port is the default that obsidian-open-mind change sets. This note does not write the number.
 7. Billing stays off. The prices on the copied pages stay the prices already printed there.
 
 What the repositories already implement is narrower than that policy.
@@ -305,6 +307,7 @@ Collected from the sections above. An answer is an owner edit to this file, or a
 28. Anything beyond whole-image updates.
 29. A `NOTICE` file if the image must reconcile this repository's copyright line (`Copyright (c) 2026 Galion Labs`) with obsidian-open-mind's `LICENSE` (`Copyright (c) 3000 Galion / galion-studio`). hermes-research's `LICENSE` uses the same four Galion Labs lines and the same 2026 MIT line as this repository. Each tree keeps its own `LICENSE` until an owner writes that notice.
 30. The account that runs `openmind-desktop` and `node src/server.js`. The voice note names `galion` for the voice binaries. This note does not assign it.
+31. The desktop listen port. It is configurable and loopback-only. The number is the default set by the obsidian-open-mind change that moves the console off 18081, because that port clashes with a staging page. This note does not pick a replacement.
 
 ## 11. What this change does not do
 
