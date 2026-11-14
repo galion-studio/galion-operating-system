@@ -12,6 +12,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Region price tests
+        run: node --test scripts/test_region_prices.mjs
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
