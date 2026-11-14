@@ -35,6 +35,16 @@ Hermes stays the centre for knowledge and tools in both. Galion Voice also runs 
 
 Galion OS is the direction we're building towards, starting with Open Mind and Hermes. The Galion OS Voice profile comes first. Downloads will be listed here once the first image is ready.
 
+## Brand, site, and Galion Labs
+
+Branding V2, the static landing pages, and the Galion Labs community kit:
+
+- [Brand guide](docs/brand/BRANDING-V2.md)
+- [Landing pages](site/README.md) (open them locally; this repository does not deploy them)
+- [Galion Labs](labs/README.md)
+
+The GitHub organisation for Labs is created by the owner in the GitHub UI. Hosting for the pages is a separate decision.
+
 ## Licence
 
 MIT. Free for everybody to download, use, change and share.

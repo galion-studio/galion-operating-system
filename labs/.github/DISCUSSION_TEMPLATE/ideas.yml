@@ -1,0 +1,18 @@
+title: "[Idea] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share an idea for Galion Labs. This is a conversation. It is not a commitment to build, and it is not a checkout.
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it belongs in Galion
+    validations:
+      required: false

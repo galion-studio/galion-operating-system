@@ -1,0 +1,29 @@
+name: Bug report
+description: Something in the Galion Labs documents, the brand guide, or the static pages is wrong.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Leave out secrets, private recordings, reference audio, and server addresses.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, and what you saw.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: A file path or a page, if you have one.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Status you were relying on (in development, roadmap, planned), if that matters.
+    validations:
+      required: false
