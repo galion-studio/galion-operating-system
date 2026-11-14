@@ -8,12 +8,14 @@ Static pages for the Galion ecosystem. HTML and CSS, one small stylesheet, self-
 |---|---|
 | Galion, the ecosystem | [index.html](index.html) |
 | Galion OS | [os/index.html](os/index.html) |
-| Galion One | [one/index.html](one/index.html) |
-| Galion Research | [research/index.html](research/index.html) |
+| Galion One | [one/index.html](one/index.html) — public path `/one` |
+| Galion Research | [research/index.html](research/index.html) — public path `/research` |
 | Galion Voice | [voice/index.html](voice/index.html) |
 | Galion Labs | [labs/index.html](labs/index.html) |
 
 Planned pricing (Local free forever, Plus, Ultra) is a section on each page. Billing is not implemented. `paid_tiers` stays false.
+
+`/one` and `/research` are the public paths for Galion One and Galion Research. Each of those pages carries the four Galion Labs lines and the MIT licence text from the repository `LICENSE`. The operating system stays at the site root. Open Mind stays inside the console. These files are not a deployment.
 
 Samantha V2 has her own section on the Galion One page and the Galion Voice page. The learned emotion detector is in development.
 

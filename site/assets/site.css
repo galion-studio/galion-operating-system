@@ -624,6 +624,18 @@ th {
   color: var(--text);
 }
 
+.brand-lines p {
+  margin: 0;
+}
+
+.mit {
+  margin: 18px 0 24px;
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
 code {
   font-family: var(--font-mono);
   font-size: 0.88em;
