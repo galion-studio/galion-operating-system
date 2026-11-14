@@ -29,11 +29,21 @@ REQUIRED = (
     "$20 / €20",
     "/ month",
     "$220 / €220",
-    "one-time",
+    "$220 / €220<span> / month</span>",
     "not a separate product",
 )
 NAV_HREFS = ("/", "/one/", "/research/", "/operating-system/", "/voice/", "/labs/")
-FORBIDDEN = ("add to cart", "subscribe now", "buy now")
+FORBIDDEN = (
+    "add to cart",
+    "subscribe now",
+    "buy now",
+    "one-time",
+    "paid once",
+    "pay once",
+    "not a month",
+    "one payment",
+    "not a subscription",
+)
 LINK_ATTR = re.compile(
     r"""(?:href|src)\s*=\s*(?P<q>["'])(?P<url>.*?)(?P=q)""",
     re.IGNORECASE | re.DOTALL,
@@ -199,8 +209,8 @@ def check_html(path: Path, errors: list[str], cache: dict[str, str]) -> None:
     for phrase in FORBIDDEN:
         if phrase in text.lower():
             fail(errors, f"{rel}: forbidden phrase {phrase!r}")
-    if re.search(r"220.{0,40}per month", text, re.IGNORECASE | re.DOTALL):
-        fail(errors, f"{rel}: Ultra is one-time, not per month")
+    if not re.search(r"\$220 / €220<span> / month</span>", text):
+        fail(errors, f"{rel}: Ultra must be $220 / €220 per month")
     for href in NAV_HREFS:
         if f'href="{href}"' not in text:
             fail(errors, f"{rel}: nav is missing {href}")

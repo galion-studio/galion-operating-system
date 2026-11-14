@@ -8,7 +8,7 @@ Static pages for galion.app. HTML and CSS, one small stylesheet, self-hosted fon
 |---|---|---|
 | `/` | [index.html](index.html) | Galion OS, the home page. Free forever. Open source. |
 | `/one/` | [one/index.html](one/index.html) | Galion One. Plus, $20 / €20 per month. |
-| `/research/` | [research/index.html](research/index.html) | Galion Research. Ultra, $220 / €220 one-time. |
+| `/research/` | [research/index.html](research/index.html) | Galion Research. Ultra, $220 / €220 per month. |
 | `/operating-system/` | [operating-system/index.html](operating-system/index.html) | Profiles and documents for the operating system. |
 | `/voice/` | [voice/index.html](voice/index.html) | Galion Voice, the voice model inside Galion One. Not a separate product. |
 | `/labs/` | [labs/index.html](labs/index.html) | Galion Labs. |
