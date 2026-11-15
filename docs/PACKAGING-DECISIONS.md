@@ -2,7 +2,9 @@
 
 *Maciej Grajczyk · 2026-11-14 (Europe/Zagreb, CET, UTC+1).*
 
-This note reads the 31 open questions in [PACKAGING.md](PACKAGING.md) §10 and recommends an answer for each one. Nothing here is decided. A recommendation is a reading of files that already exist. Mate decides. An answer lands when Mate edits the packaging plan, or when a later change lands in the repository that owns the code. This file does not edit the plan, and it does not close a question.
+**2026-11-15.** The decision list is [PACKAGING.md](PACKAGING.md) §10. This file is the earlier question-by-question reading. It left every question open. §10 is the list to answer.
+
+This note was written against the plan's list of 31 questions, which at the time sat in §10. It recommended an answer for each one and did not edit the plan. The 2026-11-15 edit of the plan is the list Maciej answers. The pins below are the commits this reading used. The later reading for §10 used obsidian-open-mind `de7480e71ce98191d2ee11f018fa15be6c5a1707` and hermes-research `ed3ce9993f58ec655af4f23c2438eb83cd7ea844`.
 
 The reading is pinned to these commits:
 
