@@ -462,6 +462,7 @@ service openmind-desktop user galion listen none port 18181
 service galion-research user galion port 8787 workdir /opt/galion/research/current
 handoff desktop-console to research at /one
 GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one
+handoff current while the console and research are alive
 console http on ipv4-loopback port 18181 path /
 galion-voiced absent
 galion-one absent

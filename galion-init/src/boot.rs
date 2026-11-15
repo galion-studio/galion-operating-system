@@ -94,6 +94,7 @@ impl Plan {
                     out.push_str(
                         "GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one\n",
                     );
+                    out.push_str("handoff current while the console and research are alive\n");
                     out.push_str(&format!("console {}\n", describe(&handoff)));
                 }
                 out.push_str("galion-voiced absent\n");

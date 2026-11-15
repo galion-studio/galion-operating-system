@@ -301,7 +301,7 @@ print_rows() {
 print_story() {
   printf 'galion-os image dry run\n'
   printf 'mode: %s\n' "$MODE_LABEL"
-  printf 'story: one desktop image on Ubuntu 26.04. galion-init is PID 1 and is absent. The console is openmind-desktop with no listen address, port 18181. Research is node src/server.js with PORT 8787. Static pages stay files. The 432 Hz tone is planned and is not played.\n'
+  printf 'story: one desktop image on Ubuntu 26.04. galion-init is PID 1 and is absent. The console is openmind-desktop with no listen address, port 18181. Research is node src/server.js with PORT 8787. Static pages stay files. The handoff at /one is current only while the console and research are alive. The 432 Hz tone is planned and is not played.\n'
   printf 'name: %s\n' "$NAME"
   printf 'profile: %s\n' "$PROFILE"
   printf 'base: %s\n' "$BASE"
