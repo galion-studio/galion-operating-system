@@ -356,6 +356,12 @@ fn render_names_the_in_memory_runtime() {
         .contains("GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one\n"));
     assert!(text.contains("console http on ipv4-loopback port 18181 path /\n"));
     assert!(text.contains("silence-file none\n"));
+    assert!(text.contains("service openmind-desktop user galion listen none port 18181\n"));
+    assert!(text.contains(
+        "service galion-research user galion port 8787 workdir /opt/galion/research/current\n"
+    ));
+    assert!(text.contains("galion-voiced absent\n"));
+    assert!(text.contains("galion-one absent\n"));
     assert!(text.contains("runtime in-memory\n"));
     assert!(!text.contains("systemctl"));
     assert!(!text.contains("/sbin/init"));
