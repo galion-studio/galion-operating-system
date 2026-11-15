@@ -427,6 +427,15 @@ fn the_binary_refuses_execute_and_accepts_the_shell_words() {
         Invocation::Both { silence: false }
     );
     assert_eq!(invocation(["voice"]), Invocation::Voice);
+    assert_eq!(invocation(["walk"]), Invocation::Walk { silence: false });
+    assert_eq!(
+        invocation(["walk", "--silence"]),
+        Invocation::Walk { silence: true }
+    );
+    assert!(matches!(
+        invocation(["walk", "desktop"]),
+        Invocation::Refuse(_)
+    ));
     assert!(matches!(
         invocation(["--execute"]),
         Invocation::Refuse(message) if message.contains("refusing --execute")
