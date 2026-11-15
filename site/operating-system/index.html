@@ -59,6 +59,34 @@
       </div>
     </section>
 
+    <section id="boot" aria-labelledby="boot-title">
+      <p class="section-label">Desktop</p>
+      <h2 id="boot-title">One boot, in order.</h2>
+      <p class="prose">The desktop walk records early boot, then the console, then research. The handoff at <a href="/one/">Galion One</a> is current only while both are alive. This is that order. It does not boot a machine, and it does not play a tone.</p>
+      <ol class="boot">
+        <li>
+          <p class="boot-step">Early</p>
+          <h3>Mounts, then the clock.</h3>
+          <p>The walk records <span class="path">/proc</span>, <span class="path">/sys</span>, <span class="path">/dev</span>, and <span class="path">/run</span>, then loopback and the clock. It does not call mount.</p>
+        </li>
+        <li>
+          <p class="boot-step">Console</p>
+          <h3>openmind-desktop</h3>
+          <p>User galion. The console is first. <a href="/one/">Galion One</a> is the page it hands to.</p>
+        </li>
+        <li>
+          <p class="boot-step">Research</p>
+          <h3>galion-research</h3>
+          <p>User galion. Research starts after the console is alive. The page is <a href="/research/">Galion Research</a>.</p>
+        </li>
+        <li>
+          <p class="boot-step">Handoff</p>
+          <h3><span class="path">/one</span></h3>
+          <p>Current only while the console and research are alive. If the console exits, the handoff drops until it returns.</p>
+        </li>
+      </ol>
+    </section>
+
     <section aria-labelledby="profiles-title">
       <p class="section-label">Roadmap</p>
       <h2 id="profiles-title">Two profiles. The voice image is first.</h2>
