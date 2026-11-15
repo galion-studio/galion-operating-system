@@ -256,6 +256,41 @@ fn the_handoff_is_current_only_while_the_console_is_alive() {
 }
 
 #[test]
+fn research_does_not_return_while_the_console_is_down() {
+    let mut plan = desktop_plan(false, true);
+    let mut machine = Machine::new(0);
+    plan.supervisor.tick(&mut machine);
+    let console = plan.supervisor.pid_of("openmind-desktop").unwrap();
+    let research = plan.supervisor.pid_of("galion-research").unwrap();
+
+    assert!(machine.exited(research, false));
+    plan.supervisor.tick(&mut machine);
+    assert!(plan.supervisor.pid_of("galion-research").is_none());
+    assert_eq!(plan.supervisor.next_start_of("galion-research"), Some(5));
+
+    machine.now = 1;
+    assert!(machine.exited(console, false));
+    plan.supervisor.tick(&mut machine);
+    assert!(plan.supervisor.pid_of("openmind-desktop").is_none());
+    assert_eq!(plan.supervisor.next_start_of("openmind-desktop"), Some(6));
+
+    machine.now = 5;
+    plan.supervisor.tick(&mut machine);
+    assert!(plan.supervisor.pid_of("openmind-desktop").is_none());
+    assert!(plan.supervisor.pid_of("galion-research").is_none());
+    assert!(!handoff_ready(&plan, &machine));
+
+    machine.now = 6;
+    plan.supervisor.tick(&mut machine);
+    let console_again = plan.supervisor.pid_of("openmind-desktop").unwrap();
+    let research_again = plan.supervisor.pid_of("galion-research").unwrap();
+    assert!(console_again < research_again);
+    assert_ne!(console_again, console);
+    assert_ne!(research_again, research);
+    assert!(handoff_ready(&plan, &machine));
+}
+
+#[test]
 fn research_starts_only_after_the_desktop_child_is_alive() {
     let mut plan = desktop_plan(false, true);
     let mut machine = Machine::new(0);
