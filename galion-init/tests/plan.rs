@@ -69,10 +69,24 @@ fn voice_boot_order_supervises_voiced_and_skips_the_desktop() {
     assert!(plan.service("galion-voiced").is_some());
     assert!(plan.service("openmind-desktop").is_none());
     let text = plan.render();
-    assert!(text.contains("service galion-voiced user galion binary absent\n"));
-    assert!(text.contains("fb0 optional\n"));
-    assert!(text.contains("display-server none\n"));
-    assert!(text.contains("handoff none\n"));
+    assert_eq!(
+        text,
+        "\
+profile voice
+phase mount-filesystems
+phase network
+phase clock
+phase alsa
+phase supervise
+service galion-voiced user galion binary absent
+fb0 optional
+display-server none
+service-binary absent
+tone none
+handoff none
+runtime in-memory
+"
+    );
     assert!(!contains_dotted_quad(&text));
 }
 
@@ -349,21 +363,27 @@ fn host_init_shell_and_secrets_are_refused() {
 #[test]
 fn render_names_the_in_memory_runtime() {
     let text = desktop_plan(false, true).render();
-    assert!(text.contains("profile desktop\n"));
-    assert!(text.contains("phase tone-hook\n"));
-    assert!(text.contains("tone planned 432 samples 0\n"));
-    assert!(text.contains("handoff desktop-console to research at /one\n"));
-    assert!(text
-        .contains("GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one\n"));
-    assert!(text.contains("console http on ipv4-loopback port 18181 path /\n"));
-    assert!(text.contains("silence-file none\n"));
-    assert!(text.contains("service openmind-desktop user galion listen none port 18181\n"));
-    assert!(text.contains(
-        "service galion-research user galion port 8787 workdir /opt/galion/research/current\n"
-    ));
-    assert!(text.contains("galion-voiced absent\n"));
-    assert!(text.contains("galion-one absent\n"));
-    assert!(text.contains("runtime in-memory\n"));
+    assert_eq!(
+        text,
+        "\
+profile desktop
+phase mount-filesystems
+phase loopback
+phase clock
+phase tone-hook
+tone planned 432 samples 0
+silence-file none
+phase supervise
+service openmind-desktop user galion listen none port 18181
+service galion-research user galion port 8787 workdir /opt/galion/research/current
+handoff desktop-console to research at /one
+GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one
+console http on ipv4-loopback port 18181 path /
+galion-voiced absent
+galion-one absent
+runtime in-memory
+"
+    );
     assert!(!text.contains("systemctl"));
     assert!(!text.contains("/sbin/init"));
     assert!(!contains_dotted_quad(&text));
