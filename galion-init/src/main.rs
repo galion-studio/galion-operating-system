@@ -70,6 +70,7 @@ tone {tone}
 order console then research
 samples 0
 handoff /one
+handoff current while the console and research are alive
 galion-voiced absent
 runtime in-memory
 "

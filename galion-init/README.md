@@ -41,7 +41,7 @@ The Rust files next to this note are the same plan as an in-memory model. `cargo
 
 The binary takes the same words as the shell plan. No argument prints the voice plan, a blank line, then the desktop plan. `voice` and `desktop` print one plan. `--silence` selects the silenced desktop tone hook and does not read a file. `--execute` exits 2 and prints no plan. The printed lines follow the shell plan. The runtime line stays `in-memory`. The desktop print also names the console. The voice print also says the service binary is absent.
 
-`walk_desktop` steps that desktop plan once on an in-memory machine. The console row is recorded before research, the handoff path is `/one`, and the tone sample count is zero. It does not fork. The binary command `walk` prints that step and does not print process ids. `--silence` still plays nothing. The handoff stays current only while the console row and the research row are both alive. After the console exits, it is not current again until that row is alive. If research exits while the console is down, it does not return until the console row is alive again.
+`walk_desktop` steps that desktop plan once on an in-memory machine. The console row is recorded before research, the handoff path is `/one`, and the tone sample count is zero. It does not fork. The binary command `walk` prints that step, including when the handoff is current, and does not print process ids. `--silence` still plays nothing. The handoff stays current only while the console row and the research row are both alive. After the console exits, it is not current again until that row is alive. If research exits while the console is down, it does not return until the console row is alive again.
 
 ## Licence
 
