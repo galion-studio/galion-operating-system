@@ -62,7 +62,7 @@
     <section id="boot" aria-labelledby="boot-title">
       <p class="section-label">Desktop</p>
       <h2 id="boot-title">One boot, in order.</h2>
-      <p class="prose">The desktop walk records early boot, then the console, then research. The handoff at <a href="/one/">Galion One</a> is current only while both are alive. This is that order. It does not boot a machine, and it does not play a tone.</p>
+      <p class="prose">The desktop walk records early boot, then the console, then research. The handoff at <a href="/one/">Galion One</a> is current only while both are alive. Coming down, research is recorded first and the handoff drops. The console is recorded after that, and neither row starts again. This page shows both orders. It does not boot a machine, and it does not signal a process or play a tone.</p>
       <ol class="boot">
         <li>
           <p class="boot-step">Early</p>
@@ -83,6 +83,19 @@
           <p class="boot-step">Handoff</p>
           <h3><span class="path">/one</span></h3>
           <p>Current only while the console and research are alive. If the console exits, the handoff drops until it returns.</p>
+        </li>
+      </ol>
+      <p class="boot-label" id="down-title">Coming down</p>
+      <ol class="boot down" aria-labelledby="down-title">
+        <li>
+          <p class="boot-step">Research</p>
+          <h3>galion-research</h3>
+          <p>Recorded exited first. The handoff drops while the console is still up. <a href="/research/">Galion Research</a> does not return.</p>
+        </li>
+        <li>
+          <p class="boot-step">Console</p>
+          <h3>openmind-desktop</h3>
+          <p>Recorded exited next. Neither row starts again. A console exit on its own is different: that row can return, and the handoff with it.</p>
         </li>
       </ol>
     </section>
