@@ -57,6 +57,34 @@ fn no_arguments_prints_voice_then_desktop() {
 }
 
 #[test]
+fn desktop_and_voice_prints_match_the_shell_plan() {
+    let root = env!("CARGO_MANIFEST_DIR");
+    for profile in ["desktop", "voice"] {
+        let shell = Command::new("sh")
+            .arg(format!("{root}/prototype.sh"))
+            .arg(profile)
+            .output()
+            .expect("shell plan");
+        let bin = run(&[profile]);
+        assert!(shell.status.success());
+        assert!(bin.status.success());
+        let shell_text = String::from_utf8(shell.stdout).unwrap();
+        let bin_text = String::from_utf8(bin.stdout).unwrap();
+        assert_eq!(shared_lines(&shell_text), shared_lines(&bin_text));
+    }
+}
+
+fn shared_lines(text: &str) -> Vec<&str> {
+    text.lines()
+        .filter(|line| {
+            !line.starts_with("runtime ")
+                && !line.starts_with("console ")
+                && *line != "service-binary absent"
+        })
+        .collect()
+}
+
+#[test]
 fn an_unknown_argument_exits_2() {
     let out = run(&["--flash"]);
     assert_eq!(out.status.code(), Some(2));
