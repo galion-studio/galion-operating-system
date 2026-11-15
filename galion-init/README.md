@@ -26,6 +26,21 @@ Desktop, from draft #13 D2 and D4: mount, loopback, clock, then the tone hook, t
 
 The 432 Hz boot tone stays planned. Silence stays planned. The first image plays nothing and has no Silence file. A missing playback device does not stop the later lines. The hook records zero samples.
 
+## Early boot
+
+`walk_desktop` records these steps before it supervises, and it records them in this order. None of them call the host.
+
+| Step | What is recorded |
+|---|---|
+| Mounts | `/proc` (`proc`), `/sys` (`sysfs`), `/dev` (`devtmpfs`), `/run` (`tmpfs`). The squashfs root is already mounted by the kernel and is not in this list. |
+| Loopback | The interface is recorded as up. No socket is opened. |
+| Clock | The step is recorded. The host clock is not read or set. |
+| Tone | The sample count is stored. It is zero. Nothing is played. |
+| Supervise | The console row, then research. |
+| Handoff | `/one`, and only while both rows are alive. |
+
+A step out of that order is refused. A mount outside that table is refused. Supervision does not start until the clock step has been recorded.
+
 ## Commands
 
 ```
