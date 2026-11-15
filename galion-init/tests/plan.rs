@@ -2,10 +2,10 @@
 // SPDX-FileCopyrightText: 2026 Galion Labs
 
 use galion_init::{
-    admit, check_desktop_bind, desktop_plan, running_as_host_init, tone_hook, tone_samples,
-    voice_plan, AdmitError, BindError, Machine, Phase, Profile, Restart, Service, Supervisor,
-    ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_HOST, DESKTOP_PORT, ONE_URL, START_LIMIT_BURST,
-    START_LIMIT_WINDOW_SEC,
+    admit, check_desktop_bind, desktop_plan, one_target, running_as_host_init, tone_hook,
+    tone_samples, voice_plan, AdmitError, BindError, Host, Machine, Phase, Profile, Restart,
+    Service, Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT,
+    START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
 
 fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
@@ -18,6 +18,8 @@ fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
         restart_sec,
         env: Vec::new(),
         after: Vec::new(),
+        port: None,
+        handoff: None,
     }
 }
 
@@ -66,6 +68,11 @@ fn voice_boot_order_supervises_voiced_and_skips_the_desktop() {
     assert!(plan.handoff.is_none());
     assert!(plan.service("galion-voiced").is_some());
     assert!(plan.service("openmind-desktop").is_none());
+    let text = plan.render();
+    assert!(text.contains("fb0 optional\n"));
+    assert!(text.contains("display-server none\n"));
+    assert!(text.contains("handoff none\n"));
+    assert!(!contains_dotted_quad(&text));
 }
 
 #[test]
@@ -101,32 +108,32 @@ fn silence_skips_the_tone_and_keeps_the_desktop() {
 }
 
 #[test]
-fn handoff_is_loopback_18181_and_other_binds_are_refused() {
+fn handoff_is_ipv4_loopback_port_18181_and_other_binds_are_refused() {
     let plan = desktop_plan(false, true);
     let handoff = plan.handoff.expect("desktop plan has a handoff");
-    assert_eq!(handoff.host, DESKTOP_HOST);
-    assert_eq!(handoff.port, 18181);
+    assert_eq!(handoff.host, Host::Ipv4Loopback);
+    assert_eq!(handoff.port, DESKTOP_PORT);
     assert_eq!(handoff.path, "/");
-    assert_eq!(check_desktop_bind("127.0.0.1", 18181), Ok(()));
-    assert_eq!(check_desktop_bind("::1", 18181), Ok(()));
+    assert_eq!(check_desktop_bind(Host::Ipv4Loopback, 18181), Ok(()));
+    assert_eq!(check_desktop_bind(Host::Ipv6Loopback, 18181), Ok(()));
     assert_eq!(
-        check_desktop_bind("0.0.0.0", 18181),
+        check_desktop_bind(Host::Unspecified, 18181),
         Err(BindError::NotLoopback)
     );
     assert_eq!(
-        check_desktop_bind("example.test", 18181),
+        check_desktop_bind(Host::Other, 18181),
         Err(BindError::NotLoopback)
     );
     assert_eq!(
-        check_desktop_bind("127.0.0.1", 18080),
+        check_desktop_bind(Host::Ipv4Loopback, 18080),
         Err(BindError::ProbePort)
     );
     assert_eq!(
-        check_desktop_bind("127.0.0.1", 18081),
+        check_desktop_bind(Host::Ipv4Loopback, 18081),
         Err(BindError::UnusedStagingPort)
     );
     assert_eq!(
-        check_desktop_bind("127.0.0.1", 8787),
+        check_desktop_bind(Host::Ipv4Loopback, 8787),
         Err(BindError::NotDesktopPort)
     );
     assert_eq!(DESKTOP_PORT, 18181);
@@ -151,7 +158,9 @@ fn desktop_services_match_the_packaging_handoff() {
     assert!(desktop.env.is_empty());
     assert_eq!(desktop.user, "galion");
     assert!(desktop.after.is_empty());
-    assert!(!desktop.argv.iter().any(|arg| arg.contains("0.0.0.0")));
+    assert_eq!(desktop.port, Some(DESKTOP_PORT));
+    assert!(desktop.handoff.is_none());
+    assert!(desktop.argv.iter().all(|arg| !arg.contains(':')));
 
     let research = plan.service("galion-research").unwrap();
     assert_eq!(research.argv, vec!["/usr/bin/node", "src/server.js"]);
@@ -161,15 +170,16 @@ fn desktop_services_match_the_packaging_handoff() {
     );
     assert_eq!(research.user, "galion");
     assert_eq!(research.after, vec!["openmind-desktop"]);
-    assert_eq!(
-        research.env,
-        vec![
-            ("PORT".to_string(), "8787".to_string()),
-            ("GALION_ONE_URL".to_string(), ONE_URL.to_string()),
-        ]
-    );
-    assert_eq!(ONE_URL, "http://127.0.0.1:18181/one");
+    assert_eq!(research.port, Some(RESEARCH_PORT));
+    assert_eq!(research.env, vec![("PORT".to_string(), "8787".to_string())]);
+    let one = research.handoff.expect("research hands off to One");
+    assert_eq!(one, one_target());
+    assert_eq!(one.host, Host::Ipv4Loopback);
+    assert_eq!(one.port, 18181);
+    assert_eq!(one.path, ONE_PATH);
+    assert_eq!(ONE_PATH, "/one");
     for key in [
+        "GALION_ONE_URL",
         "GALION_RESEARCH_URL",
         "GALION_LLM",
         "GALION_LLM_URL",
@@ -341,8 +351,28 @@ fn render_names_the_in_memory_runtime() {
     assert!(text.contains("profile desktop\n"));
     assert!(text.contains("phase tone-hook\n"));
     assert!(text.contains("tone planned 432 samples 0\n"));
-    assert!(text.contains("handoff http://127.0.0.1:18181/\n"));
+    assert!(text.contains("handoff desktop-console to research at /one\n"));
+    assert!(text
+        .contains("GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one\n"));
+    assert!(text.contains("console http on ipv4-loopback port 18181 path /\n"));
+    assert!(text.contains("silence-file none\n"));
     assert!(text.contains("runtime in-memory\n"));
     assert!(!text.contains("systemctl"));
     assert!(!text.contains("/sbin/init"));
+    assert!(!contains_dotted_quad(&text));
+    let sample = format!("{}.{}.{}.{}", 1, 2, 3, 4);
+    assert!(contains_dotted_quad(&sample));
+    assert!(!contains_dotted_quad("port 18181 path /one"));
+}
+
+fn contains_dotted_quad(text: &str) -> bool {
+    text.split(|c: char| !c.is_ascii_digit() && c != '.')
+        .any(|token| {
+            let parts: Vec<&str> = token.split('.').filter(|part| !part.is_empty()).collect();
+            parts.len() == 4
+                && token.matches('.').count() == 3
+                && parts
+                    .iter()
+                    .all(|part| part.chars().all(|c| c.is_ascii_digit()))
+        })
 }

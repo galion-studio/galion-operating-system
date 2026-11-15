@@ -9,7 +9,7 @@
 //! This module does not fork, signal a process, call systemctl, or write
 //! a pid file. Every child is a row in [`Machine`].
 
-use crate::handoff::ONE_URL;
+use crate::handoff::{one_target, Endpoint, RESEARCH_PORT};
 
 /// Starts allowed inside [`START_LIMIT_WINDOW_SEC`] before a pause.
 pub const START_LIMIT_BURST: usize = 10;
@@ -50,6 +50,12 @@ pub struct Service {
     pub restart_sec: u64,
     pub env: Vec<(String, String)>,
     pub after: Vec<String>,
+    /// Port the image expects. `None` means this service does not listen.
+    /// The desktop argv still carries no address; the port is the crate default.
+    pub port: Option<u16>,
+    /// Where this service sends a person onward. The desktop research row
+    /// points at One on the console.
+    pub handoff: Option<Endpoint>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -345,6 +351,8 @@ pub fn desktop_services() -> Vec<Service> {
             restart_sec: 5,
             env: Vec::new(),
             after: Vec::new(),
+            port: Some(crate::handoff::DESKTOP_PORT),
+            handoff: None,
         },
         Service {
             name: "galion-research".to_string(),
@@ -353,11 +361,10 @@ pub fn desktop_services() -> Vec<Service> {
             workdir: Some("/opt/galion/research/current".to_string()),
             restart: Restart::Always,
             restart_sec: 5,
-            env: vec![
-                ("PORT".to_string(), "8787".to_string()),
-                ("GALION_ONE_URL".to_string(), ONE_URL.to_string()),
-            ],
+            env: vec![("PORT".to_string(), RESEARCH_PORT.to_string())],
             after: vec!["openmind-desktop".to_string()],
+            port: Some(RESEARCH_PORT),
+            handoff: Some(one_target()),
         },
     ]
 }
@@ -375,6 +382,8 @@ pub fn voice_service(program: &str) -> Service {
         restart_sec: 5,
         env: Vec::new(),
         after: Vec::new(),
+        port: None,
+        handoff: None,
     }
 }
 

@@ -4,8 +4,7 @@
 //! Boot orders. The kernel is already running before these phases.
 //! Recording a phase does not perform it.
 
-use crate::handoff::desktop_handoff;
-use crate::handoff::Handoff;
+use crate::handoff::{describe, desktop_handoff, Endpoint};
 use crate::supervise::{desktop_services, voice_service, AdmitError, Service, Supervisor};
 use crate::tone::{tone_hook, ToneHook, ToneInput};
 
@@ -48,7 +47,7 @@ pub struct Plan {
     pub profile: Profile,
     pub phases: &'static [Phase],
     pub tone: Option<ToneHook>,
-    pub handoff: Option<Handoff>,
+    pub handoff: Option<Endpoint>,
     pub supervisor: Supervisor,
 }
 
@@ -72,11 +71,22 @@ impl Plan {
         for service in self.supervisor.services() {
             out.push_str(&format!("service {} user {}\n", service.name, service.user));
         }
+        match self.profile {
+            Profile::Voice => {
+                out.push_str("fb0 optional\n");
+                out.push_str("display-server none\n");
+                out.push_str("service-binary absent\n");
+            }
+            Profile::Desktop => out.push_str("silence-file none\n"),
+        }
         match self.handoff {
-            Some(handoff) => out.push_str(&format!(
-                "handoff http://{}:{}{}\n",
-                handoff.host, handoff.port, handoff.path
-            )),
+            Some(handoff) => {
+                out.push_str("handoff desktop-console to research at /one\n");
+                out.push_str(
+                    "GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one\n",
+                );
+                out.push_str(&format!("console {}\n", describe(&handoff)));
+            }
             None => out.push_str("handoff none\n"),
         }
         out.push_str("runtime in-memory\n");

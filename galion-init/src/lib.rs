@@ -17,8 +17,8 @@ mod tone;
 
 pub use boot::{desktop_plan, voice_plan, Phase, Plan, Profile};
 pub use handoff::{
-    check_desktop_bind, desktop_handoff, BindError, Handoff, DESKTOP_HOST, DESKTOP_PATH,
-    DESKTOP_PORT, ONE_URL,
+    check_desktop_bind, describe, desktop_handoff, one_target, BindError, Endpoint, Host,
+    DESKTOP_PATH, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT,
 };
 pub use supervise::{
     admit, desktop_services, voice_service, AdmitError, Machine, Proc, Restart, Service,
