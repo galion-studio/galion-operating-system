@@ -10,6 +10,7 @@ set -eu
 ROOT=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
 DRY=$ROOT/packaging/dry-run.sh
 CHECK=$ROOT/packaging/check-pr-13.sh
+STORY=$ROOT/packaging/check-one-story.sh
 PASS=0
 TMP=$(mktemp -d)
 STAMP=$TMP/called
@@ -139,18 +140,27 @@ absent "--allow-real-image was set"
 ok "environment variable does not authorize a build"
 
 run_expect 0 sh "$CHECK"
-need "absent on main: docs/PACKAGING.md"
-need "absent on main: NOTICE"
-need "present on #13: docs/PACKAGING.md"
-need "present on #13: NOTICE"
-need "NOTICE on #13: The licence is LICENSE."
+need "present on main: docs/PACKAGING.md"
+need "present on main: NOTICE"
+need "NOTICE on main: The licence is LICENSE."
+need "09540d5a0b07e9399791d2d3d86c717c54802371 is on main"
 need "merge command: not run"
-need "The owner merges #13. This script did not."
-ok "pr 13 readiness"
+need "This script did not merge it."
+ok "pr 13 landed"
 
 run_expect 2 sh "$CHECK" --merge
 need "does not merge pull request 13"
 ok "readiness refuses merge"
+
+run_expect 0 sh "$STORY"
+need "one desktop boot"
+need "console port 18181"
+need "research port 8787"
+ok "one story"
+
+run_expect 2 sh "$STORY" --build
+need "does not build an image"
+ok "one story refuses build"
 
 if find "$ROOT" "$TMP" -type f \( -name '*.iso' -o -name '*.img' \) | grep -q .; then
   fail "an iso or img file exists"
