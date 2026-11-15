@@ -136,6 +136,9 @@ pub fn voice_plan(voiced_program: &str) -> Result<Plan, AdmitError> {
 
 fn service_line(service: crate::supervise::Service) -> String {
     let mut line = format!("service {} user {}", service.name, service.user);
+    if service.name == "galion-voiced" {
+        line.push_str(" binary absent");
+    }
     if service.argv.iter().any(|arg| arg == "--listen") {
         line.push_str(" listen none");
     }

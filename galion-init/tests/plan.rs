@@ -2,10 +2,10 @@
 // SPDX-FileCopyrightText: 2026 Galion Labs
 
 use galion_init::{
-    admit, check_desktop_bind, desktop_plan, one_target, running_as_host_init, tone_hook,
-    tone_samples, voice_plan, AdmitError, BindError, Host, Machine, Phase, Profile, Restart,
-    Service, Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT,
-    START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
+    admit, check_desktop_bind, desktop_plan, invocation, one_target, running_as_host_init,
+    tone_hook, tone_samples, voice_plan, AdmitError, BindError, Host, Invocation, Machine, Phase,
+    Profile, Restart, Service, Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_PORT,
+    ONE_PATH, RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
 
 fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
@@ -69,6 +69,7 @@ fn voice_boot_order_supervises_voiced_and_skips_the_desktop() {
     assert!(plan.service("galion-voiced").is_some());
     assert!(plan.service("openmind-desktop").is_none());
     let text = plan.render();
+    assert!(text.contains("service galion-voiced user galion binary absent\n"));
     assert!(text.contains("fb0 optional\n"));
     assert!(text.contains("display-server none\n"));
     assert!(text.contains("handoff none\n"));
@@ -369,6 +370,36 @@ fn render_names_the_in_memory_runtime() {
     let sample = format!("{}.{}.{}.{}", 1, 2, 3, 4);
     assert!(contains_dotted_quad(&sample));
     assert!(!contains_dotted_quad("port 18181 path /one"));
+}
+
+#[test]
+fn the_binary_refuses_execute_and_accepts_the_shell_words() {
+    assert_eq!(
+        invocation(["desktop"]),
+        Invocation::Desktop { silence: false }
+    );
+    assert_eq!(
+        invocation(["desktop", "--silence"]),
+        Invocation::Desktop { silence: true }
+    );
+    assert_eq!(
+        invocation(std::iter::empty()),
+        Invocation::Both { silence: false }
+    );
+    assert_eq!(invocation(["voice"]), Invocation::Voice);
+    assert!(matches!(
+        invocation(["--execute"]),
+        Invocation::Refuse(message) if message.contains("refusing --execute")
+    ));
+    assert!(matches!(
+        invocation(["desktop", "--execute"]),
+        Invocation::Refuse(message) if message.contains("refusing --execute")
+    ));
+    assert!(matches!(
+        invocation(["voice", "--silence"]),
+        Invocation::Refuse(_)
+    ));
+    assert!(matches!(invocation(["--flash"]), Invocation::Refuse(_)));
 }
 
 fn contains_dotted_quad(text: &str) -> bool {

@@ -39,6 +39,8 @@ The first three exit 0. No argument prints both plans. `--execute` exits 2.
 
 The Rust files next to this note are the same plan as an in-memory model. `cargo test --manifest-path galion-init/Cargo.toml --locked` runs on the CPU. The model does not fork, bind, or mint PID 1. If the `galion-init` binary's process id is 1, it exits 2.
 
+The binary takes the same words as the shell plan. No argument prints the voice plan, a blank line, then the desktop plan. `voice` and `desktop` print one plan. `--silence` selects the silenced desktop tone hook and does not read a file. `--execute` exits 2 and prints no plan. The runtime line stays `in-memory`. The voice service line says the binary is absent.
+
 ## Licence
 
 The repository [LICENSE](../LICENSE). This note does not restate it.
