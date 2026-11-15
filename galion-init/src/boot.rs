@@ -4,9 +4,9 @@
 //! Boot orders. The kernel is already running before these phases.
 //! Recording a phase does not perform it.
 
-use crate::handoff::{describe, desktop_handoff, Endpoint};
-use crate::supervise::{desktop_services, voice_service, AdmitError, Service, Supervisor};
-use crate::tone::{tone_hook, ToneHook, ToneInput};
+use crate::handoff::{describe, desktop_handoff, Endpoint, ONE_PATH};
+use crate::supervise::{desktop_services, voice_service, AdmitError, Machine, Service, Supervisor};
+use crate::tone::{tone_hook, tone_samples, ToneHook, ToneInput};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Profile {
@@ -126,6 +126,39 @@ pub fn desktop_plan(silence: bool, playback_present: bool) -> Plan {
         })),
         handoff: Some(desktop_handoff()),
         supervisor,
+    }
+}
+
+/// One in-memory step of the desktop boot. PIDs are rows in `machine`.
+/// Nothing is forked. The tone sample count is zero.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DesktopWalk {
+    pub console_pid: u32,
+    pub research_pid: u32,
+    pub samples: usize,
+    pub handoff_path: &'static str,
+}
+
+/// Step the desktop plan once. The console is recorded before research.
+/// The handoff path is `/one` only after both rows are alive. `galion-voiced`
+/// is not started.
+pub fn walk_desktop(silence: bool, playback_present: bool, machine: &mut Machine) -> DesktopWalk {
+    let mut plan = desktop_plan(silence, playback_present);
+    let samples = tone_samples(plan.tone.expect("desktop plan has a tone hook"));
+    plan.supervisor.tick(machine);
+    let console_pid = plan
+        .supervisor
+        .pid_of("openmind-desktop")
+        .expect("console row");
+    let research_pid = plan
+        .supervisor
+        .pid_of("galion-research")
+        .expect("research row");
+    DesktopWalk {
+        console_pid,
+        research_pid,
+        samples,
+        handoff_path: ONE_PATH,
     }
 }
 
