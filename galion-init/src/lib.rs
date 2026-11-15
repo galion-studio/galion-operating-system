@@ -12,6 +12,7 @@
 
 mod boot;
 mod cli;
+mod early;
 mod handoff;
 mod supervise;
 mod tone;
@@ -20,6 +21,7 @@ pub use boot::{
     desktop_plan, handoff_ready, voice_plan, walk_desktop, DesktopWalk, Phase, Plan, Profile,
 };
 pub use cli::{invocation, Invocation};
+pub use early::{BootError, EarlyBoot, MountSpec, DESKTOP_MOUNTS};
 pub use handoff::{
     check_desktop_bind, describe, desktop_handoff, one_target, BindError, Endpoint, Host,
     DESKTOP_PATH, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT,

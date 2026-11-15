@@ -4,6 +4,7 @@
 //! Boot orders. The kernel is already running before these phases.
 //! Recording a phase does not perform it.
 
+use crate::early::EarlyBoot;
 use crate::handoff::{describe, desktop_handoff, Endpoint, ONE_PATH};
 use crate::supervise::{desktop_services, voice_service, AdmitError, Machine, Service, Supervisor};
 use crate::tone::{tone_hook, tone_samples, ToneHook, ToneInput};
@@ -145,25 +146,30 @@ pub struct DesktopWalk {
 /// is not started.
 pub fn walk_desktop(silence: bool, playback_present: bool, machine: &mut Machine) -> DesktopWalk {
     let mut plan = desktop_plan(silence, playback_present);
+    let mut boot = EarlyBoot::new();
+    boot.mount().expect("desktop mounts");
+    boot.loopback().expect("loopback");
+    boot.clock().expect("clock");
     let samples = tone_samples(plan.tone.expect("desktop plan has a tone hook"));
+    boot.tone(samples).expect("tone");
     plan.supervisor.tick(machine);
-    let console_pid = plan
-        .supervisor
-        .pid_of("openmind-desktop")
-        .expect("console row");
-    let research_pid = plan
-        .supervisor
-        .pid_of("galion-research")
-        .expect("research row");
-    let handoff_path = if handoff_ready(&plan, machine) {
+    boot.supervise().expect("supervise");
+    let ready = handoff_ready(&plan, machine);
+    let handoff_path = if boot.handoff(ready).is_ok() {
         ONE_PATH
     } else {
         ""
     };
     DesktopWalk {
-        console_pid,
-        research_pid,
-        samples,
+        console_pid: plan
+            .supervisor
+            .pid_of("openmind-desktop")
+            .expect("console row"),
+        research_pid: plan
+            .supervisor
+            .pid_of("galion-research")
+            .expect("research row"),
+        samples: boot.samples(),
         handoff_path,
     }
 }

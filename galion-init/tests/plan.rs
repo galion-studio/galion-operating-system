@@ -4,8 +4,9 @@
 use galion_init::{
     admit, check_desktop_bind, desktop_plan, handoff_ready, invocation, one_target,
     running_as_host_init, tone_hook, tone_samples, voice_plan, walk_desktop, AdmitError, BindError,
-    Host, Invocation, Machine, Phase, Profile, Restart, Service, Supervisor, ToneHook, ToneInput,
-    BOOT_TONE_HZ, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
+    BootError, EarlyBoot, Host, Invocation, Machine, Phase, Profile, Restart, Service, Supervisor,
+    ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_MOUNTS, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT,
+    START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
 
 fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
@@ -288,6 +289,63 @@ fn research_does_not_return_while_the_console_is_down() {
     assert_ne!(console_again, console);
     assert_ne!(research_again, research);
     assert!(handoff_ready(&plan, &machine));
+}
+
+#[test]
+fn early_boot_mounts_loopback_and_clock_before_supervision() {
+    assert_eq!(
+        DESKTOP_MOUNTS
+            .iter()
+            .map(|spec| (spec.target, spec.kind))
+            .collect::<Vec<_>>(),
+        vec![
+            ("/proc", "proc"),
+            ("/sys", "sysfs"),
+            ("/dev", "devtmpfs"),
+            ("/run", "tmpfs"),
+        ]
+    );
+    let mut boot = EarlyBoot::new();
+    assert_eq!(boot.supervise(), Err(BootError::OutOfOrder));
+    assert!(boot.mounted().is_empty());
+    assert!(!boot.loopback_up());
+
+    boot.mount().unwrap();
+    assert_eq!(boot.mount(), Err(BootError::OutOfOrder));
+    assert_eq!(boot.mounted(), ["/proc", "/sys", "/dev", "/run"]);
+    boot.loopback().unwrap();
+    assert!(boot.loopback_up());
+    assert!(!boot.clock_stepped());
+    boot.clock().unwrap();
+    assert!(boot.clock_stepped());
+    boot.tone(0).unwrap();
+    assert_eq!(boot.samples(), 0);
+
+    let mut plan = desktop_plan(false, true);
+    let mut machine = Machine::new(0);
+    assert!(machine.procs.is_empty());
+    plan.supervisor.tick(&mut machine);
+    boot.supervise().unwrap();
+    let console = plan.supervisor.pid_of("openmind-desktop").unwrap();
+    machine.exited(console, false);
+    assert_eq!(
+        boot.handoff(handoff_ready(&plan, &machine)),
+        Err(BootError::HandoffNotReady)
+    );
+    assert!(!boot.handed_off());
+
+    machine.now = 5;
+    plan.supervisor.tick(&mut machine);
+    assert_eq!(
+        boot.handoff(handoff_ready(&plan, &machine)),
+        Err(BootError::HandoffNotReady)
+    );
+    machine.now = 10;
+    plan.supervisor.tick(&mut machine);
+    boot.handoff(handoff_ready(&plan, &machine)).unwrap();
+    assert!(boot.handed_off());
+    assert_ne!(plan.supervisor.pid_of("openmind-desktop").unwrap(), 1);
+    assert_ne!(plan.supervisor.pid_of("galion-research").unwrap(), 1);
 }
 
 #[test]
