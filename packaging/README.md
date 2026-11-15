@@ -21,3 +21,5 @@ sh packaging/dry-run.sh --execute
 The first command exits 0 and writes nothing. `--execute`, `--build`, `--flash`, and `--publish` exit 2 and write nothing. An explicit allow flag does not start a build while `galion-init` is planned.
 
 `sh packaging/check-pr-13.sh` records that pull request #13 is on `main`. It does not merge anything. `sh packaging/check-one-story.sh` checks that this dry run and `galion-init/prototype.sh desktop` name the same boot: `galion-init` planned, console port 18181, research port 8787, handoff `/one`, tone not played.
+
+`sh packaging/layout.sh` prints the four desktop files the image root would hold: the console and research as user `galion`, and the two static page directories with no user. `galion-voiced` and `galion-probe` are off this image. The command writes nothing. An argument exits 2.
