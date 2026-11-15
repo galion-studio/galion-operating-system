@@ -1,0 +1,33 @@
+# Lint the image scripts and run the dry run.
+# This job does not build an ISO, write a disk image, flash a device,
+# upload an artifact, or publish a release.
+
+name: Image dry run
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  image-dry-run:
+    name: Lint and dry run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Lint image scripts
+        run: REQUIRE_SHELLCHECK=1 bash scripts/image/lint.sh
+
+      - name: Dry run
+        run: bash scripts/image/dry-run.sh
+
+      - name: Refusal tests
+        run: bash scripts/image/test-dry-run.sh

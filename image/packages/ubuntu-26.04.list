@@ -1,0 +1,15 @@
+# G.A.L.I.O.N. — General Autonomous Local Intelligence Open Network
+# Developed and distributed by Galion Labs
+# Perpetual Open MIT License
+# Copyright © 2026 Galion Labs. All rights reserved.
+# The licence text is LICENSE. This file does not restate it.
+#
+# Ubuntu 26.04 LTS base rows for the desktop image dry run.
+# Format: status<TAB>name<TAB>note
+# status is included, excluded, or unnamed.
+# The dry run does not install any row.
+
+included	nodejs	Ubuntu 26.04 nodejs package, path /usr/bin/node. Version 22.22.1 is the figure recorded in docs/PACKAGING.md D1. This dry run does not install it and does not re-query the archive.
+excluded	unattended-upgrades	Stays off the image. Updates stay on the image channel in docs/PACKAGING.md section 9.
+unnamed	kernel	Ubuntu 26.04 kernel. docs/PACKAGING.md D1 does not name an apt package.
+unnamed	firmware	Ubuntu 26.04 firmware. docs/PACKAGING.md D1 does not name an apt package.
