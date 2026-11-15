@@ -6,6 +6,20 @@ Repository: [galion-studio/galion-operating-system](https://github.com/galion-st
 
 This file is the shared plan. Workers read it on the open draft pull request titled **Swarm 9 os plan**, and on `main` after that pull request merges. Each worker stays in one lane. Notes for a lane go in that lane's own draft pull request.
 
+## Design direction
+
+Owner direction, 2026-11-15 15:25 +01:00. It applies to every Swarm 9 lane.
+
+Ship something that works. A genuinely great experience matters more than a perfect surface. The UI stays very small and beautiful. The operating system, the desktop, the apps, and the browsers on Linux should feel like one product: one boot, one console, one research handoff, one set of pages. Prefer a working connected flow over extra polish.
+
+Reuse [docs/brand/BRANDING-V2.md](../../../../brand/BRANDING-V2.md) in this repository and `brand/STYLE-GUIDE.md` in [obsidian-open-mind](https://github.com/galion-studio/obsidian-open-mind). Do not invent a new visual language, a new palette, or a new wordmark.
+
+What that means in each lane:
+
+- **Packaging.** The dry-run prints one image story: Ubuntu 26.04, `galion-init`, the console on port 18181, research on port 8787, static pages as files. It does not build a second image and it does not play the 432 Hz tone.
+- **galion-init.** The prototype prints one boot that hands the desktop console to research at `/one`. It does not draw a screen.
+- **Site.** Polish the pages that already exist. Keep Branding V2 (Jost, IBM Plex, obsidian, amber, violet). Keep the skip link, the focus ring, and reduced motion. Do not add a new stylesheet language.
+
 ## Standing permission and merge order
 
 Owner standing permission, by voice, 2026-11-15 15:21 +01:00. It applies to Swarm 9 only. It supersedes the earlier Swarm 9 rule that the orchestrator must not merge.
@@ -17,6 +31,8 @@ The orchestrator is the merge authority for Swarm 9 pull requests in this reposi
 3. The orchestrator's review has nothing open.
 
 The merge is a normal merge commit. One pull request at a time. The next branch is updated from `main` and CI runs again on that new head before the next merge. Workers mark their own pull request ready when their checks are green. Workers do not merge.
+
+15:26 +01:00: continue until the three worker pull requests are finished and their checks are green. Work already described in this plan does not wait for another approval. A repository transfer still waits for the owner's yes on the list below.
 
 After a merge, a workflow that already exists in this repository may run on the push to `main`. The tree on `b9517e9` has one workflow, `.github/workflows/link-check.yml` (`pull_request`, and `push` to `main`). It is a check, and it is the run to report. This plan adds no deploy workflow, no Pages config, and no server step. Agents have no server credentials and do not request any.
 
@@ -148,7 +164,7 @@ Polish and accessibility on the existing landing pages. The site stays a local p
 |---|---|---|---|
 | P1 | `docs/PACKAGING.md`, `docs/PACKAGING-DECISIONS.md`, and `NOTICE` exist only on the #13 branch. #14 shows as merged. Its base was the #13 branch, so the file is not on `main`. | packaging | Write `docs/swarm-9/2026-11-15/os/pr-13-merge-readiness.md`. The owner merges #13. This swarm does not. |
 | S1 | Link-check stays green. The site is not deployed. | site | Acceptance above. The lane does not add a deploy. |
-| O1 | Creating the `galion-labs` GitHub organisation is an owner action in the GitHub UI (`labs/README.md`, "The organisation is a manual step"). | none | Recorded. No lane creates the organisation, a team, or a billing account. |
+| O1 | Labs GitHub organisation. The owner reported it created at 15:25 +01:00. Public API checks at 15:26 +01:00 did not confirm a slug. | none | Unverified. References stay planned. No lane creates an organisation, and no lane transfers a repository. |
 | R1 | [#6](https://github.com/galion-studio/galion-operating-system/pull/6) removes `docs/voice-profile/he-IL/`. [#7](https://github.com/galion-studio/galion-operating-system/pull/7) already landed that removal (`merged_at` 2026-11-02T10:13:41Z, merge commit `e48f3d4f6b7f2f0e0ae77ba4784ab427fb54587d`). `docs/voice-profile/he-IL/` is absent on `main` at `b9517e9`. Swarm 8 B3 owns #6. B3's draft #17 asks the owner to close #6. | none | Recorded. Swarm 9 does not edit, close, or merge #6 or #17. |
 
 ### P1 checklist for the owner
@@ -164,6 +180,33 @@ Orchestrator reading at 15:23 +01:00. The packaging lane re-checks these on its 
 - [ ] The #13 diff adds no workflow, image, release, or price change.
 - [ ] `link-check` on `3adee77` succeeded: [run 43722765891](https://github.com/galion-studio/galion-operating-system/actions/runs/43722765891). The job does not scan Markdown. `link-check` on `main` `b9517e9` succeeded: [run 43659226573](https://github.com/galion-studio/galion-operating-system/actions/runs/43659226573).
 - [ ] After the owner merges #13, `main` contains `NOTICE`, `docs/PACKAGING.md`, and `docs/PACKAGING-DECISIONS.md`.
+
+### O1. Labs organisation, unverified
+
+The kit in `labs/README.md` spells a future organisation name. That spelling is a candidate, not a confirmed slug. Checked with the public GitHub API at 2026-11-15 15:26 +01:00:
+
+| Candidate | Result |
+|---|---|
+| `galion-labs` | `GET /users/galion-labs` returned 404. |
+| `galionlabs` | Organisation id `184885785`, created 2024-10-14, display name "Galion Labs", blog `galionlabs.vercel.app`, 0 public repos, `updated_at` 2025-01-09. Not created today. |
+| `Galion-Lab` | Organisation id `352079080`, created 2026-11-03, display name "Galion Lab", 0 public repos. |
+| Search `galion type:org created:>=2026-11-14` | `total_count` 0. |
+| `GET /users/galion-studio/orgs` | No organisations in the response. |
+| Authenticated org list | 403, not readable with this token. |
+
+`galionlabs` and `Galion-Lab` stay unverified. They are not linked from this plan. Site copy and the labs kit keep the organisation as planned until the owner confirms the slug. No Swarm 9 pull request turns those words into a live organisation URL.
+
+### Proposed transfer list
+
+No repository was transferred. A transfer waits for the owner's yes, and it still needs a confirmed slug.
+
+| Repository | Proposal | Why |
+|---|---|---|
+| `galion-studio/galion-operating-system` | Keep. Do not transfer. | Canonical `LICENSE`, the site, and the OS notes. `main` is the source of truth. |
+| `galion-studio/obsidian-open-mind` | Keep. Do not transfer. | Desktop console, port 18181, Branding files the site reuses. |
+| `galion-studio/hermes-research` | Keep. Do not transfer. | Research desk, port 8787. |
+| `galion-studio/galion-one-voice` | Keep. Do not transfer. | Outside this swarm. |
+| Labs kit in this repo (`labs/`) | Do not transfer this repo. After the slug is confirmed, the owner may copy the kit into a new `.github` repository in that organisation. | `labs/README.md` already describes a copy, not a move. |
 
 ## Paths no Swarm 9 lane edits
 

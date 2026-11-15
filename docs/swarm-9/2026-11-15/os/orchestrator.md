@@ -51,13 +51,20 @@ Each exited 0.
 - `docs/swarm-9/2026-11-15/os/PLAN.md` — lanes, file ownership, acceptance, backlog map, standing permission, merge order.
 - This notes file.
 
+## Later owner direction, recorded in PLAN.md
+
+- 15:25 +01:00. Design direction for every lane: working, a great experience, a very small beautiful UI, one product across the OS, desktop, apps, and browsers. Reuse Branding V2 and the Open Mind style guide.
+- 15:25 +01:00. The owner reported a Labs GitHub organisation. Public API checks at 15:26 +01:00 did not confirm `galion-labs` (404). `galionlabs` and `Galion-Lab` are recorded as unverified. References stay planned. No live organisation link was added.
+- 15:26 +01:00. Keep going until the swarm's pull requests are green. Transfers still wait for a yes on the list in the plan. No transfer was performed.
+
 ## Open questions for Maciej
 
 1. Merge #13 when the checklist in the plan still holds. Swarm 9 will not merge it.
 2. Close #6. Swarm 8 B3 already recorded that in #17. Swarm 9 will not close it.
-3. Create `galion-labs` in the GitHub UI when you want that organisation. No agent creates it.
-4. The Hermes binary for the later GUI profile stays your pick.
-5. A 432 Hz boot tone and persistent Silence stay planned. This swarm does not build them.
+3. Confirm the Labs organisation slug. The kit's spelling returned 404. Two other organisations exist and were not treated as this one.
+4. Approve or reject the transfer list. The proposal is to transfer nothing.
+5. The Hermes binary for the later GUI profile stays your pick.
+6. A 432 Hz boot tone and persistent Silence stay planned. This swarm does not build them.
 
 ## Refused or skipped
 
