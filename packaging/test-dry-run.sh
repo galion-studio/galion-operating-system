@@ -11,6 +11,7 @@ ROOT=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
 DRY=$ROOT/packaging/dry-run.sh
 CHECK=$ROOT/packaging/check-pr-13.sh
 STORY=$ROOT/packaging/check-one-story.sh
+LAYOUT=$ROOT/packaging/layout.sh
 PASS=0
 TMP=$(mktemp -d)
 STAMP=$TMP/called
@@ -161,6 +162,24 @@ ok "one story"
 run_expect 2 sh "$STORY" --build
 need "does not build an image"
 ok "one story refuses build"
+
+run_expect 0 sh "$LAYOUT"
+need "mode: layout"
+need "written: no"
+need "payload openmind-desktop user galion path /opt/galion/openmind-desktop/openmind-desktop"
+need "payload site-one user none path /opt/galion/site/one/"
+need "payload site-research user none path /opt/galion/site/research/"
+need "payload hermes-research user galion path /opt/galion/research/current/"
+need "off galion-voiced"
+need "off galion-probe"
+need "no file was written"
+absent "payload galion-voiced"
+absent "payload galion-one"
+ok "root layout"
+
+run_expect 2 sh "$LAYOUT" --execute
+need "does not write an image"
+ok "layout refuses execute"
 
 if find "$ROOT" "$TMP" -type f \( -name '*.iso' -o -name '*.img' \) | grep -q .; then
   fail "an iso or img file exists"
