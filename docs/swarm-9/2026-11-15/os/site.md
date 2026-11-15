@@ -57,9 +57,13 @@ Contrast, sampled from the painted pixels (most common colour in the element box
 
 All of those are above the WCAG AA 4.5:1 threshold for the sizes used. The kicker is below the solid-ground figure in Branding V2 (7.71:1) because the wash sits behind it. The token was not changed.
 
-Preview `http://127.0.0.1:8765/one/?currency=eur` showed the Plus card as Planned, €20 / month, and the sentence "Planned. Billing is not live." Free forever had no Planned badge. The page had two Planned badges, `paid_tiers` in the text, no `form`, and no checkout.
+A local preview of the Galion One page with `?currency=eur` showed the Plus card as Planned, €20 / month, and the sentence "Planned. Billing is not live." Free forever had no Planned badge. The page had two Planned badges, `paid_tiers` in the text, no `form`, and no checkout.
+
+## Review, 2026-11-15 15:33 +01:00
+
+The orchestrator asked for two edits. The preview line above no longer contains a numeric address. The Labs landing now says the owner reports the organisation created and the public slug is unverified. It does not link an organisation.
 
 ## Open questions for Maciej
 
 - The heather kicker on the wash measures 6.92:1. It passes AA. Say if the wash should be pulled back so that label matches the solid-ground figure.
-- The Swarm 9 os plan draft was not open, so this lane had no plan file to read.
+- Confirm the Labs public slug. Until then the landing keeps the organisation planned and unverified.
