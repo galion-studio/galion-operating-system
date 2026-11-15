@@ -154,12 +154,39 @@ pub fn walk_desktop(silence: bool, playback_present: bool, machine: &mut Machine
         .supervisor
         .pid_of("galion-research")
         .expect("research row");
+    let handoff_path = if handoff_ready(&plan, machine) {
+        ONE_PATH
+    } else {
+        ""
+    };
     DesktopWalk {
         console_pid,
         research_pid,
         samples,
-        handoff_path: ONE_PATH,
+        handoff_path,
     }
+}
+
+/// The desktop handoff is current only while the console and research rows
+/// are both alive. A voice plan has no handoff.
+pub fn handoff_ready(plan: &Plan, machine: &Machine) -> bool {
+    plan.profile == Profile::Desktop
+        && plan.service("galion-research").is_some_and(|service| {
+            service
+                .handoff
+                .is_some_and(|endpoint| endpoint.path == ONE_PATH)
+        })
+        && child_alive(plan, machine, "openmind-desktop")
+        && child_alive(plan, machine, "galion-research")
+}
+
+fn child_alive(plan: &Plan, machine: &Machine, name: &str) -> bool {
+    plan.supervisor.pid_of(name).is_some_and(|pid| {
+        machine
+            .procs
+            .iter()
+            .any(|proc| proc.pid == pid && proc.alive)
+    })
 }
 
 /// Voice image plan. `voiced_program` is the absolute path of `galion-voiced`.

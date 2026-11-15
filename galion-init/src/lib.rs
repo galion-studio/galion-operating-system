@@ -16,7 +16,9 @@ mod handoff;
 mod supervise;
 mod tone;
 
-pub use boot::{desktop_plan, voice_plan, walk_desktop, DesktopWalk, Phase, Plan, Profile};
+pub use boot::{
+    desktop_plan, handoff_ready, voice_plan, walk_desktop, DesktopWalk, Phase, Plan, Profile,
+};
 pub use cli::{invocation, Invocation};
 pub use handoff::{
     check_desktop_bind, describe, desktop_handoff, one_target, BindError, Endpoint, Host,
