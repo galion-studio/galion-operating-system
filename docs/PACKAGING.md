@@ -329,7 +329,7 @@ Static pages stay files under `/opt/galion/site/one/` and `/opt/galion/site/rese
 
 ### D5. Copyright, decided
 
-This repository has a [NOTICE](../NOTICE). It carries the four G.A.L.I.O.N. lines and the MIT line `Copyright (c) 2026 Galion Labs`, matching [LICENSE](../LICENSE). The image root includes that file. Each other tree keeps its own `LICENSE`. This NOTICE does not replace them.
+Decided 2026-11-15, 15:01 CET. This repository has a [NOTICE](../NOTICE). It carries the four G.A.L.I.O.N. lines and the description "perpetual open MIT licence — Galion Labs". The grant stays the standard MIT text in [LICENSE](../LICENSE), with `Copyright (c) 2026 Galion Labs`. NOTICE does not restate that grant. The image root includes NOTICE. Each other tree keeps its own `LICENSE`.
 
 ### Settled, and still standing under those decisions
 
