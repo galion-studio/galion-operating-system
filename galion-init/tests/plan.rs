@@ -2,10 +2,10 @@
 // SPDX-FileCopyrightText: 2026 Galion Labs
 
 use galion_init::{
-    admit, check_desktop_bind, desktop_plan, invocation, one_target, running_as_host_init,
-    tone_hook, tone_samples, voice_plan, walk_desktop, AdmitError, BindError, Host, Invocation,
-    Machine, Phase, Profile, Restart, Service, Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ,
-    DESKTOP_PORT, ONE_PATH, RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
+    admit, check_desktop_bind, desktop_plan, handoff_ready, invocation, one_target,
+    running_as_host_init, tone_hook, tone_samples, voice_plan, walk_desktop, AdmitError, BindError,
+    Host, Invocation, Machine, Phase, Profile, Restart, Service, Supervisor, ToneHook, ToneInput,
+    BOOT_TONE_HZ, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
 
 fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
@@ -224,6 +224,35 @@ fn one_desktop_walk_starts_the_console_then_research_and_plays_nothing() {
                 .all(|proc| proc.name != "galion-voiced" && proc.name != "galion-one"));
         }
     }
+}
+
+#[test]
+fn the_handoff_is_current_only_while_the_console_is_alive() {
+    let mut plan = desktop_plan(false, true);
+    let mut machine = Machine::new(0);
+    assert!(!handoff_ready(&plan, &machine));
+    plan.supervisor.tick(&mut machine);
+    assert!(handoff_ready(&plan, &machine));
+
+    let console = plan.supervisor.pid_of("openmind-desktop").unwrap();
+    assert!(machine.exited(console, false));
+    assert!(!handoff_ready(&plan, &machine));
+    let research = plan.supervisor.pid_of("galion-research").unwrap();
+    assert!(machine
+        .procs
+        .iter()
+        .any(|proc| proc.pid == research && proc.alive));
+
+    plan.supervisor.tick(&mut machine);
+    assert!(plan.supervisor.pid_of("openmind-desktop").is_none());
+    assert!(!handoff_ready(&plan, &machine));
+
+    machine.now = 5;
+    plan.supervisor.tick(&mut machine);
+    assert!(handoff_ready(&plan, &machine));
+
+    let voice = voice_plan("/opt/galion/fixture/galion-voiced").unwrap();
+    assert!(!handoff_ready(&voice, &machine));
 }
 
 #[test]
