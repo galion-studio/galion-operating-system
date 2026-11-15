@@ -313,6 +313,66 @@ fn a_stop_before_the_first_tick_starts_nothing() {
     assert!(machine.procs.is_empty());
 }
 
+fn supervised_boot() -> EarlyBoot {
+    let mut boot = EarlyBoot::new();
+    boot.mount().unwrap();
+    boot.loopback().unwrap();
+    boot.clock().unwrap();
+    boot.tone(0).unwrap();
+    boot.supervise().unwrap();
+    boot
+}
+
+#[test]
+fn the_handoff_drops_when_research_comes_down_and_stays_down() {
+    let mut boot = supervised_boot();
+    assert_eq!(boot.release(false), Err(BootError::OutOfOrder));
+
+    let mut plan = desktop_plan(false, true);
+    let mut machine = Machine::new(0);
+    plan.supervisor.tick(&mut machine);
+    boot.handoff(handoff_ready(&plan, &machine)).unwrap();
+    assert!(boot.handed_off());
+    assert_eq!(boot.release(true), Err(BootError::HandoffStillCurrent));
+    assert!(boot.handed_off());
+
+    plan.supervisor.request_stop();
+    plan.supervisor.tick(&mut machine);
+    assert!(plan.supervisor.pid_of("openmind-desktop").is_some());
+    assert!(!handoff_ready(&plan, &machine));
+    boot.release(handoff_ready(&plan, &machine)).unwrap();
+    assert!(!boot.handed_off());
+    assert_eq!(
+        boot.handoff(handoff_ready(&plan, &machine)),
+        Err(BootError::HandoffNotReady)
+    );
+
+    plan.supervisor.tick(&mut machine);
+    assert!(plan.supervisor.is_done("openmind-desktop"));
+    assert!(plan.supervisor.is_done("galion-research"));
+    assert!(!boot.handed_off());
+}
+
+#[test]
+fn a_dropped_handoff_can_be_recorded_again_after_the_console_returns() {
+    let mut boot = supervised_boot();
+    let mut plan = desktop_plan(false, true);
+    let mut machine = Machine::new(0);
+    plan.supervisor.tick(&mut machine);
+    boot.handoff(handoff_ready(&plan, &machine)).unwrap();
+
+    let console = plan.supervisor.pid_of("openmind-desktop").unwrap();
+    assert!(machine.exited(console, false));
+    boot.release(handoff_ready(&plan, &machine)).unwrap();
+    assert!(!boot.handed_off());
+
+    plan.supervisor.tick(&mut machine);
+    machine.now = 5;
+    plan.supervisor.tick(&mut machine);
+    boot.handoff(handoff_ready(&plan, &machine)).unwrap();
+    assert!(boot.handed_off());
+}
+
 #[test]
 fn research_does_not_return_while_the_console_is_down() {
     let mut plan = desktop_plan(false, true);
