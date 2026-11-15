@@ -11,6 +11,7 @@ pub enum Invocation {
     Desktop { silence: bool },
     Voice,
     Both { silence: bool },
+    Walk { silence: bool },
     Refuse(&'static str),
 }
 
@@ -32,7 +33,7 @@ where
     for arg in args {
         match arg {
             "--silence" => silence = true,
-            "desktop" | "voice" => {
+            "desktop" | "voice" | "walk" => {
                 if profile.is_some() {
                     return Invocation::Refuse(UNKNOWN);
                 }
@@ -45,6 +46,7 @@ where
         Some("voice") if silence => Invocation::Refuse(UNKNOWN),
         Some("voice") => Invocation::Voice,
         Some("desktop") => Invocation::Desktop { silence },
+        Some("walk") => Invocation::Walk { silence },
         None => Invocation::Both { silence },
         Some(_) => Invocation::Refuse(UNKNOWN),
     }

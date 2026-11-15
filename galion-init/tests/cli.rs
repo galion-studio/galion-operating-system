@@ -85,6 +85,26 @@ fn shared_lines(text: &str) -> Vec<&str> {
 }
 
 #[test]
+fn walk_prints_the_in_memory_step_and_no_pids() {
+    let out = run(&["walk"]);
+    assert!(out.status.success());
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(
+        text,
+        "\
+walk desktop
+tone planned
+order console then research
+samples 0
+handoff /one
+galion-voiced absent
+runtime in-memory
+"
+    );
+    assert!(out.stderr.is_empty());
+}
+
+#[test]
 fn an_unknown_argument_exits_2() {
     let out = run(&["--flash"]);
     assert_eq!(out.status.code(), Some(2));
