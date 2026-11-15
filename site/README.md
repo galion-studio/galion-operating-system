@@ -13,7 +13,7 @@ Static pages for galion.app. HTML and CSS, one small stylesheet, self-hosted fon
 | `/voice/` | [voice/index.html](voice/index.html) | Galion Voice, the voice model inside Galion One. Not a separate product. |
 | `/labs/` | [labs/index.html](labs/index.html) | Galion Labs. |
 
-The same pricing section is on each page. Billing is not live. `paid_tiers` stays false. Nothing on these pages takes a card.
+The same pricing section is on each page. Plus and Ultra are labelled Planned. Billing is not live. `paid_tiers` stays false. Nothing on these pages takes a card.
 
 ## Prices
 

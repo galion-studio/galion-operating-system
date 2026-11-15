@@ -21,7 +21,7 @@
         <img class="word" src="/assets/marks/wordmark-on-dark.svg" alt="Galion" width="76" height="22">
       </a>
       <div class="menu">
-        <input class="nav-toggle" id="nav-toggle" type="checkbox">
+        <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-controls="site-nav">
         <label class="nav-button" for="nav-toggle"><span class="when-closed">Menu</span><span class="when-open">Close</span></label>
       </div>
       <nav class="nav" id="site-nav" aria-label="Primary">
@@ -38,9 +38,9 @@
 
     <section class="hero" aria-labelledby="research-title">
       <div>
-        <p class="kicker">Ultra · Galion Research</p>
+        <p class="kicker">Planned · Galion Research</p>
         <h1 id="research-title">A research voice that shows its work.</h1>
-        <p class="lede">Galion Research is the research product inside the Obsidian desktop. It is curious and analytical. It separates what was found from what was guessed, and it says which is which. Ultra is <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Billing is not live.</p>
+        <p class="lede">Galion Research is the research product inside the Obsidian desktop. It is curious and analytical. It separates what was found from what was guessed, and it says which is which. Ultra is a planned <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Billing is not live.</p>
         <div class="actions">
           <a class="btn" href="https://github.com/galion-studio/hermes-research">Hermes Research on GitHub</a>
           <a class="btn quiet" href="https://github.com/galion-studio/obsidian-open-mind">Open Mind on GitHub</a>
@@ -63,7 +63,7 @@
       <p class="section-label">Where it sits</p>
       <h2 id="place-title">Inside the desktop.</h2>
       <div class="prose">
-        <p>Ultra is <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. The companion is <a href="/one/">Galion One</a>, at Plus. The voice model inside One is <a href="/voice/">Galion Voice</a>. It is not a separate product. A research question does not borrow the companion's persona, and it does not borrow Jarvis.</p>
+        <p>Ultra is a planned <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. The companion is <a href="/one/">Galion One</a>, at Plus. The voice model inside One is <a href="/voice/">Galion Voice</a>. It is not a separate product. A research question does not borrow the companion's persona, and it does not borrow Jarvis.</p>
         <p>Empathy, when a grant allows it, is the same live process as the rest of the voice: pace, warmth, and a pause. The finding stays the finding. The learned emotion detector is in development.</p>
         <p>Billing is not live. This page does not take a card. Read the Open Mind repository for what the CPU stack already builds, and read it with its own status table. Scaffolds are labelled there.</p>
       </div>
@@ -73,7 +73,7 @@
     <section id="pricing" aria-labelledby="pricing-title">
       <p class="section-label">Pricing</p>
       <h2 id="pricing-title">Three ways in. One of them is free forever.</h2>
-      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
+      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at a planned <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at a planned <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
       <div class="prices">
         <article class="price free">
           <h3>Free forever</h3>
@@ -83,18 +83,20 @@
           <p><a href="/operating-system/">Galion Operating System</a></p>
         </article>
         <article class="price">
+          <p class="badge">Planned</p>
           <h3>Plus</h3>
           <p class="product">Galion One</p>
           <p class="amount"><span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span><span class="period"> / month</span></p>
-          <p>The companion. Galion Voice is the voice model inside Galion One. The price is written down. Billing is not live.</p>
+          <p>The companion. Galion Voice is the voice model inside Galion One. Planned. Billing is not live.</p>
           <p><a href="/one/">Galion One</a></p>
         </article>
         <article class="price">
+          <p class="badge">Planned</p>
           <h3>Ultra</h3>
           <p class="product">Galion Research</p>
           <p class="amount"><span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span><span class="period"> / month</span></p>
-          <p>The research product. The price is written down. Billing is not live.</p>
-          <p><a href="/research/">Galion Research</a></p>
+          <p>The research product. Planned. Billing is not live.</p>
+          <p><a href="/research/" aria-current="page">Galion Research</a></p>
         </article>
       </div>
       <div class="note">
@@ -136,7 +138,7 @@ SOFTWARE.</pre>
         <nav aria-label="Footer">
           <a href="/">Galion OS</a>
           <a href="/one/">Galion One</a>
-          <a href="/research/">Galion Research</a>
+          <a href="/research/" aria-current="page">Galion Research</a>
           <a href="/operating-system/">Operating System</a>
           <a href="/voice/">Voice model</a>
           <a href="/labs/">Galion Labs</a>
@@ -147,5 +149,6 @@ SOFTWARE.</pre>
       </div>
     </div>
   </footer>
+  <script src="/assets/nav.js"></script>
 </body>
 </html>
