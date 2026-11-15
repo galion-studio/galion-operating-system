@@ -56,11 +56,12 @@ Each exited 0.
 - 15:25 +01:00. Design direction for every lane: working, a great experience, a very small beautiful UI, one product across the OS, desktop, apps, and browsers. Reuse Branding V2 and the Open Mind style guide.
 - 15:25 +01:00. The owner reported a Labs GitHub organisation. Public API checks at 15:26 +01:00 did not confirm `galion-labs` (404). `galionlabs` and `Galion-Lab` are recorded as unverified. References stay planned. No live organisation link was added.
 - 15:26 +01:00. Keep going until the swarm's pull requests are green. Transfers still wait for a yes on the list in the plan. No transfer was performed.
+- 15:29 +01:00. Older pull requests: take one only when it is blocked or failing. #13 and #17 stay for the owner. Their `link-check` runs are green. #6 belongs to Swarm 8 B3. It was already closed without a merge at 2026-11-15T14:29:03Z. This swarm did not close it. No blocked or failing pre-Swarm 9 pull request was taken.
 
 ## Open questions for Maciej
 
-1. Merge #13 when the checklist in the plan still holds. Swarm 9 will not merge it.
-2. Close #6. Swarm 8 B3 already recorded that in #17. Swarm 9 will not close it.
+1. Merge #13 when you choose. `link-check` on its head is green. Swarm 9 will not merge it.
+2. #6 is closed without a merge. It stays with Swarm 8 B3. Swarm 9 will not reopen it.
 3. Confirm the Labs organisation slug. The kit's spelling returned 404. Two other organisations exist and were not treated as this one.
 4. Approve or reject the transfer list. The proposal is to transfer nothing.
 5. The Hermes binary for the later GUI profile stays your pick.
