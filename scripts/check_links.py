@@ -26,10 +26,13 @@ REQUIRED = (
     "Copyright © 2026 Galion Labs. All rights reserved.",
     "Permission is hereby granted",
     "Free forever",
-    "$20 / €20",
     "/ month",
-    "$220 / €220",
-    "$220 / €220<span> / month</span>",
+    'data-price="plus"',
+    'data-price="ultra"',
+    'class="money-usd"',
+    'class="money-eur"',
+    'src="/assets/prices.js"',
+    'src="/assets/region.js"',
     "not a separate product",
 )
 NAV_HREFS = ("/", "/one/", "/research/", "/operating-system/", "/voice/", "/labs/")
@@ -209,8 +212,8 @@ def check_html(path: Path, errors: list[str], cache: dict[str, str]) -> None:
     for phrase in FORBIDDEN:
         if phrase in text.lower():
             fail(errors, f"{rel}: forbidden phrase {phrase!r}")
-    if not re.search(r"\$220 / €220<span> / month</span>", text):
-        fail(errors, f"{rel}: Ultra must be $220 / €220 per month")
+    if not re.search(r"""data-price="ultra"[^>]*>€220</span><span class="period"> / month</span>""", text):
+        fail(errors, f"{rel}: Ultra amount must show the configured monthly price")
     for href in NAV_HREFS:
         if f'href="{href}"' not in text:
             fail(errors, f"{rel}: nav is missing {href}")
