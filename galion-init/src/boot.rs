@@ -69,7 +69,7 @@ impl Plan {
             None => out.push_str("tone none\n"),
         }
         for service in self.supervisor.services() {
-            out.push_str(&format!("service {} user {}\n", service.name, service.user));
+            out.push_str(&service_line(service));
         }
         match self.profile {
             Profile::Voice => {
@@ -77,7 +77,11 @@ impl Plan {
                 out.push_str("display-server none\n");
                 out.push_str("service-binary absent\n");
             }
-            Profile::Desktop => out.push_str("silence-file none\n"),
+            Profile::Desktop => {
+                out.push_str("silence-file none\n");
+                out.push_str("galion-voiced absent\n");
+                out.push_str("galion-one absent\n");
+            }
         }
         match self.handoff {
             Some(handoff) => {
@@ -128,6 +132,21 @@ pub fn voice_plan(voiced_program: &str) -> Result<Plan, AdmitError> {
         handoff: None,
         supervisor,
     })
+}
+
+fn service_line(service: crate::supervise::Service) -> String {
+    let mut line = format!("service {} user {}", service.name, service.user);
+    if service.argv.iter().any(|arg| arg == "--listen") {
+        line.push_str(" listen none");
+    }
+    if let Some(port) = service.port {
+        line.push_str(&format!(" port {port}"));
+    }
+    if let Some(dir) = &service.workdir {
+        line.push_str(&format!(" workdir {dir}"));
+    }
+    line.push('\n');
+    line
 }
 
 fn phase_name(phase: Phase) -> &'static str {
