@@ -2,7 +2,7 @@
 
 *Maciej Grajczyk · 2026-11-02 (Europe/Zagreb, CET, UTC+1).*
 
-Galion Operating System (Galion OS) ships as image profiles on one shared base. **Galion OS Voice** is the first profile. The **Hermes GUI** is a later profile. These notes are the long form of that split. The root README stays the short public page; the one-paragraph profile line for that page is the open README change in [pull request #1](https://github.com/galion-studio/galion-operating-system/pull/1).
+Galion Operating System (Galion OS) ships as image profiles on one shared base. **Galion OS Voice** is the first profile. The **Hermes GUI** is a later profile. These notes are the long form of that split. The root README is the short public page, and its Profiles section is the short form.
 
 Galion Voice, the voice model inside Galion One, also runs on plain Linux. It is not a separate product. Neither OS image is required to use it.
 
@@ -14,6 +14,8 @@ Galion Voice, the voice model inside Galion One, also runs on plain Linux. It is
 | [Hermes GUI](hermes-later.md) | Later | One window, one gradient, one prompt field. | Centre of the screen for knowledge and tools. | `galion-init`, Obsidian Open Mind contract |
 
 Hermes stays the centre for knowledge and tools in both profiles. The difference is where that centre is drawn, and whether a Hermes process is on the image at all.
+
+The Linux framebuffer contract for the one dot is [FB0-SURFACE.md](FB0-SURFACE.md). The contract for the three voice binaries, and for the later voice image, is [PACKAGING.md](PACKAGING.md). No binary is in this repository.
 
 ## What every profile keeps
 

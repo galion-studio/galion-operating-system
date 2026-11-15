@@ -2,7 +2,7 @@
 
 *Maciej Grajczyk · 2026-11-02 (Europe/Zagreb, CET, UTC+1). Sector 06-RENDER, W3-06c. Status: **SPEC**. The surface is not implemented in this tree.*
 
-Galion OS Voice is the first image profile: voice-first, with Hermes off-device on the side band, outside the 80 ms audio path. Its panel contract is one dot. This file is the contract for drawing that dot on the Linux framebuffer. The root README stays with the open profiles change; this document is the spec that change points at.
+Galion OS Voice is the first image profile: voice-first, with Hermes off-device on the side band, outside the 80 ms audio path. Its panel contract is one dot. This file is the contract for drawing that dot on the Linux framebuffer. The root README carries the short profile. This file is the spec for drawing that dot.
 
 Local render evidence this spec builds on: the one-dot surface already exists for the terminal, for web `/dot` (loopback only), for null, and for an offscreen raster. G4 for that render path is blessed (p99 ≈ 10.7 µs). Palette tokens are the `#F5F5F7` dot and an obsidian / amber / violet ground. `DotState` is `Idle`, `Listening`, or `Speaking`, a pure function of the heartbeat. `TerminalDotSurface` leaks no text. `NullSurface::last_dot` is the headless observation. The framebuffer writer is the open piece.
 
@@ -176,6 +176,6 @@ Headless CI uses the stand-in. A hardware `/dev/fb0` run is optional and is not 
 
 ## 10. Source notes
 
-Sector snapshot this spec is written against: one-dot terminal, loopback `/dot`, null, and offscreen raster done; G4 blessed; `/dev/fb0` explicitly still spec-only; dot still driven by viz frames until `FrameOut` is wired. Profile wording for "at most one dot on `/dev/fb0`" lives in the open README profiles change and is not modified here.
+Sector snapshot this spec is written against: one-dot terminal, loopback `/dot`, null, and offscreen raster done; G4 blessed; `/dev/fb0` explicitly still spec-only; dot still driven by viz frames until `FrameOut` is wired. Profile wording for "at most one dot on `/dev/fb0`" lives in the root README Profiles section and in [voice-first.md](voice-first.md). This spec does not change that wording.
 
 — Maciej Grajczyk

@@ -425,7 +425,7 @@ section {
 .card a,
 .price a,
 .fine a,
-.footer a {
+.site-footer a {
   text-decoration-color: var(--amber);
   text-underline-offset: 0.18em;
 }
