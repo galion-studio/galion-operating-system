@@ -2,12 +2,13 @@
 
 *Maciej Grajczyk · 2026-11-14 (Europe/Zagreb, CET, UTC+1).*
 *Decision list · 2026-11-15 (Europe/Zagreb, CET, UTC+1).*
+*Decided · 2026-11-15, 15:00 CET.*
 
 Galion OS has no image. Nothing in this repository builds a kernel, an ISO, or a disk image, and nothing here publishes one. This note is the packaging plan for the image that carries the Obsidian desktop. It is a document. It adds no workflow, no image, and no release.
 
 The voice-profile note, [PACKAGING.md](voice-profile/PACKAGING.md), stays the contract for the Galion OS Voice binaries and for the later voice image (read-only root, no display server, Hermes off the device). This note does not replace that one. The two images are named apart in [§2](#2-the-image-this-plan-is-for).
 
-Words for status stay the brand words. **In development** means the work is underway and is not something a person can take as finished. **Roadmap** means a later image. **Planned** means a choice written here that is not built. [§10](#10-decisions-for-maciej) is the decision list. A row there is either settled from a file, or it is one of five choices for Maciej.
+Words for status stay the brand words. **In development** means the work is underway and is not something a person can take as finished. **Roadmap** means a later image. **Planned** means a choice written here that is not built. [§10](#10-decisions-for-maciej) records the five decisions Maciej made on 2026-11-15 at 15:00 CET. Pricing and billing are outside this plan.
 
 ## 1. What is already true
 
@@ -23,8 +24,8 @@ These points come from files that exist today. They are the floor of the plan.
 | The Open Mind release archive, when the owner enables it, is `obsidian-open-mind-<tag>-x86_64-linux.tar.gz`. The binaries it copies are `galion-one`, `galion-desk`, `room`, `desk-hermes`, and `link-watch`. `openmind-desktop` is not in that list. Signing there is keyless cosign over GitHub OIDC, and the job stays off unless the repository is public and `RELEASE_ENABLED` is `true`. | [release.yml](https://github.com/galion-studio/obsidian-open-mind/blob/main/.github/workflows/release.yml) |
 | On the console, Galion One and Hermes are stack rows in state `planned`. The page does not start them. `GET /one` and `GET /research` are short entry pages inside the same binary. They are not the marketing pages in this repository, and they are not the research app. | `crates/openmind-desktop/src/stack.rs` and `page.rs` in obsidian-open-mind |
 | The wake tone is a 160 ms sine at 432 Hz (ratio 1:1). The page embeds it and the script does not play it. Mute starts off (`aria-pressed="false"`). Local hours 22:00–06:59 skip the tones the script does play. Mute is not stored: the page has no `localStorage`. | [desktop README](https://github.com/galion-studio/obsidian-open-mind/blob/main/docs/desktop/README.md), `sound.rs` and `page.rs` |
-| [site/one/](../site/one/index.html) is the Galion One page for the path `galion.app/one`. Plus is $20 / €20 per month. Billing is not live. `paid_tiers` stays false. | [site/one/index.html](../site/one/index.html) |
-| [site/research/](../site/research/index.html) is the Galion Research page for the path `galion.app/research`. Ultra is $220 / €220 per month. Billing is not live. | [site/research/index.html](../site/research/index.html) |
+| [site/one/](../site/one/index.html) is the Galion One page for the path `galion.app/one`. This plan copies the files. Pricing is outside this plan. | [site/one/index.html](../site/one/index.html) |
+| [site/research/](../site/research/index.html) is the Galion Research page for the path `galion.app/research`. This plan copies the files. Pricing is outside this plan. | [site/research/index.html](../site/research/index.html) |
 | [galion-studio/hermes-research](https://github.com/galion-studio/hermes-research) is the research app. Node.js 22 or newer, no packages. `npm start` runs `node src/server.js`, binds the loopback interface, and serves the desk at `/research` on port 8787 unless `PORT` is set. Research cues in [src/cues.js](https://github.com/galion-studio/hermes-research/blob/main/src/cues.js) are 432 Hz just-intonation ratios. The file says definitions only: no voice audio, no clones, no wav files. The app ships no voice model. | hermes-research `README.md`, `package.json`, `src/cues.js` |
 | Galion Voice weights are not in git. The voice packaging manifest keeps `weights` at `none` until counsel signs a separate weight artifact. | [voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §3, [galion-one-voice](https://github.com/galion-studio/galion-one-voice) README |
 | This repository does not deploy galion.app and does not change DNS. Hosting the pages is an owner decision. | [site/README.md](../site/README.md) |
@@ -41,7 +42,9 @@ One image family, two profiles that already have notes, and one desktop payload 
 | Hermes GUI | [hermes-later.md](voice-profile/hermes-later.md) | One window, one gradient, one prompt field. | Roadmap. The window backend is still an owner pick in that note. |
 | Desktop image | This file | The control console, on loopback. | The image this plan describes. x86_64 first. |
 
-**Decision 2.** The voice notes boot the Voice profile and the Hermes GUI through `galion-init` ([voice-first.md](voice-profile/voice-first.md), [hermes-later.md](voice-profile/hermes-later.md)). That binary is not in this repository. obsidian-open-mind at `de7480e71ce98191d2ee11f018fa15be6c5a1707` has no `crates/galion-init`. What starts the desktop processes is [decision 2](#d2-what-starts-the-desktop-processes).
+**Decided.** PID 1 is `galion-init`. The desktop image waits for that binary. It does not boot through systemd, and it does not boot through the `galion-boot` supervisor. The voice notes already name `galion-init` for the Voice profile and the Hermes GUI ([voice-first.md](voice-profile/voice-first.md), [hermes-later.md](voice-profile/hermes-later.md)). The binary is not in this repository, and obsidian-open-mind at `de7480e71ce98191d2ee11f018fa15be6c5a1707` has no `crates/galion-init`. What the binary must provide before this image can boot is [§10](#d2-init-decided).
+
+The systemd units in the other trees stay as reference. `deploy/systemd/galion-research.service` records user `galion`, working directory `/opt/galion/research/current`, and port 8787. `deploy/galion-one.service` records the Galion One binary this image leaves off. This image does not install either unit as the boot path.
 
 **Settled.** Two roots. The voice image keeps the read-only root, no shell, and no package manager ([voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §6). The desktop image is the root that starts Node.js 22. hermes-research `package.json` requires `"node": ">=22"`.
 
@@ -49,9 +52,7 @@ One image family, two profiles that already have notes, and one desktop payload 
 
 ## 3. Base distro options
 
-No base is chosen. The voice packaging note already leaves the image builder unchosen. This section compares bases against the constraints that are already written: Linux, CPU-first, x86_64 then aarch64, a read-only voice root with no package manager and no shell, static musl for the three voice binaries, a glibc `ubuntu-latest` build of `openmind-desktop` today, and a Node.js 22 process for hermes-research.
-
-Maciej picks one row in [decision 1](#d1-base-of-the-desktop-image). Until that pick, the pipeline in [§7](#7-build-pipeline) stops before the image build.
+**Decided.** The desktop base is Ubuntu 26.04 LTS. The table is the comparison that led there. The voice image builder stays the unchosen buildroot or custom initramfs in the voice note. This repository still adds no workflow. The desktop image also waits on `galion-init`.
 
 | Option | What it gives this image | What it costs |
 |---|---|---|
@@ -66,8 +67,8 @@ Maciej picks one row in [decision 1](#d1-base-of-the-desktop-image). Until that 
 Shared costs, whichever row is picked:
 
 - **Settled.** Two roots, as [§2](#2-the-image-this-plan-is-for) records. The voice root omits a shell and a package manager. The desktop root starts Node.js 22.
-- **Settled.** The running image carries the four pieces in [§4](#4-what-the-image-carries) and the base's boot set. The base updater stays off, so updates stay on the image channel in [§9](#9-update-channel). Package names follow the base in [decision 1](#d1-base-of-the-desktop-image).
-- **Settled.** Kernel and firmware are that base's. No repository names a version, so this note writes none. The root filesystem is squashfs, the usual read-only filesystem for a disk image a person writes onto a disk. The voice note already requires a read-only root on the voice image. A writable state file appears only if [decision 3](#d3-first-boot-sound) picks persistent Silence.
+- **Decided.** The running image carries the four pieces in [§4](#4-what-the-image-carries), Ubuntu 26.04's boot set, and `/usr/bin/node` from that release's `nodejs` package (22.22.1). `unattended-upgrades` stays off, so updates stay on the image channel in [§9](#9-update-channel).
+- **Decided.** Kernel and firmware are Ubuntu 26.04's. The root filesystem is squashfs. Persistent Silence stays planned, so the first image has no Silence state file.
 
 ## 4. What the image carries
 
@@ -108,11 +109,11 @@ The crate's stack list is part of the binary. Galion One and Hermes stay `planne
 
 Ships as the static files in [site/one/](../site/one/index.html) of this repository, copied to `/opt/galion/site/one/`. Those files are the page written for `galion.app/one`. Copying them onto the image is not a deploy of galion.app, and it does not change DNS.
 
-The page stays a page. It has no payment form. Plus remains $20 / €20 per month, written down, with billing not live.
+The page stays a file on disk. No process on the image serves it. Pricing is outside this plan.
 
 Galion Voice weights stay off this image. The voice packaging manifest keeps `weights` at `none`. A weight file would be a separate artifact, a separate checksum, and a separate licence, after counsel signs. The image does not fetch weights at boot.
 
-**Decision 4.** Which process, if any, serves `/opt/galion/site/one/` and `/opt/galion/site/research/`. `openmind-desktop` already answers `/one` with its own short entry. The console page does not load `https://` URLs. The recommended default keeps the files on disk and adds no second listener. See [decision 4](#d4-how-one-and-research-are-reached).
+**Decided.** The files stay on disk. `openmind-desktop` already answers `/one` with its own short entry. The console page does not load `https://` URLs. No second listener is added. See [§10](#d4-access-decided).
 
 **Settled.** The Rust `galion-one` binary stays off this image. The unit has no `[Install]` section, and `stack.rs` marks `galion-one` `planned`. Galion One on the image is the static page in `site/one/`.
 
@@ -120,22 +121,22 @@ Galion Voice weights stay off this image. The voice packaging manifest keeps `we
 
 Both ship. They are different trees.
 
-The static page in [site/research/](../site/research/index.html) is copied to `/opt/galion/site/research/`. It is the page written for `galion.app/research`. Ultra remains $220 / €220 per month, written down, with billing not live. Copying the files is not a deploy.
+The static page in [site/research/](../site/research/index.html) is copied to `/opt/galion/site/research/`. It is the page written for `galion.app/research`. It stays a file on disk. Copying the files is not a deploy. Pricing is outside this plan.
 
-The app from hermes-research is copied to `/opt/galion/research/current/`, the working directory in `deploy/systemd/galion-research.service` (hermes-research `ed3ce9993f58ec655af4f23c2438eb83cd7ea844`). The copy is the repository files the app runs from: `package.json`, `src/`, `public/`. There is no `node_modules` and no install step. The unit runs `/usr/bin/node src/server.js` as `galion`, with `PORT=8787`. `src/server.js` binds the loopback interface. `GET /` and `GET /research` serve `public/research.html` from that app. That desk is not the static page in `site/research/`.
+The app from hermes-research is copied to `/opt/galion/research/current/`. That path, the user `galion`, and port 8787 are the reference values in `deploy/systemd/galion-research.service` (hermes-research `ed3ce9993f58ec655af4f23c2438eb83cd7ea844`). The unit is not the boot path. `galion-init` starts the same process. The copy is the repository files the app runs from: `package.json`, `src/`, `public/`. There is no `node_modules` and no install step. The command is `/usr/bin/node src/server.js`, with `PORT=8787`. `src/server.js` binds the loopback interface. `GET /` and `GET /research` serve `public/research.html` from that app. That desk is not the static page in `site/research/`.
 
 `GET /one` on this app redirects. With `GALION_ONE_URL` unset, `oneTarget` in `src/server.js` sends the browser to `https://galion.app/one`. That default leaves the machine. The image does not set `GALION_LLM_KEY`. The app's README keeps that key on the server that holds it, and out of responses. With `GALION_RESEARCH_URL` unset, the README says Hermes is the engine on this machine, and a missed answer is marked local. `researchOrigin` accepts an `https` origin when the variable is set, so a public research URL is possible and this plan does not set one.
 
-**Settled, except one URL.** `PORT` is 8787, which `start` in `src/server.js` uses when `PORT` is unset and which the unit sets. `GALION_RESEARCH_URL`, `GALION_LLM`, `GALION_LLM_URL`, and `GALION_LLM_KEY` stay unset. `configFromEnv` in `src/hermes.js` attaches a client only when `GALION_LLM` is `hermes`, or when `GALION_LLM` is empty and `GALION_LLM_URL` is set. `canned`, `echo`, and `mock` stay detached. The key stays off the image. `GALION_ONE_URL` is [decision 4](#d4-how-one-and-research-are-reached). `.env.example` sets it to `https://galion.app/one`. Leaving it unset does the same, because `oneTarget` falls back to that URL.
+**Decided.** `GALION_ONE_URL` is the console's `/one` on port 18181, using http on the IPv4 loopback interface. `oneTarget` accepts an http loopback origin (`researchOrigin` in `src/server.js`). `PORT` is 8787. `GALION_RESEARCH_URL`, `GALION_LLM`, `GALION_LLM_URL`, and `GALION_LLM_KEY` stay unset. `configFromEnv` in `src/hermes.js` attaches a client only when `GALION_LLM` is `hermes`, or when `GALION_LLM` is empty and `GALION_LLM_URL` is set. `canned`, `echo`, and `mock` stay detached. The key stays off the image. `.env.example` points `GALION_ONE_URL` at `https://galion.app/one`. The image does not copy that value.
 
-**Settled.** The Node.js binary is `/usr/bin/node` from the base in [decision 1](#d1-base-of-the-desktop-image), major 22. That is the path the research unit executes. hermes-research CI installs `node-version: "22"`. `package.json` and `ci.yml` do not record a tarball checksum, so this plan does not invent one. If the base has no `/usr/bin/node` at major 22, the image job stops. The package manager is not left running as an updater.
+**Decided.** The Node.js binary is `/usr/bin/node` from Ubuntu 26.04's `nodejs` package, version 22.22.1 ([packages.ubuntu.com/resolute/nodejs](https://packages.ubuntu.com/resolute/nodejs)). hermes-research CI installs `node-version: "22"`. `package.json` and `ci.yml` do not record a tarball checksum, so this plan does not invent one. The package manager is not left running as an updater.
 
-**Decision 4.** The console, the static pages, and the research desk stay three documents. The desktop README quotes the content-security policy: `connect-src 'self'`. The page source contains no `http://` or `https://` (`page_stays_on_the_machine` in `page.rs`). A browser on the console origin does not call port 8787. A same-origin path would be a change in obsidian-open-mind, and it is outside this note.
+**Decided.** The console, the static pages, and the research desk stay three documents. The desktop README quotes the content-security policy: `connect-src 'self'`. The page source contains no `http://` or `https://` (`page_stays_on_the_machine` in `page.rs`). A browser on the console origin does not call port 8787. A person opens the desk on its own loopback URL. A same-origin path would be a change in obsidian-open-mind, and it is outside this note.
 
 ### 4.4 What stays off the image
 
 - Voice weights, checkpoints, embeddings, and model containers. Same rule as the voice packaging note.
-- A payment form, a card field, or a licence check. `paid_tiers` stays false.
+- Billing and payments. They are outside this plan.
 - A listener on a public address.
 - The Open Mind release set (`galion-one`, `galion-desk`, `room`, `desk-hermes`, `link-watch`), until an owner adds one of them by name.
 - A shell and a package manager on the voice image. The desktop image is a second root, so it can carry `/usr/bin/node` without putting a package manager on the voice image. See [§2](#2-the-image-this-plan-is-for).
@@ -146,12 +147,12 @@ The app from hermes-research is copied to `/opt/galion/research/current/`, the w
 The policy for this image:
 
 1. The machine boots without an account gate and without a licence key.
-2. **Planned.** 432 Hz resonance is on. The crate does not play it at boot. [Decision 3](#d3-first-boot-sound) chooses whether the first image promises a tone. The recommended default follows the crate.
-3. **Planned.** Silence mode is opt-in. A new image is not in Silence.
-4. **Planned.** Silence, once chosen, is the mode on the next boot as well. The page does not store that choice. Decision 3.
+2. **Planned, and decided.** The first image follows the desktop crate. It does not play a boot tone. A 432 Hz boot resonance stays planned.
+3. **Planned, and decided.** Silence mode is opt-in. The first image does not implement it.
+4. **Planned, and decided.** Persistent Silence stays planned. The page does not store it. The first image has no Silence file.
 5. A missing sound device still finishes boot. The voice profile already treats a missing `/dev/fb0` as a normal boot. The desktop image treats a missing playback device the same way: the console still comes up.
-6. Listeners bind after the loopback interface exists. `openmind-desktop --listen` on port 18181, then `node src/server.js` in `/opt/galion/research/current` on port 8787.
-7. Billing stays off. The prices on the copied pages stay the prices already printed there. `paid_tiers` stays false.
+6. Listeners bind after `galion-init` has brought up the loopback interface. `openmind-desktop --listen` on port 18181, then `node src/server.js` in `/opt/galion/research/current` on port 8787. `GALION_ONE_URL` is that console's `/one`.
+7. Pricing and billing are outside this plan.
 
 What the repositories already implement is narrower than that policy.
 
@@ -159,7 +160,7 @@ What the repositories already implement is narrower than that policy.
 - hermes-research records 432 Hz as `RESEARCH_A` and a table of ratios. Those are definitions. The app does not play them.
 - Mute on the console is a button for that page load. Night hours 22:00–06:59 skip the tones the script plays. Neither control is named Silence, and neither is stored.
 
-**Decision 3.** Which process plays a boot resonance, whether the night window applies to it, and whether Silence is stored. The only clip in the crate is `wake`: a sine, 432 Hz, 160 ms, peak amplitude 0.32, 16 kHz, 8 ms fade (`sound.rs`). The desktop README says the script does not call `play("wake")`. Mute and local hours 22:00–06:59 skip `play`. The page has no `localStorage`.
+**Decided.** The first image follows the crate. `wake` stays in the page, and the script does not call `play("wake")`. The clip is a sine, 432 Hz, 160 ms, peak amplitude 0.32, 16 kHz, 8 ms fade (`sound.rs`). Mute and local hours 22:00–06:59 skip `play`. The page has no `localStorage`. A 432 Hz boot tone and persistent Silence stay planned. See [§10](#d3-first-boot-sound-decided).
 
 **Settled.** On this image, the audio Silence can reach is the seven desktop tones: `wake`, `ask`, `hear`, `notice`, `done`, `deny`, `close`. hermes-research `src/cues.js` says "Definitions only" and holds no wav files. Its `audible` function returns false when silence is true, `"on"`, or `"1"`. That flag marks a definition quiet. It plays nothing. Galion Voice audio stays on the voice image.
 
@@ -167,7 +168,7 @@ What the repositories already implement is narrower than that policy.
 
 | Order | Architecture | What the first cut includes | What blocks the next cut |
 |---|---|---|---|
-| First | `x86_64` | The desktop image. `openmind-desktop` from the `ubuntu-latest` job. hermes-research under Node.js 22. The static pages. | Nothing further in this plan. The image still waits on the base in [§3](#3-base-distro-options) and on an owner gate before CI may publish. |
+| First | `x86_64` | The desktop image. Ubuntu 26.04 LTS. `openmind-desktop` from the `ubuntu-latest` job. hermes-research under Node.js 22.22.1. The static pages, as files. | `galion-init` does not exist yet, so the image cannot boot. This plan adds no workflow and no publish job. |
 | Second | `aarch64` | Roadmap. The root README already names ARM boards, Snapdragon, and Raspberry Pi-class machines. The voice packaging note already names the triple `aarch64-unknown-linux-musl` for the three voice binaries. The desktop workflow already builds and tests that triple. | The aarch64 job does not write a tarball and does not build a disk image. No board revision is named. |
 
 The first published image is one x86_64 ISO and one x86_64 disk image. An aarch64 ISO or disk image is absent from that publication. The channel in [§9](#9-update-channel) does not advertise an aarch64 file that CI has not built.
@@ -194,9 +195,10 @@ One manifest, written before the image build, records:
 - `git` — full commit of this repository
 - `openmind` — full commit of obsidian-open-mind
 - `research` — full commit of hermes-research
-- `base` — the row Maciej picks in [decision 1](#d1-base-of-the-desktop-image), or `unset` until then
+- `base` — `ubuntu-26.04`
 - `arch` — `x86_64` on the first cut
-- `node` — the Node.js version baked for hermes-research
+- `node` — `22.22.1`, from Ubuntu 26.04's `nodejs` package, at `/usr/bin/node`
+- `init` — `galion-init`, absent until that binary exists
 - `weights` — `none`
 
 ### Jobs
@@ -205,12 +207,12 @@ The jobs are ordered. A red job stops the chain. Nothing in the chain passes `--
 
 1. **desktop** — `ubuntu-latest`. Checkout the pinned obsidian-open-mind commit. Run the same build the desktop workflow runs: `cargo build -p openmind-desktop --release --locked`, then `scripts/desktop/package-local.sh`. Keep the tarball and `SHA256SUMS` as a job artifact. Do not upload them to a release.
 2. **research** — Node.js 22. Checkout the pinned hermes-research commit. Run `npm test`. Archive the tree. Fail if `node_modules` is present.
-3. **pages** — From this repository, copy `site/one/` and `site/research/` unchanged, including the licence text those pages already carry.
-4. **image** — The unchosen builder from [§3](#3-base-distro-options) consumes the three artifacts and writes two files from the same root:
+3. **pages** — From this repository, copy `site/one/` and `site/research/` unchanged, and copy [NOTICE](../NOTICE).
+4. **image** — An Ubuntu 26.04 root consumes the artifacts and writes two files. The root inside both files includes `NOTICE`, `galion-init` once that binary exists, the console, the research tree, and the static pages as files. The job is not in this change. It stays off until `galion-init` exists and an owner asks for the workflow.
    - `galion-os-<version>-x86_64.iso`
    - `galion-os-<version>-x86_64.img`
    Write `SHA256SUMS` over both, and write the manifest beside them.
-5. **sign** — [§8](#8-signing). Runs only when the owner gate is on. A pull request build stops after job 4 and discards the files, or it stops before job 4 while the base is `unset`.
+5. **sign** — [§8](#8-signing). Runs only when the owner gate is on. A pull request build does not run job 4.
 6. **publish** — Does not exist until the owner asks for a release. This plan does not add a release job, a tag, or a download link on the root README.
 
 **Settled.** This change adds no workflow. Job 4 does not run. No file read for this note records an image build on a hosted runner, so this plan does not claim that `ubuntu-latest` can finish one.
@@ -274,22 +276,73 @@ There is no channel URL in this note. This repository does not deploy, and galio
 
 ## 10. Decisions for Maciej
 
-Read on 2026-11-15 against obsidian-open-mind `de7480e71ce98191d2ee11f018fa15be6c5a1707` and hermes-research `ed3ce9993f58ec655af4f23c2438eb83cd7ea844`. The earlier note [PACKAGING-DECISIONS.md](PACKAGING-DECISIONS.md) left all 31 questions open. This section answers the ones a file or ordinary image practice already settles, and it leaves five choices.
+Decided by Maciej on 2026-11-15 at 15:00 CET. Pricing and billing are outside this plan. The readings below still use obsidian-open-mind `de7480e71ce98191d2ee11f018fa15be6c5a1707` and hermes-research `ed3ce9993f58ec655af4f23c2438eb83cd7ea844`.
 
-Prices stay as printed. Plus is $20 / €20 per month. Ultra is $220 / €220 per month. Billing is not live. `paid_tiers` stays false ([brand guide](brand/BRANDING-V2.md) §8, [site/assets/prices.js](../site/assets/prices.js)).
+### D1. Base, decided
 
-### Settled
+Ubuntu 26.04 LTS. Its archive `nodejs` package is 22.22.1 on amd64 and arm64 ([packages.ubuntu.com/resolute/nodejs](https://packages.ubuntu.com/resolute/nodejs)), which meets hermes-research `"node": ">=22"`. The path is `/usr/bin/node`. Kernel and firmware are that release's. `unattended-upgrades` stays off the image. The manifest field `base` is `ubuntu-26.04`.
+
+The comparison in [§3](#3-base-distro-options) stays as the record of the rows that were set aside. The voice image builder stays unchosen in the voice note.
+
+### D2. Init, decided
+
+Wait for `galion-init`. The desktop image does not boot through systemd. It does not boot through the `galion-boot` supervisor.
+
+`galion-init` is not in this repository. It is not at `crates/galion-init` in the Open Mind commit above. Until that binary exists, this image does not boot, and the image job in [§7](#7-build-pipeline) stays off.
+
+The voice note already says what the binary is ([voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §3 and §6, [voice-first.md](voice-profile/voice-first.md)). Before this desktop image can boot, that binary must provide all of the following.
+
+| What `galion-init` must provide | Where that requirement comes from |
+|---|---|
+| The binary itself, static musl, as PID 1. | Voice packaging note §3. It is absent today. |
+| Mount the filesystems. The desktop root is squashfs. | Voice packaging note §3. This plan's root type. |
+| Bring up the network far enough that the loopback interface exists. | Voice packaging note §3: it brings up the network. The listeners in [§5](#5-first-boot) bind after that. |
+| Set the clock. | Voice packaging note §3. |
+| Start processes itself. The production image has no shell. | Voice packaging note §3. |
+| Supervise `/opt/galion/openmind-desktop/openmind-desktop` with no listen address, so the crate uses port 18181. Run it as user `galion`. | This plan, and `DEFAULT_PORT` in `lib.rs`. |
+| Supervise `/usr/bin/node src/server.js` in `/opt/galion/research/current`, as user `galion`, with `PORT=8787` and `GALION_ONE_URL` set to the console's `/one` on port 18181. | This plan. The path, user, and port match the research unit, which is reference only. |
+| Leave `galion-voiced` off this image. | The voice image is the other root. The voice note's supervision of `galion-voiced` stays there. |
+| Leave the Rust `galion-one` binary off this image. | `galion-one.service` has no `[Install]`. `stack.rs` marks it `planned`. |
+
+Systemd units stay as reference. They are not installed as the boot path.
+
+| Unit | What it is used for | What it is not |
+|---|---|---|
+| `deploy/systemd/galion-research.service` in hermes-research | User `galion`, directory `/opt/galion/research/current`, port 8787, command `/usr/bin/node src/server.js`. | Not PID 1. Not enabled by this image. |
+| `deploy/galion-one.service` in obsidian-open-mind | A record that the Galion One binary stays off, and that the unit has no `[Install]` section. | Not installed. |
+
+### D3. First-boot sound, decided
+
+Follow the desktop crate. The first image adds no boot player and no Silence file.
+
+`wake` stays in the page. The script does not call `play("wake")`. Mute and local hours 22:00–06:59 skip `play`. Mute lasts one page load. The page has no `localStorage`.
+
+A 432 Hz boot tone stays planned. Persistent Silence stays planned.
+
+### D4. Access, decided
+
+Static pages stay files under `/opt/galion/site/one/` and `/opt/galion/site/research/`. No new listener. No browser package is added. No repository names one.
+
+`GALION_ONE_URL` is the console's `/one` on port 18181, http on the IPv4 loopback interface. `oneTarget` accepts that shape. The console's content-security policy is `connect-src 'self'`, so the console page does not call port 8787. A person opens the research desk on its own loopback URL.
+
+`GALION_RESEARCH_URL`, `GALION_LLM`, `GALION_LLM_URL`, and `GALION_LLM_KEY` stay unset. `PORT` is 8787.
+
+### D5. Copyright, decided
+
+This repository has a [NOTICE](../NOTICE). It carries the four G.A.L.I.O.N. lines and the MIT line `Copyright (c) 2026 Galion Labs`, matching [LICENSE](../LICENSE). The image root includes that file. Each other tree keeps its own `LICENSE`. This NOTICE does not replace them.
+
+### Settled, and still standing under those decisions
 
 | Topic | Answer | Source |
 |---|---|---|
 | What this image is | A third boot: the loopback control console. The Hermes GUI stays the later profile. | [README](../README.md) profile table, [voice-first.md](voice-profile/voice-first.md), [hermes-later.md](voice-profile/hermes-later.md), `stack.rs` |
 | Roots | Two. The voice root stays read-only, with no shell and no package manager. The desktop root starts Node.js 22. | [voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §6, hermes-research `package.json` |
 | Packages and updates | Four payloads plus the base boot set. The base updater stays off the image. | [§4](#4-what-the-image-carries), [§9](#9-update-channel) |
-| Kernel, firmware, filesystem | The chosen base's kernel and firmware, recorded, not numbered here. Root is squashfs. A writable state file appears only if decision 3 picks persistent Silence. | Voice note's read-only root. Squashfs is the usual filesystem for a disk image a person writes onto a disk. |
-| Account | User `galion` for the console and for Node.js. | [voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §7, `galion-research.service` `User=galion` |
-| Desktop port | 18181, the crate default. The image passes no override. 18081 stays unused. | `DEFAULT_PORT` in `crates/openmind-desktop/src/lib.rs` |
-| Research port and Node | `PORT=8787`. Node is `/usr/bin/node` from the base, major 22. No tarball checksum is invented. | `galion-research.service`, `src/server.js`, `.github/workflows/ci.yml` |
-| Research environment | `GALION_RESEARCH_URL`, `GALION_LLM`, `GALION_LLM_URL`, and `GALION_LLM_KEY` stay unset. `GALION_ONE_URL` is decision 4. | `configFromEnv` in `src/hermes.js`, `oneTarget` in `src/server.js` |
+| Kernel, firmware, filesystem | Ubuntu 26.04's kernel and firmware. Root is squashfs. No Silence state file. | [D1](#d1-base-decided) and [D3](#d3-first-boot-sound-decided). |
+| Account | User `galion` for the console and for Node.js. | [voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §7. The research unit records the same user and is reference only. |
+| Desktop port | 18181, the crate default. The image passes no override. 18080 is the console probe. 18081 stays unused. | `DEFAULT_PORT` in `crates/openmind-desktop/src/lib.rs` |
+| Research port and Node | `PORT=8787`. Node is `/usr/bin/node` from Ubuntu 26.04, version 22.22.1. No tarball checksum is invented. | [packages.ubuntu.com/resolute/nodejs](https://packages.ubuntu.com/resolute/nodejs), `src/server.js` |
+| Research environment | `GALION_ONE_URL` is the console's `/one` on port 18181. The other variables stay unset. | [D4](#d4-access-decided). `oneTarget` in `src/server.js`. |
 | Galion One binary | Off this image. The static page stays. | `galion-one.service` has no `[Install]`. `stack.rs` marks `galion-one` `planned`. |
 | Silence scope | The seven desktop tones. Research cues are definitions. `audible()` marks one quiet and plays nothing. Voice audio is the other image. | `sound.rs` `TONES`, `src/cues.js` |
 | Image version | Semver git tag of this repository. Component versions stay pins. No tag is created here. | [voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §4 |
@@ -301,67 +354,27 @@ Prices stay as printed. Plus is $20 / €20 per month. Ultra is $220 / €220 pe
 
 Fedora bootc, NixOS, and Yocto stay off the short list. [§3](#3-base-distro-options) already records that nothing in the Galion repositories names bootc or Yocto, and that no Galion repository uses Nix. Buildroot stays the voice note's unchosen builder.
 
-### D1. Base of the desktop image
-
-Recommended default: **Ubuntu 26.04 LTS**. Its archive `nodejs` package is 22.22.1 on amd64 and arm64, which meets hermes-research `"node": ">=22"` and is the `/usr/bin/node` the research unit executes. The desktop workflow's qemu comment already describes the `ubuntu-latest` runner as Ubuntu 26.04 (resolute). Record that release in the manifest when a build exists. Kernel and firmware are that release's. `unattended-upgrades` stays off the image.
-
-1. **Ubuntu 26.04 LTS**, as above. glibc, beside a musl voice root. Ubuntu 24.04 LTS's archive package is 18.19.1, so that older LTS does not satisfy the research app.
-2. **Debian stable (trixie).** A smaller frozen set, and the same glibc distance from the voice triples. Its archive `nodejs` is 20.19.2, below the app's line, so this option does not start hermes-research from the stable archive alone. This plan does not fetch an unpinned Node tarball to fill that gap.
-3. **Alpine 3.22.** musl, which matches `aarch64-unknown-linux-musl` and the voice triples. Its x86_64 `nodejs` package is 22.23.5-r0 ([pkgs.alpinelinux.org](https://pkgs.alpinelinux.org/packages?name=nodejs&branch=v3.22&arch=x86_64)). `galion-boot`'s supervisor comment already names Alpine. The packaged x86_64 console is the glibc host build, so this option needs a musl rebuild the `linux` job does not do.
-
-### D2. What starts the desktop processes
-
-Recommended default: **systemd**. The research unit already has `[Install]` and `WantedBy=multi-user.target`. `galion-boot` treats a `/run/systemd/system` directory as systemd being init (`systemd_present` in `crates/galion-boot/src/lib.rs`). The console gets a unit of that shape when one is written. `galion-init` stays the voice image's PID 1 in the voice notes.
-
-1. **systemd**, as above.
-2. **Wait for `galion-init`.** The voice notes use that sentence for the Voice profile and the Hermes GUI. The binary is not in this repository, and it is not at `crates/galion-init` in the Open Mind commit above.
-3. **`galion-boot`'s supervisor, with no systemd.** That file names Alpine, OpenRC, containers, and minimal Linux. The research unit's `[Install]` section would not be what starts the process.
-
-### D3. First-boot sound
-
-Recommended default: **follow the crate.** The first image adds no boot player and no Silence file. §5 items 2–4 stay planned. Mute and the night window stay as the page implements them.
-
-1. **Follow the crate.** `wake` stays in the page. The script does not call `play("wake")`. Night hours 22:00–06:59 skip `play`. Mute lasts one page load.
-2. **Play the existing `wake` clip once** when the page loads. Same clip: 432 Hz, 160 ms, peak 0.32, 16 kHz, 8 ms fade, through the page audio element. The night window still applies, because `play` has no per-tone exception. That call is a change in obsidian-open-mind.
-3. **Persistent Silence, and a boot player.** New code. It needs a writable file beside the squashfs root. The console has no route that writes that file, and the page forbids `localStorage`.
-
-### D4. How One and Research are reached
-
-Recommended default: **files on disk, no new listener, and the research app stays on the machine.** No browser package is added. No repository names one.
-
-1. **Files, and the console's own `/one`.** Static pages stay under `/opt/galion/site/`. Set `GALION_ONE_URL` to the console's `/one` on port 18181, http on the loopback interface. `oneTarget` accepts an http loopback origin (`researchOrigin` in `src/server.js`). The other research variables stay unset, as the settled table says. The console does not call port 8787. A person opens the desk on its own loopback URL.
-2. **A new loopback static server** for `site/one/` and `site/research/`, with `GALION_ONE_URL` pointed at that server. No repository names the program or the port.
-3. **The public page.** Copy `.env.example`, which sets `GALION_ONE_URL` to `https://galion.app/one`. `GET /one` on the research app then leaves the machine. The example's comment says that URL is the product page, not a local copy.
-
-### D5. Copyright lines on a future image
-
-Recommended default: **no NOTICE in this change.** Each tree keeps its own `LICENSE`. Nothing is packaged.
-
-1. **No NOTICE now.** This repository and hermes-research keep `Copyright (c) 2026 Galion Labs`. obsidian-open-mind keeps `Copyright (c) 3000 Galion / galion-studio`.
-2. **A later NOTICE quotes both lines and merges neither.** The 3000 line is also the line [BRANDING-V2.md](brand/BRANDING-V2.md) §10 names where a copyright line is required. That year is the maker's choice, not a calendar date.
-3. **One copyright line, written by Maciej with counsel, before any image is built.** This plan does not write it.
-
 ### Where the old 31 went
 
 | Old questions | Now |
 |---|---|
 | 2, 4, 6, 8, 10, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 31 | Settled, table above |
-| 5 | Settled with decision 1, plus a state file only under decision 3 option 3 |
-| 9, except `GALION_ONE_URL` | Settled. The URL is decision 4 |
-| 1 | Decision 2 |
-| 3 | Decision 1 |
-| 7, 11, and `GALION_ONE_URL` | Decision 4 |
-| 12, 13, 14 | Decision 3 |
-| 29 | Decision 5 |
+| 5 | DECIDED with D1. Ubuntu 26.04 kernel and firmware. Squashfs. No Silence state file, because D3 keeps persistent Silence planned. |
+| 9 | DECIDED in D4 |
+| 1 | DECIDED in D2 |
+| 3 | DECIDED in D1 |
+| 7, 11 | DECIDED in D4 |
+| 12, 13, 14 | DECIDED in D3 |
+| 29 | DECIDED in D5. [NOTICE](../NOTICE) |
 
 ## 11. What this change does not do
 
-- It does not add a GitHub Actions workflow.
+- It does not add a GitHub Actions workflow. The base is Ubuntu 26.04 LTS, and the image still waits on `galion-init`.
 - It does not build or publish an ISO or a disk image.
 - It does not edit the root README, the voice-profile notes, the landing pages, or the brand guide.
 - It does not deploy galion.app, change DNS, or open a public listener.
-- It does not set `paid_tiers`, take a payment, or put a weight file in the tree.
-- It does not choose the base distribution. [§3](#3-base-distro-options) is the comparison. The pick is [decision 1](#d1-base-of-the-desktop-image).
+- It does not change billing, a price, or a payment form. Pricing is outside this plan.
+- It does not put a weight file in the tree.
 
 ## Licence
 

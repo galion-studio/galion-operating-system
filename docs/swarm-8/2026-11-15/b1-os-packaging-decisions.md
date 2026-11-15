@@ -2,6 +2,8 @@
 
 *Maciej Grajczyk · 2026-11-15 (Europe/Zagreb, CET, UTC+1).*
 
+**Decided 2026-11-15, 15:00 CET.** The five choices below were the list offered to Maciej. He decided them in [PACKAGING.md](../../PACKAGING.md) §10: Ubuntu 26.04 LTS; wait for `galion-init`; follow the desktop crate; static pages stay files and Research points at the console's `/one` on port 18181; a Galion Labs [NOTICE](../../../NOTICE). Pricing is outside that plan. The text under this line is the earlier reading.
+
 Draft PR [#13](https://github.com/galion-studio/galion-operating-system/pull/13) listed 31 open questions in `docs/PACKAGING.md`. This note is the working record of how those questions were grouped. The list Maciej answers is [PACKAGING.md](../../PACKAGING.md) §10. The earlier reading, which left every question open, stays at [PACKAGING-DECISIONS.md](../../PACKAGING-DECISIONS.md).
 
 No image is built. No workflow is added. Nothing is published. Billing is unchanged.
