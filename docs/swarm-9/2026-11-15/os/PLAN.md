@@ -49,6 +49,18 @@ Still forbidden, including under this permission: force-push, history rewrite, b
 
 A blocked lane is reported. The next lane merges only when its files do not depend on the blocked lane. Orders 2 and 3 do not edit the same paths. Order 4 does not edit orders 2 or 3.
 
+### Older pull requests
+
+Owner decision, 2026-11-15 15:29 +01:00. Pull requests opened before Swarm 9 are left with their owners when they are ready and green. This swarm takes one only when it is blocked or failing. It does not edit or merge the ready ones.
+
+| Pull request | Reading at 15:29 +01:00 | This swarm |
+|---|---|---|
+| [#13](https://github.com/galion-studio/galion-operating-system/pull/13) | Draft. `mergeable` MERGEABLE, `mergeStateStatus` CLEAN. `link-check` success on `3adee77f86c3dfb8cd32f9070ad045f018e9b046`: [run 43722765891](https://github.com/galion-studio/galion-operating-system/actions/runs/43722765891). | Leave it. The owner merges it. |
+| [#17](https://github.com/galion-studio/galion-operating-system/pull/17) | Draft. `link-check` success on `37eb721385a29a65e9cb898c71cf135e5ca0a44e`: [run 43723874884](https://github.com/galion-studio/galion-operating-system/actions/runs/43723874884). | Leave it. The owner merges it. The site lane still does not edit the two files on that branch. |
+| [#6](https://github.com/galion-studio/galion-operating-system/pull/6) | Closed at 2026-11-15T14:29:03Z. `mergedAt` is null. No check runs on `c63fb1df5c99c07757de75ac78f103ada75337f1`. | Swarm 8 B3 owns it. This swarm did not close it, merge it, or edit it. |
+
+No other pre-Swarm 9 pull request in this repository was blocked or failing at that reading, so none was taken.
+
 ## Owner decisions already on record
 
 These are closed. Lanes implement them. Lanes do not reopen them.
@@ -165,7 +177,7 @@ Polish and accessibility on the existing landing pages. The site stays a local p
 | P1 | `docs/PACKAGING.md`, `docs/PACKAGING-DECISIONS.md`, and `NOTICE` exist only on the #13 branch. #14 shows as merged. Its base was the #13 branch, so the file is not on `main`. | packaging | Write `docs/swarm-9/2026-11-15/os/pr-13-merge-readiness.md`. The owner merges #13. This swarm does not. |
 | S1 | Link-check stays green. The site is not deployed. | site | Acceptance above. The lane does not add a deploy. |
 | O1 | Labs GitHub organisation. The owner reported it created at 15:25 +01:00. Public API checks at 15:26 +01:00 did not confirm a slug. | none | Unverified. References stay planned. No lane creates an organisation, and no lane transfers a repository. |
-| R1 | [#6](https://github.com/galion-studio/galion-operating-system/pull/6) removes `docs/voice-profile/he-IL/`. [#7](https://github.com/galion-studio/galion-operating-system/pull/7) already landed that removal (`merged_at` 2026-11-02T10:13:41Z, merge commit `e48f3d4f6b7f2f0e0ae77ba4784ab427fb54587d`). `docs/voice-profile/he-IL/` is absent on `main` at `b9517e9`. Swarm 8 B3 owns #6. B3's draft #17 asks the owner to close #6. | none | Recorded. Swarm 9 does not edit, close, or merge #6 or #17. |
+| R1 | [#6](https://github.com/galion-studio/galion-operating-system/pull/6) removed `docs/voice-profile/he-IL/`. [#7](https://github.com/galion-studio/galion-operating-system/pull/7) already landed that removal. #6 was closed at 2026-11-15T14:29:03Z without a merge. Swarm 8 B3 owns it. | none | Recorded. Swarm 9 does not edit or reopen #6, and does not edit or merge #17. |
 
 ### P1 checklist for the owner
 
