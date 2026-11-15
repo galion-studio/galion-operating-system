@@ -98,6 +98,9 @@ order console then research
 samples 0
 handoff /one
 handoff current while the console and research are alive
+down research then console
+handoff dropped while the console was still up
+neither row restarted
 galion-voiced absent
 runtime in-memory
 "

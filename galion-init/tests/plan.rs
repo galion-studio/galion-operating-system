@@ -3,10 +3,10 @@
 
 use galion_init::{
     admit, check_desktop_bind, desktop_plan, handoff_ready, invocation, one_target,
-    running_as_host_init, tone_hook, tone_samples, voice_plan, walk_desktop, AdmitError, BindError,
-    BootError, EarlyBoot, Host, Invocation, Machine, Phase, Profile, Restart, Service, Supervisor,
-    ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_MOUNTS, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT,
-    START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
+    running_as_host_init, tone_hook, tone_samples, voice_plan, walk_desktop, walk_down, AdmitError,
+    BindError, BootError, EarlyBoot, Host, Invocation, Machine, Phase, Profile, Restart, Service,
+    Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_MOUNTS, DESKTOP_PORT, ONE_PATH,
+    RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
 
 fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
@@ -224,6 +224,29 @@ fn one_desktop_walk_starts_the_console_then_research_and_plays_nothing() {
                 .iter()
                 .all(|proc| proc.name != "galion-voiced" && proc.name != "galion-one"));
         }
+    }
+}
+
+#[test]
+fn the_down_walk_records_research_before_the_console_and_does_not_restart() {
+    for silence in [false, true] {
+        let mut machine = Machine::new(0);
+        let down = walk_down(silence, true, &mut machine);
+        assert!(down.up.console_pid < down.up.research_pid);
+        assert_ne!(down.up.console_pid, 1);
+        assert_ne!(down.up.research_pid, 1);
+        assert_eq!(down.up.samples, 0);
+        assert_eq!(down.up.handoff_path, "/one");
+        assert_eq!(down.first, "galion-research");
+        assert_eq!(down.second, "openmind-desktop");
+        assert!(down.console_still_up);
+        assert!(!down.restarted);
+        assert!(machine.procs.iter().all(|proc| {
+            !proc.alive
+                && proc.pid != 1
+                && proc.name != "galion-voiced"
+                && proc.name != "galion-one"
+        }));
     }
 }
 

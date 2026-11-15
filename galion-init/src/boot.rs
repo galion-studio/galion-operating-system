@@ -141,10 +141,13 @@ pub struct DesktopWalk {
     pub handoff_path: &'static str,
 }
 
-/// Step the desktop plan once. The console is recorded before research.
-/// The handoff path is `/one` only after both rows are alive. `galion-voiced`
-/// is not started.
-pub fn walk_desktop(silence: bool, playback_present: bool, machine: &mut Machine) -> DesktopWalk {
+struct Stepped {
+    plan: Plan,
+    boot: EarlyBoot,
+    walk: DesktopWalk,
+}
+
+fn step_desktop(silence: bool, playback_present: bool, machine: &mut Machine) -> Stepped {
     let mut plan = desktop_plan(silence, playback_present);
     let mut boot = EarlyBoot::new();
     boot.mount().expect("desktop mounts");
@@ -160,7 +163,7 @@ pub fn walk_desktop(silence: bool, playback_present: bool, machine: &mut Machine
     } else {
         ""
     };
-    DesktopWalk {
+    let walk = DesktopWalk {
         console_pid: plan
             .supervisor
             .pid_of("openmind-desktop")
@@ -171,6 +174,60 @@ pub fn walk_desktop(silence: bool, playback_present: bool, machine: &mut Machine
             .expect("research row"),
         samples: boot.samples(),
         handoff_path,
+    };
+    Stepped { plan, boot, walk }
+}
+
+/// Step the desktop plan once. The console is recorded before research.
+/// The handoff path is `/one` only after both rows are alive. `galion-voiced`
+/// is not started.
+pub fn walk_desktop(silence: bool, playback_present: bool, machine: &mut Machine) -> DesktopWalk {
+    step_desktop(silence, playback_present, machine).walk
+}
+
+/// The same desktop step, then a recorded stop. Research is first, the
+/// console is still up, then the console is recorded. Neither row restarts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DownWalk {
+    pub up: DesktopWalk,
+    pub first: &'static str,
+    pub second: &'static str,
+    pub console_still_up: bool,
+    pub restarted: bool,
+}
+
+pub fn walk_down(silence: bool, playback_present: bool, machine: &mut Machine) -> DownWalk {
+    let Stepped {
+        mut plan,
+        mut boot,
+        walk,
+    } = step_desktop(silence, playback_present, machine);
+    plan.supervisor.request_stop();
+    plan.supervisor.tick(machine);
+    let research_down = plan.supervisor.pid_of("galion-research").is_none();
+    let console_still_up = child_alive(&plan, machine, "openmind-desktop");
+    let dropped = boot.release(handoff_ready(&plan, machine)).is_ok() && !boot.handed_off();
+    plan.supervisor.tick(machine);
+    let console_down = plan.supervisor.is_done("openmind-desktop")
+        && plan.supervisor.pid_of("openmind-desktop").is_none();
+    let rows = machine.procs.len();
+    machine.now = 10_000;
+    plan.supervisor.tick(machine);
+    let restarted = machine.procs.len() != rows || machine.procs.iter().any(|proc| proc.alive);
+    DownWalk {
+        up: walk,
+        first: if research_down && console_still_up && dropped {
+            "galion-research"
+        } else {
+            ""
+        },
+        second: if console_down && !restarted {
+            "openmind-desktop"
+        } else {
+            ""
+        },
+        console_still_up,
+        restarted,
     }
 }
 
