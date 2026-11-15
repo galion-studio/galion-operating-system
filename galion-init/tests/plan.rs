@@ -3,9 +3,9 @@
 
 use galion_init::{
     admit, check_desktop_bind, desktop_plan, invocation, one_target, running_as_host_init,
-    tone_hook, tone_samples, voice_plan, AdmitError, BindError, Host, Invocation, Machine, Phase,
-    Profile, Restart, Service, Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_PORT,
-    ONE_PATH, RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
+    tone_hook, tone_samples, voice_plan, walk_desktop, AdmitError, BindError, Host, Invocation,
+    Machine, Phase, Profile, Restart, Service, Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ,
+    DESKTOP_PORT, ONE_PATH, RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
 
 fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
@@ -204,6 +204,26 @@ fn desktop_services_match_the_packaging_handoff() {
     }
     assert!(plan.service("galion-voiced").is_none());
     assert!(plan.service("galion-one").is_none());
+}
+
+#[test]
+fn one_desktop_walk_starts_the_console_then_research_and_plays_nothing() {
+    for silence in [false, true] {
+        for playback_present in [false, true] {
+            let mut machine = Machine::new(0);
+            let walk = walk_desktop(silence, playback_present, &mut machine);
+            assert!(walk.console_pid < walk.research_pid);
+            assert_ne!(walk.console_pid, 1);
+            assert_ne!(walk.research_pid, 1);
+            assert_eq!(walk.samples, 0);
+            assert_eq!(walk.handoff_path, "/one");
+            assert!(machine.procs.iter().all(|proc| proc.alive && proc.pid != 1));
+            assert!(machine
+                .procs
+                .iter()
+                .all(|proc| proc.name != "galion-voiced" && proc.name != "galion-one"));
+        }
+    }
 }
 
 #[test]
