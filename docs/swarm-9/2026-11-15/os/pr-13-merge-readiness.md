@@ -55,3 +55,7 @@ result: readiness check passed. The owner merges #13. This script did not.
 ```
 
 `sh packaging/check-pr-13.sh --merge` exited 2: `refused: this script does not merge pull request 13. The owner merges it.`
+
+## Landed
+
+Owner approval, 2026-11-15 21:45 +01:00. Pull request #13 merged as `09540d5a0b07e9399791d2d3d86c717c54802371`. The checklist above is the reading from before that merge. `sh packaging/check-pr-13.sh` now checks the landed tree: the four files are on `main`, `NOTICE` is still `The licence is LICENSE.`, and the script still refuses `--merge`.
