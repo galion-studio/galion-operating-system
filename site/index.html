@@ -8,6 +8,8 @@
   <meta name="theme-color" content="#0A0A0C">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/site.css">
+  <script src="/assets/prices.js"></script>
+  <script src="/assets/region.js"></script>
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>
@@ -76,13 +78,13 @@
         <article class="card">
           <img src="/assets/marks/icon-one.svg" alt="" width="40" height="40">
           <h3>Galion One</h3>
-          <p>Plus. $20 / €20 per month. The companion. Samantha V2 is the conversational persona, in development.</p>
+          <p>Plus. <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. The companion. Samantha V2 is the conversational persona, in development.</p>
           <p><a href="/one/">Galion One</a></p>
         </article>
         <article class="card">
           <img src="/assets/marks/icon-research.svg" alt="" width="40" height="40">
           <h3>Galion Research</h3>
-          <p>Ultra. $220 / €220 per month. Curious and analytical. The path behind the voice is Hermes.</p>
+          <p>Ultra. <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Curious and analytical. The path behind the voice is Hermes.</p>
           <p><a href="/research/">Galion Research</a></p>
         </article>
         <article class="card">
@@ -121,7 +123,7 @@
     <section id="pricing" aria-labelledby="pricing-title">
       <p class="section-label">Pricing</p>
       <h2 id="pricing-title">Three ways in. One of them is free forever.</h2>
-      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at $20 / €20 per month. Ultra is Galion Research, at $220 / €220 per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
+      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
       <div class="prices">
         <article class="price free">
           <h3>Free forever</h3>
@@ -133,14 +135,14 @@
         <article class="price">
           <h3>Plus</h3>
           <p class="product">Galion One</p>
-          <p class="amount">$20 / €20<span> / month</span></p>
+          <p class="amount"><span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span><span class="period"> / month</span></p>
           <p>The companion. Galion Voice is the voice model inside Galion One. The price is written down. Billing is not live.</p>
           <p><a href="/one/">Galion One</a></p>
         </article>
         <article class="price">
           <h3>Ultra</h3>
           <p class="product">Galion Research</p>
-          <p class="amount">$220 / €220<span> / month</span></p>
+          <p class="amount"><span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span><span class="period"> / month</span></p>
           <p>The research product. The price is written down. Billing is not live.</p>
           <p><a href="/research/">Galion Research</a></p>
         </article>

@@ -547,9 +547,21 @@ section {
   line-height: 1.1;
 }
 
-.price .amount span {
+.price .amount .period {
   font-size: 1rem;
   letter-spacing: 0;
+}
+
+.money-eur {
+  display: none;
+}
+
+html[data-currency="eur"] .money-usd {
+  display: none;
+}
+
+html[data-currency="eur"] .money-eur {
+  display: inline;
 }
 
 .badge {

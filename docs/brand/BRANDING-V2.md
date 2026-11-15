@@ -293,6 +293,8 @@ Three prices. One of them is free forever. None of them is a live charge.
 | **Plus** | $20 / €20 per month | Galion One, the companion. Galion Voice is the voice model inside Galion One. It is not a separate product and it has no price of its own. | The price is written down. Billing is not live. |
 | **Ultra** | $220 / €220 per month | Galion Research. | The price is written down. Billing is not live. |
 
+The landing pages show one of those two amounts. The numbers live in [`../../site/assets/prices.js`](../../site/assets/prices.js). A visitor in the United States, Canada, Australia, or New Zealand sees US dollars. A visitor in Europe, including the United Kingdom and Ireland, sees euros. That Europe list is UN M49 geographic Europe. Anywhere else sees US dollars. The page reads a same-origin country header when the host sends one, and otherwise uses the browser locale. It does not call a geo service.
+
 `paid_tiers` stays false. A page may show these prices. It does not go to a checkout. A page does not say "buy", "subscribe now", or "add to cart". It does not contain a payment form.
 
 Putting a paid tier into the voice licence lock is an owner change, with counsel, and a line in the voice ledger. This guide does not make that change.
@@ -301,7 +303,7 @@ Galion Labs is not a tier. The community is free to join.
 
 ## 9. Landing pages
 
-galion.app is the only domain. The pages in [`../../site/`](../../site/) are static HTML and CSS for that domain. They use the type in section 5, the voice-ground palette, and the marks in section 6. One nav links the paths below. They carry the pricing in section 8. Samantha V2 has her own section on the Galion One page and on the voice-model page.
+galion.app is the only domain. The pages in [`../../site/`](../../site/) are HTML and CSS for that domain, plus two small scripts that choose the currency in section 8. They use the type in section 5, the voice-ground palette, and the marks in section 6. One nav links the paths below. They carry the pricing in section 8. Samantha V2 has her own section on the Galion One page and on the voice-model page.
 
 | Path | Page |
 |---|---|

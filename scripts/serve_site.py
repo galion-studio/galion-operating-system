@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""Serve the landing pages and the same-origin /api/region endpoint.
+
+/api/region reads the CF-IPCountry header on this request and returns
+{"country":"DE"}. It does not call a geo service and it does not record
+an address. This serves your own machine. It is not a deployment.
+"""
+
+from __future__ import annotations
+
+import argparse
+import shutil
+import subprocess
+import sys
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import urlparse
+
+ROOT = Path(__file__).resolve().parents[1]
+SITE = ROOT / "site"
+ENDPOINT = ROOT / "functions" / "api" / "region.js"
+
+
+class SiteHandler(SimpleHTTPRequestHandler):
+    def do_GET(self) -> None:
+        if urlparse(self.path).path == "/api/region":
+            self.serve_region()
+            return
+        super().do_GET()
+
+    def serve_region(self) -> None:
+        raw = self.headers.get("CF-IPCountry", "")
+        header = raw.splitlines()[0][:16] if raw else ""
+        node = shutil.which("node") or "node"
+        try:
+            proc = subprocess.run(
+                [node, str(ENDPOINT)],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
+                env={
+                    "GALION_REGION_CLI": "1",
+                    "GALION_CF_IPCOUNTRY": header,
+                },
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            proc = None
+        if proc is not None and proc.returncode == 0 and proc.stdout.startswith("{"):
+            body = proc.stdout.encode("utf-8")
+        else:
+            body = b'{"country":""}'
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, fmt: str, *args) -> None:
+        # Request line and status only. Do not record the client address.
+        sys.stderr.write((fmt % args) + "\n")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Serve site/ with /api/region")
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8765)
+    args = parser.parse_args()
+    handler = partial(SiteHandler, directory=str(SITE))
+    server = ThreadingHTTPServer((args.host, args.port), handler)
+    print(f"PORT {server.server_address[1]}", flush=True)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
