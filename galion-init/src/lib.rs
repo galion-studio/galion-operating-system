@@ -11,11 +11,13 @@
 #![forbid(unsafe_code)]
 
 mod boot;
+mod cli;
 mod handoff;
 mod supervise;
 mod tone;
 
 pub use boot::{desktop_plan, voice_plan, Phase, Plan, Profile};
+pub use cli::{invocation, Invocation};
 pub use handoff::{
     check_desktop_bind, describe, desktop_handoff, one_target, BindError, Endpoint, Host,
     DESKTOP_PATH, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT,
