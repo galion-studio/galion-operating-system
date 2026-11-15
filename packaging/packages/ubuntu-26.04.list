@@ -1,0 +1,7 @@
+# Ubuntu 26.04 LTS base rows. The dry run does not install them.
+# Format: status<TAB>name<TAB>note
+
+included	nodejs	Ubuntu 26.04 nodejs package, path /usr/bin/node. Version 22.22.1 is the figure recorded in draft #13 D1. This dry run does not install it.
+excluded	unattended-upgrades	Stays off the image. Updates stay on the image channel.
+unnamed	kernel	Ubuntu 26.04 kernel. Draft #13 D1 does not name an apt package.
+unnamed	firmware	Ubuntu 26.04 firmware. Draft #13 D1 does not name an apt package.

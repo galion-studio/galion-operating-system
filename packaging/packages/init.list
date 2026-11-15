@@ -1,0 +1,4 @@
+# PID 1 for the desktop image. Not a payload. Not built.
+# Format: status<TAB>name<TAB>role<TAB>note
+
+planned	galion-init	desktop	PID 1. Static musl. Absent from this repository. The image does not boot until it exists. Draft #13 D2.

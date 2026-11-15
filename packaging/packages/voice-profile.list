@@ -1,0 +1,5 @@
+# Voice profile programs. Planned, not built, and not desktop payloads.
+# Format: status<TAB>name<TAB>profile<TAB>note
+
+planned	galion-voiced	voice	Voice daemon. Other profile. Off the desktop image. Not built. docs/voice-profile/PACKAGING.md section 3. Draft #13 D2.
+planned	galion-probe	voice	Machine probe. Other profile. Off the desktop image. Not built. docs/voice-profile/PACKAGING.md section 3.

@@ -21,7 +21,7 @@
         <img class="word" src="/assets/marks/wordmark-on-dark.svg" alt="Galion" width="76" height="22">
       </a>
       <div class="menu">
-        <input class="nav-toggle" id="nav-toggle" type="checkbox">
+        <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-controls="site-nav">
         <label class="nav-button" for="nav-toggle"><span class="when-closed">Menu</span><span class="when-open">Close</span></label>
       </div>
       <nav class="nav" id="site-nav" aria-label="Primary">
@@ -73,18 +73,18 @@
           <img src="/assets/marks/icon-os.svg" alt="" width="40" height="40">
           <h3>Galion OS</h3>
           <p>This page. Free forever. Open source. Linux and Rust, for a laptop or a small board. The image is not published yet.</p>
-          <p><a href="/operating-system/">Profiles and documents</a></p>
+          <p><a href="#status">What is true today</a></p>
         </article>
         <article class="card">
           <img src="/assets/marks/icon-one.svg" alt="" width="40" height="40">
           <h3>Galion One</h3>
-          <p>Plus. <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. The companion. Samantha V2 is the conversational persona, in development.</p>
+          <p>Plus, planned. <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. The companion. Samantha V2 is the conversational persona, in development.</p>
           <p><a href="/one/">Galion One</a></p>
         </article>
         <article class="card">
           <img src="/assets/marks/icon-research.svg" alt="" width="40" height="40">
           <h3>Galion Research</h3>
-          <p>Ultra. <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Curious and analytical. The path behind the voice is Hermes.</p>
+          <p>Ultra, planned. <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Curious and analytical. The path behind the voice is Hermes.</p>
           <p><a href="/research/">Galion Research</a></p>
         </article>
         <article class="card">
@@ -108,7 +108,7 @@
       </div>
     </section>
 
-    <section aria-labelledby="status-title">
+    <section id="status" aria-labelledby="status-title">
       <p class="section-label">Status</p>
       <h2 id="status-title">What is true today.</h2>
       <div class="prose">
@@ -123,7 +123,7 @@
     <section id="pricing" aria-labelledby="pricing-title">
       <p class="section-label">Pricing</p>
       <h2 id="pricing-title">Three ways in. One of them is free forever.</h2>
-      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
+      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at a planned <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at a planned <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
       <div class="prices">
         <article class="price free">
           <h3>Free forever</h3>
@@ -133,17 +133,19 @@
           <p><a href="/operating-system/">Galion Operating System</a></p>
         </article>
         <article class="price">
+          <p class="badge">Planned</p>
           <h3>Plus</h3>
           <p class="product">Galion One</p>
           <p class="amount"><span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span><span class="period"> / month</span></p>
-          <p>The companion. Galion Voice is the voice model inside Galion One. The price is written down. Billing is not live.</p>
+          <p>The companion. Galion Voice is the voice model inside Galion One. Planned. Billing is not live.</p>
           <p><a href="/one/">Galion One</a></p>
         </article>
         <article class="price">
+          <p class="badge">Planned</p>
           <h3>Ultra</h3>
           <p class="product">Galion Research</p>
           <p class="amount"><span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span><span class="period"> / month</span></p>
-          <p>The research product. The price is written down. Billing is not live.</p>
+          <p>The research product. Planned. Billing is not live.</p>
           <p><a href="/research/">Galion Research</a></p>
         </article>
       </div>
@@ -184,7 +186,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.</pre>
       <div class="footer-inner">
         <nav aria-label="Footer">
-          <a href="/">Galion OS</a>
+          <a href="/" aria-current="page">Galion OS</a>
           <a href="/one/">Galion One</a>
           <a href="/research/">Galion Research</a>
           <a href="/operating-system/">Operating System</a>
@@ -197,5 +199,6 @@ SOFTWARE.</pre>
       </div>
     </div>
   </footer>
+  <script src="/assets/nav.js"></script>
 </body>
 </html>

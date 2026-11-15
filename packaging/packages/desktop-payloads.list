@@ -1,0 +1,8 @@
+# Four desktop payloads from draft #13 section 4. None is built here.
+# galion-voiced and galion-probe are not in this list.
+# Format: status<TAB>name<TAB>pin<TAB>path<TAB>note
+
+planned	openmind-desktop	de7480e71ce98191d2ee11f018fa15be6c5a1707	/opt/galion/openmind-desktop/openmind-desktop	Console binary. User galion. No listen address, so the crate default port 18181 is used. Not built here.
+planned	site-one	this-repository	/opt/galion/site/one/	Static Galion One page. No listener.
+planned	site-research	this-repository	/opt/galion/site/research/	Static Galion Research page. No listener.
+planned	hermes-research	ed3ce9993f58ec655af4f23c2438eb83cd7ea844	/opt/galion/research/current/	Research app. User galion. PORT 8787. one_url is the console path on port 18181. Other research variables unset. Not started here.

@@ -21,7 +21,7 @@
         <img class="word" src="/assets/marks/wordmark-on-dark.svg" alt="Galion" width="76" height="22">
       </a>
       <div class="menu">
-        <input class="nav-toggle" id="nav-toggle" type="checkbox">
+        <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-controls="site-nav">
         <label class="nav-button" for="nav-toggle"><span class="when-closed">Menu</span><span class="when-open">Close</span></label>
       </div>
       <nav class="nav" id="site-nav" aria-label="Primary">
@@ -63,7 +63,9 @@
       <p class="section-label">Roadmap</p>
       <h2 id="profiles-title">Two profiles. The voice image is first.</h2>
       <p class="prose">Both profiles are in development. They share an init and the Open Mind contract. Neither image is published from this repository.</p>
+      <div class="table-scroll">
       <table>
+        <caption class="visually-hidden">Image profiles</caption>
         <thead>
           <tr>
             <th scope="col">Profile</th>
@@ -74,19 +76,20 @@
         </thead>
         <tbody>
           <tr>
-            <td>Galion OS Voice</td>
+            <th scope="row">Galion OS Voice</th>
             <td>First, roadmap</td>
             <td>No display server. At most one dot.</td>
             <td>Off the device, on the side band, outside the audio frame.</td>
           </tr>
           <tr>
-            <td>Hermes GUI</td>
+            <th scope="row">Hermes GUI</th>
             <td>Later, roadmap</td>
             <td>One window, one gradient, one prompt field.</td>
             <td>Centre of the screen for knowledge and tools.</td>
           </tr>
         </tbody>
       </table>
+      </div>
       <p class="fine">Galion OS Voice is an image profile. It is a different phrase from Galion Voice. Galion Voice is the voice model inside <a href="/one/">Galion One</a>, and its page is <a href="/voice/">here</a>. The model also runs on plain Linux. You do not need either image to work on it.</p>
     </section>
 
@@ -103,27 +106,29 @@
     <section id="pricing" aria-labelledby="pricing-title">
       <p class="section-label">Pricing</p>
       <h2 id="pricing-title">Three ways in. One of them is free forever.</h2>
-      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
+      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at a planned <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at a planned <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
       <div class="prices">
         <article class="price free">
           <h3>Free forever</h3>
           <p class="product">Galion OS</p>
           <p class="amount">Open source</p>
           <p>The operating system, under the MIT licence. No account. No licence key. The image is in development. No download is published yet.</p>
-          <p><a href="/operating-system/">Galion Operating System</a></p>
+          <p><a href="/operating-system/" aria-current="page">Galion Operating System</a></p>
         </article>
         <article class="price">
+          <p class="badge">Planned</p>
           <h3>Plus</h3>
           <p class="product">Galion One</p>
           <p class="amount"><span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span><span class="period"> / month</span></p>
-          <p>The companion. Galion Voice is the voice model inside Galion One. The price is written down. Billing is not live.</p>
+          <p>The companion. Galion Voice is the voice model inside Galion One. Planned. Billing is not live.</p>
           <p><a href="/one/">Galion One</a></p>
         </article>
         <article class="price">
+          <p class="badge">Planned</p>
           <h3>Ultra</h3>
           <p class="product">Galion Research</p>
           <p class="amount"><span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span><span class="period"> / month</span></p>
-          <p>The research product. The price is written down. Billing is not live.</p>
+          <p>The research product. Planned. Billing is not live.</p>
           <p><a href="/research/">Galion Research</a></p>
         </article>
       </div>
@@ -167,7 +172,7 @@ SOFTWARE.</pre>
           <a href="/">Galion OS</a>
           <a href="/one/">Galion One</a>
           <a href="/research/">Galion Research</a>
-          <a href="/operating-system/">Operating System</a>
+          <a href="/operating-system/" aria-current="page">Operating System</a>
           <a href="/voice/">Voice model</a>
           <a href="/labs/">Galion Labs</a>
           <a href="https://github.com/galion-studio/galion-operating-system/blob/main/docs/brand/BRANDING-V2.md">Brand guide</a>
@@ -177,5 +182,6 @@ SOFTWARE.</pre>
       </div>
     </div>
   </footer>
+  <script src="/assets/nav.js"></script>
 </body>
 </html>
