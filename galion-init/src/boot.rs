@@ -52,6 +52,12 @@ pub struct Plan {
 }
 
 impl Plan {
+    /// Print the plan in the same order as `prototype.sh`.
+    ///
+    /// The runtime line stays `in-memory`. The desktop print also names the
+    /// console. The voice print also says the service binary is absent.
+    /// `phase handoff-desktop` stays on the plan and is printed as the handoff
+    /// lines, not as a phase line.
     pub fn render(&self) -> String {
         let mut out = String::new();
         match self.profile {
@@ -59,14 +65,17 @@ impl Plan {
             Profile::Desktop => out.push_str("profile desktop\n"),
         }
         for phase in self.phases {
+            if matches!(phase, Phase::Supervise | Phase::HandoffDesktop) {
+                continue;
+            }
             out.push_str(&format!("phase {}\n", phase_name(*phase)));
         }
-        match self.tone {
-            Some(ToneHook::Planned { hz }) => {
-                out.push_str(&format!("tone planned {hz} samples 0\n"));
-            }
-            Some(ToneHook::Silenced) => out.push_str("tone silenced samples 0\n"),
-            None => out.push_str("tone none\n"),
+        if self.profile == Profile::Desktop {
+            out.push_str(&tone_line(self.tone));
+            out.push_str("silence-file none\n");
+        }
+        if self.phases.contains(&Phase::Supervise) {
+            out.push_str("phase supervise\n");
         }
         for service in self.supervisor.services() {
             out.push_str(&service_line(service));
@@ -76,22 +85,20 @@ impl Plan {
                 out.push_str("fb0 optional\n");
                 out.push_str("display-server none\n");
                 out.push_str("service-binary absent\n");
+                out.push_str(&tone_line(self.tone));
+                out.push_str("handoff none\n");
             }
             Profile::Desktop => {
-                out.push_str("silence-file none\n");
+                if let Some(handoff) = self.handoff {
+                    out.push_str("handoff desktop-console to research at /one\n");
+                    out.push_str(
+                        "GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one\n",
+                    );
+                    out.push_str(&format!("console {}\n", describe(&handoff)));
+                }
                 out.push_str("galion-voiced absent\n");
                 out.push_str("galion-one absent\n");
             }
-        }
-        match self.handoff {
-            Some(handoff) => {
-                out.push_str("handoff desktop-console to research at /one\n");
-                out.push_str(
-                    "GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one\n",
-                );
-                out.push_str(&format!("console {}\n", describe(&handoff)));
-            }
-            None => out.push_str("handoff none\n"),
         }
         out.push_str("runtime in-memory\n");
         out
@@ -132,6 +139,14 @@ pub fn voice_plan(voiced_program: &str) -> Result<Plan, AdmitError> {
         handoff: None,
         supervisor,
     })
+}
+
+fn tone_line(tone: Option<ToneHook>) -> String {
+    match tone {
+        Some(ToneHook::Planned { hz }) => format!("tone planned {hz} samples 0\n"),
+        Some(ToneHook::Silenced) => "tone silenced samples 0\n".to_string(),
+        None => "tone none\n".to_string(),
+    }
 }
 
 fn service_line(service: crate::supervise::Service) -> String {
