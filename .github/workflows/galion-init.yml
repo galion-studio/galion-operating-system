@@ -1,0 +1,19 @@
+name: galion-init
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Test galion-init on CPU
+        run: cargo test --manifest-path init/Cargo.toml --locked
