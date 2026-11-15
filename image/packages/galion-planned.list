@@ -1,0 +1,13 @@
+# G.A.L.I.O.N. — General Autonomous Local Intelligence Open Network
+# Developed and distributed by Galion Labs
+# Perpetual Open MIT License
+# Copyright © 2026 Galion Labs. All rights reserved.
+# The licence text is LICENSE. This file does not restate it.
+#
+# Galion programs named by the voice packaging contract and the desktop plan.
+# Format: status<TAB>name<TAB>image<TAB>note
+# status must be planned. The dry run rejects built.
+
+planned	galion-init	desktop	PID 1 for the desktop image. Static musl. Not in this repository. The image does not boot until it exists. docs/PACKAGING.md D2. docs/voice-profile/PACKAGING.md section 3.
+planned	galion-voiced	voice	Voice daemon for the voice image. Off the desktop image. Not built. docs/PACKAGING.md D2. docs/voice-profile/PACKAGING.md section 3.
+planned	galion-probe	voice	Machine probe for the voice archive. Off the desktop image. Not built. docs/voice-profile/PACKAGING.md section 3.

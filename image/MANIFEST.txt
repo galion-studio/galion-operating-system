@@ -1,0 +1,37 @@
+# G.A.L.I.O.N. — General Autonomous Local Intelligence Open Network
+# Developed and distributed by Galion Labs
+# Perpetual Open MIT License
+# Copyright © 2026 Galion Labs. All rights reserved.
+# The licence text is LICENSE. This file does not restate it.
+#
+# Desktop image manifest for the dry run. Pins follow docs/PACKAGING.md §7 and §10.
+# git=filled-by-dry-run is a sentinel. The dry run prints the current full commit.
+# version=none because this repository has no image tag. No tag is created here.
+# one_url is a token. The plan's GALION_ONE_URL is the console's /one on port 18181
+# over http on the IPv4 loopback interface. This file does not write that address.
+# The dry run does not build, flash, or publish an image.
+
+name=galion-os
+profile=desktop
+version=none
+git=filled-by-dry-run
+openmind=de7480e71ce98191d2ee11f018fa15be6c5a1707
+research=ed3ce9993f58ec655af4f23c2438eb83cd7ea844
+base=ubuntu-26.04
+arch=x86_64
+node=22.22.1
+node_path=/usr/bin/node
+init=galion-init
+init_status=planned
+weights=none
+root=squashfs
+unattended_upgrades=off
+publish=off
+console_user=galion
+console_port=18181
+research_port=8787
+research_command=/usr/bin/node src/server.js
+one_url=console-one-on-18181
+browser=none
+silence_file=none
+boot_tone=planned
