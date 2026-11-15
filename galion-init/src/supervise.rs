@@ -135,6 +135,7 @@ struct Slot {
 
 pub struct Supervisor {
     slots: Vec<Slot>,
+    stopping: bool,
 }
 
 impl Supervisor {
@@ -153,7 +154,19 @@ impl Supervisor {
                     done: false,
                 })
                 .collect(),
+            stopping: false,
         })
+    }
+
+    /// True after [`Self::request_stop`]. A stop does not signal a process.
+    pub fn stopping(&self) -> bool {
+        self.stopping
+    }
+
+    /// Record a stop. Later ticks bring live children down from the last
+    /// row to the first and do not start replacements.
+    pub fn request_stop(&mut self) {
+        self.stopping = true;
     }
 
     pub fn services(&self) -> Vec<Service> {
@@ -183,7 +196,13 @@ impl Supervisor {
 
     /// Reap dead children, then start what is due, in list order.
     /// A service with `after` waits until each named service has a live child.
+    /// After [`Self::request_stop`], one live child is recorded exited per
+    /// tick, last row first, and nothing is started.
     pub fn tick(&mut self, machine: &mut Machine) {
+        if self.stopping {
+            self.bring_down(machine);
+            return;
+        }
         for index in 0..self.slots.len() {
             self.reap(index, machine);
             if self.slots[index].pid.is_some() || self.slots[index].done {
@@ -197,6 +216,28 @@ impl Supervisor {
             }
             self.maybe_start(index, machine);
         }
+    }
+
+    fn bring_down(&mut self, machine: &mut Machine) {
+        for slot in &mut self.slots {
+            if slot.pid.is_none() {
+                slot.done = true;
+            }
+        }
+        let Some(index) = self.slots.iter().rposition(|slot| {
+            slot.pid.is_some_and(|pid| {
+                machine
+                    .procs
+                    .iter()
+                    .any(|proc| proc.pid == pid && proc.alive)
+            })
+        }) else {
+            return;
+        };
+        let pid = self.slots[index].pid.expect("live child");
+        machine.exited(pid, true);
+        self.slots[index].pid = None;
+        self.slots[index].done = true;
     }
 
     fn reap(&mut self, index: usize, machine: &Machine) {

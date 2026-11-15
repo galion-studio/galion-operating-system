@@ -257,6 +257,63 @@ fn the_handoff_is_current_only_while_the_console_is_alive() {
 }
 
 #[test]
+fn a_stop_brings_research_down_before_the_console_and_does_not_restart() {
+    let mut plan = desktop_plan(false, true);
+    let mut machine = Machine::new(0);
+    plan.supervisor.tick(&mut machine);
+    assert!(handoff_ready(&plan, &machine));
+    let console = plan.supervisor.pid_of("openmind-desktop").unwrap();
+    let research = plan.supervisor.pid_of("galion-research").unwrap();
+    let rows = machine.procs.len();
+
+    plan.supervisor.request_stop();
+    assert!(plan.supervisor.stopping());
+    plan.supervisor.tick(&mut machine);
+    assert!(machine
+        .procs
+        .iter()
+        .any(|proc| { proc.pid == research && !proc.alive && proc.code_ok == Some(true) }));
+    assert!(machine
+        .procs
+        .iter()
+        .any(|proc| proc.pid == console && proc.alive));
+    assert!(plan.supervisor.pid_of("galion-research").is_none());
+    assert_eq!(plan.supervisor.pid_of("openmind-desktop"), Some(console));
+    assert!(!handoff_ready(&plan, &machine));
+
+    plan.supervisor.tick(&mut machine);
+    assert!(machine
+        .procs
+        .iter()
+        .any(|proc| proc.pid == console && !proc.alive && proc.code_ok == Some(true)));
+    assert!(plan.supervisor.pid_of("openmind-desktop").is_none());
+    assert!(plan.supervisor.is_done("openmind-desktop"));
+    assert!(plan.supervisor.is_done("galion-research"));
+
+    machine.now = 10_000;
+    plan.supervisor.tick(&mut machine);
+    assert_eq!(machine.procs.len(), rows);
+    assert!(machine
+        .procs
+        .iter()
+        .all(|proc| !proc.alive && proc.pid != 1));
+}
+
+#[test]
+fn a_stop_before_the_first_tick_starts_nothing() {
+    let mut plan = desktop_plan(false, true);
+    let mut machine = Machine::new(0);
+    plan.supervisor.request_stop();
+    plan.supervisor.tick(&mut machine);
+    assert!(machine.procs.is_empty());
+    assert!(plan.supervisor.is_done("openmind-desktop"));
+    assert!(plan.supervisor.is_done("galion-research"));
+    machine.now = 10_000;
+    plan.supervisor.tick(&mut machine);
+    assert!(machine.procs.is_empty());
+}
+
+#[test]
 fn research_does_not_return_while_the_console_is_down() {
     let mut plan = desktop_plan(false, true);
     let mut machine = Machine::new(0);
