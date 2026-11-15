@@ -5,13 +5,13 @@
 //!
 //! No argument prints the voice plan, a blank line, then the desktop plan.
 //! `voice` and `desktop` print one plan. `walk` steps the desktop plan once
-//! in memory and prints that step. `--silence` selects the silenced desktop
+//! in memory, brings that desktop down, and prints both orders. `--silence` selects the silenced desktop
 //! tone hook. It does not read a Silence file and it does not play audio.
 //! `--execute` exits 2. If this process is PID 1, exit 2.
 
 #![forbid(unsafe_code)]
 
-use galion_init::{desktop_plan, invocation, voice_plan, walk_desktop, Invocation, Machine};
+use galion_init::{desktop_plan, invocation, voice_plan, walk_down, Invocation, Machine};
 
 /// Absolute path used only so the voice row can be admitted. The binary is
 /// not in this repository, and the rendered line says it is absent.
@@ -48,12 +48,17 @@ fn main() {
 
 fn print_walk(silence: bool) -> bool {
     let mut machine = Machine::new(0);
-    let walk = walk_desktop(silence, true, &mut machine);
+    let down = walk_down(silence, true, &mut machine);
+    let walk = down.up;
     let kept = walk.console_pid < walk.research_pid
         && walk.console_pid != 1
         && walk.research_pid != 1
         && walk.samples == 0
         && walk.handoff_path == "/one"
+        && down.first == "galion-research"
+        && down.second == "openmind-desktop"
+        && down.console_still_up
+        && !down.restarted
         && machine
             .procs
             .iter()
@@ -71,6 +76,9 @@ order console then research
 samples 0
 handoff /one
 handoff current while the console and research are alive
+down research then console
+handoff dropped while the console was still up
+neither row restarted
 galion-voiced absent
 runtime in-memory
 "

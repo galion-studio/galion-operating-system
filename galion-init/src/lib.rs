@@ -18,7 +18,8 @@ mod supervise;
 mod tone;
 
 pub use boot::{
-    desktop_plan, handoff_ready, voice_plan, walk_desktop, DesktopWalk, Phase, Plan, Profile,
+    desktop_plan, handoff_ready, voice_plan, walk_desktop, walk_down, DesktopWalk, DownWalk, Phase,
+    Plan, Profile,
 };
 pub use cli::{invocation, Invocation};
 pub use early::{BootError, EarlyBoot, MountSpec, DESKTOP_MOUNTS};
