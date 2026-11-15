@@ -218,6 +218,23 @@ test("client reads the endpoint country and ignores anything else", async () => 
   assert.equal(protocolRelative, "");
 });
 
+test("planned prices stay labelled and the pages do not check out", () => {
+  const banned = ["checkout", "add to cart", "subscribe now", "buy now", "<form"];
+  for (const rel of HTML_PAGES) {
+    const text = read(rel);
+    const badges = text.match(/<p class="badge">Planned<\/p>/g) || [];
+    assert.equal(badges.length, 2, rel);
+    assert.equal(text.includes("paid_tiers"), true, rel);
+    assert.equal(text.includes('src="/assets/nav.js"'), true, rel);
+    for (const phrase of banned) {
+      assert.equal(text.toLowerCase().includes(phrase), false, `${rel} ${phrase}`);
+    }
+  }
+  const nav = read("site/assets/nav.js");
+  assert.equal(nav.includes("https://"), false);
+  assert.equal(nav.includes("http://"), false);
+});
+
 test("pages show one configured amount per currency and load the scripts", () => {
   const span = /<span class="(money-usd|money-eur)" data-price="(plus|ultra)">([^<]*)<\/span>/g;
   const regionJs = read("site/assets/region.js");

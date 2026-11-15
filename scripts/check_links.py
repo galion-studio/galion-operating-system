@@ -212,6 +212,12 @@ def check_html(path: Path, errors: list[str], cache: dict[str, str]) -> None:
     for phrase in FORBIDDEN:
         if phrase in text.lower():
             fail(errors, f"{rel}: forbidden phrase {phrase!r}")
+    if text.count('<p class="badge">Planned</p>') < 2:
+        fail(errors, f"{rel}: Plus and Ultra must each be labelled Planned")
+    if "paid_tiers" not in text:
+        fail(errors, f"{rel}: missing paid_tiers")
+    if "<form" in text.lower() or "checkout" in text.lower():
+        fail(errors, f"{rel}: checkout or a payment form is not allowed")
     if not re.search(r"""data-price="ultra"[^>]*>€220</span><span class="period"> / month</span>""", text):
         fail(errors, f"{rel}: Ultra amount must show the configured monthly price")
     for href in NAV_HREFS:

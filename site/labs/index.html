@@ -21,7 +21,7 @@
         <img class="word" src="/assets/marks/wordmark-on-dark.svg" alt="Galion" width="76" height="22">
       </a>
       <div class="menu">
-        <input class="nav-toggle" id="nav-toggle" type="checkbox">
+        <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-controls="site-nav">
         <label class="nav-button" for="nav-toggle"><span class="when-closed">Menu</span><span class="when-open">Close</span></label>
       </div>
       <nav class="nav" id="site-nav" aria-label="Primary">
@@ -104,7 +104,7 @@
     <section id="pricing" aria-labelledby="pricing-title">
       <p class="section-label">Pricing</p>
       <h2 id="pricing-title">Three ways in. One of them is free forever.</h2>
-      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
+      <p class="prose">Galion OS is free forever and open source. Plus is Galion One, at a planned <span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span> per month. Ultra is Galion Research, at a planned <span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span> per month. Galion Voice is the voice model inside Galion One. It is not a separate product, and it has no price of its own. Billing is not live. <code>paid_tiers</code> stays false. Nothing on this page takes a card.</p>
       <div class="prices">
         <article class="price free">
           <h3>Free forever</h3>
@@ -114,17 +114,19 @@
           <p><a href="/operating-system/">Galion Operating System</a></p>
         </article>
         <article class="price">
+          <p class="badge">Planned</p>
           <h3>Plus</h3>
           <p class="product">Galion One</p>
           <p class="amount"><span class="money-usd" data-price="plus">$20</span><span class="money-eur" data-price="plus">€20</span><span class="period"> / month</span></p>
-          <p>The companion. Galion Voice is the voice model inside Galion One. The price is written down. Billing is not live.</p>
+          <p>The companion. Galion Voice is the voice model inside Galion One. Planned. Billing is not live.</p>
           <p><a href="/one/">Galion One</a></p>
         </article>
         <article class="price">
+          <p class="badge">Planned</p>
           <h3>Ultra</h3>
           <p class="product">Galion Research</p>
           <p class="amount"><span class="money-usd" data-price="ultra">$220</span><span class="money-eur" data-price="ultra">€220</span><span class="period"> / month</span></p>
-          <p>The research product. The price is written down. Billing is not live.</p>
+          <p>The research product. Planned. Billing is not live.</p>
           <p><a href="/research/">Galion Research</a></p>
         </article>
       </div>
@@ -170,7 +172,7 @@ SOFTWARE.</pre>
           <a href="/research/">Galion Research</a>
           <a href="/operating-system/">Operating System</a>
           <a href="/voice/">Voice model</a>
-          <a href="/labs/">Galion Labs</a>
+          <a href="/labs/" aria-current="page">Galion Labs</a>
           <a href="https://github.com/galion-studio/galion-operating-system/blob/main/docs/brand/BRANDING-V2.md">Brand guide</a>
           <a href="https://github.com/galion-studio/galion-operating-system/blob/main/LICENSE">Licence</a>
           <a href="https://github.com/galion-studio/galion-operating-system">Source</a>
@@ -178,5 +180,6 @@ SOFTWARE.</pre>
       </div>
     </div>
   </footer>
+  <script src="/assets/nav.js"></script>
 </body>
 </html>
