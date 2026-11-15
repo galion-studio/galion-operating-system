@@ -45,6 +45,8 @@ A step out of that order is refused. A mount outside that table is refused. Supe
 
 `request_stop` records a stop. It does not signal a process. The next tick records the last live child as exited, and the tick after that records the one before it. Research comes down before the console. The handoff is not current once research is down. Neither row starts again, including after the clock moves forward. A stop before the first tick starts nothing.
 
+`release` records that drop on the early boot. It is refused before the handoff, and it is refused while the handoff is still current. After the drop, the stage is supervised again. A later handoff can be recorded when both rows are alive. A stop does not bring them back, so that later handoff stays refused. A console exit does come back: once the console row is alive again, the handoff can be recorded again.
+
 ## Commands
 
 ```

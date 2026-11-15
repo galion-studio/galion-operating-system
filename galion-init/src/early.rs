@@ -50,6 +50,7 @@ pub const DESKTOP_MOUNTS: &[MountSpec] = &[
 pub enum BootError {
     OutOfOrder,
     HandoffNotReady,
+    HandoffStillCurrent,
     RefusedMount,
 }
 
@@ -142,6 +143,20 @@ impl EarlyBoot {
             return Err(BootError::HandoffNotReady);
         }
         self.stage = Stage::HandedOff;
+        Ok(())
+    }
+
+    /// Record that the handoff dropped. `ready` must already be false.
+    /// The stage returns to supervised so a later handoff can be recorded
+    /// again. This does not stop a process.
+    pub fn release(&mut self, ready: bool) -> Result<(), BootError> {
+        if self.stage != Stage::HandedOff {
+            return Err(BootError::OutOfOrder);
+        }
+        if ready {
+            return Err(BootError::HandoffStillCurrent);
+        }
+        self.stage = Stage::Supervised;
         Ok(())
     }
 
