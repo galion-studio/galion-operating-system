@@ -41,6 +41,10 @@ The 432 Hz boot tone stays planned. Silence stays planned. The first image plays
 
 A step out of that order is refused. A mount outside that table is refused. Supervision does not start until the clock step has been recorded.
 
+## Stop
+
+`request_stop` records a stop. It does not signal a process. The next tick records the last live child as exited, and the tick after that records the one before it. Research comes down before the console. The handoff is not current once research is down. Neither row starts again, including after the clock moves forward. A stop before the first tick starts nothing.
+
 ## Commands
 
 ```
