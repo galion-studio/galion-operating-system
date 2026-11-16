@@ -14,11 +14,11 @@ fi
 OUT=$1
 mkdir -p "$OUT"
 ROOT=$(CDPATH='' cd -- "$(dirname "$0")/../.." && pwd)
-git -C "$ROOT" -c http.https://github.com/.extraheader= fetch origin main
-git -C "$ROOT" worktree prune
+git -C "$ROOT" -c http.https://github.com/.extraheader= fetch origin main >&2
+git -C "$ROOT" worktree prune >&2
 dest=$OUT/src
 rm -rf "$dest"
-git -C "$ROOT" worktree add --detach "$dest" origin/main
+git -C "$ROOT" worktree add --detach "$dest" origin/main >&2
 cleanup() {
   git -C "$ROOT" worktree remove --force "$dest" >/dev/null 2>&1 || rm -rf "$dest"
 }

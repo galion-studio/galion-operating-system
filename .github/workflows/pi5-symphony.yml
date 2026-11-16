@@ -71,7 +71,14 @@ jobs:
         id: os
         run: |
           set -eu
-          tarball=$(sh scripts/symphony/build-os-seed.sh "$RUNNER_TEMP/symphony-os")
+          tarball=$(sh scripts/symphony/build-os-seed.sh "$RUNNER_TEMP/symphony-os" | tail -n 1)
+          case "$tarball" in
+            /*) ;;
+            *)
+              echo "OS seed path was not a file path" >&2
+              exit 1
+              ;;
+          esac
           printf 'tarball=%s\n' "$tarball" >> "$GITHUB_OUTPUT"
           printf 'sha=%s\n' "$(cat "$RUNNER_TEMP/symphony-os/os-sha")" >> "$GITHUB_OUTPUT"
 
