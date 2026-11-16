@@ -1,0 +1,136 @@
+# Boot the Pi 5 seed inside arm64 Debian Bookworm.
+# The guest is an emulator. A green run is not a Raspberry Pi 5 result.
+
+name: Pi 5 seed boot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/pi-seed-boot.yml"
+      - ".github/workflows/pi-seed.yml"
+      - "packaging/**"
+      - "galion-init/**"
+      - "scripts/pi5-*"
+      - "scripts/test-pi5-seed-boot.sh"
+      - "docs/PI5-SEED.md"
+      - "docs/PI5-SEED-BOOT.md"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/pi-seed-boot.yml"
+      - ".github/workflows/pi-seed.yml"
+      - "packaging/**"
+      - "galion-init/**"
+      - "scripts/pi5-*"
+      - "scripts/test-pi5-seed-boot.sh"
+      - "docs/PI5-SEED.md"
+      - "docs/PI5-SEED-BOOT.md"
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: pi5-seed-boot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check the unit table and the seed path
+        run: sh scripts/test-pi5-seed-boot.sh
+
+      - name: QEMU system emulator and cloud image tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-arm qemu-efi-aarch64 cloud-image-utils
+
+      - name: Boot a fixture seed in Debian Bookworm arm64
+        run: |
+          set -eu
+          tarball=$(sh scripts/pi5-fixture-seed.sh)
+          PI5_BOOT_LOG_DIR="$PWD/pi5-harness-logs" sh scripts/pi5-seed-boot.sh "$tarball"
+          grep -q 'fixture: yes' pi5-harness-logs/pi5-install.log
+          grep -q '^summary: .*0 FAIL$' pi5-harness-logs/pi5-unit-table.txt
+          grep -q 'not a Raspberry Pi 5 result' pi5-harness-logs/pi5-unit-table.txt
+          grep -q '^environment: emulator$' pi5-harness-logs/pi5-unit-table.txt
+          grep -q '^machine: aarch64$' pi5-harness-logs/pi5-environment.txt
+          grep -q '^os-codename: bookworm$' pi5-harness-logs/pi5-environment.txt
+          grep -q '^network: no-default-route$' pi5-harness-logs/pi5-environment.txt
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-musl,x86_64-unknown-linux-musl
+
+      - name: Build the aarch64 binary the packager reads
+        # packaging/pi-seed.sh packs the release binary. It does not compile.
+        # The linker setup matches .github/workflows/pi-seed.yml. Only the
+        # aarch64 target is built; that is the binary the tarball contains.
+        run: |
+          set -eu
+          sysroot=$(rustc --print sysroot)
+          host=$(rustc -vV | sed -n 's/^host: //p')
+          PATH="$sysroot/lib/rustlib/$host/bin:$PATH"
+          export PATH
+          command -v rust-lld
+          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld
+          cargo build --manifest-path galion-init/Cargo.toml --locked --release --target aarch64-unknown-linux-musl
+
+      - name: Produce the product seed tarball
+        id: seed
+        run: |
+          set -eu
+          tarball=$(sh scripts/pi5-require-seed.sh)
+          printf 'tarball=%s\n' "$tarball" >> "$GITHUB_OUTPUT"
+
+      - name: Boot the product seed offline
+        run: |
+          set -eu
+          sh scripts/pi5-seed-boot.sh "${{ steps.seed.outputs.tarball }}"
+          grep -q '^summary: .*0 FAIL$' pi5-boot-logs/pi5-unit-table.txt
+          grep -q 'not a Raspberry Pi 5 result' pi5-boot-logs/pi5-unit-table.txt
+          if grep -q '^environment: raspberry-pi$' pi5-boot-logs/pi5-unit-table.txt; then
+            echo "emulator claimed to be a Raspberry Pi" >&2
+            exit 1
+          fi
+
+      - name: Record the unit table
+        if: always()
+        run: |
+          if [ -f pi5-boot-logs/pi5-unit-table.txt ]; then
+            {
+              echo '## Pi 5 seed unit table'
+              echo
+              echo 'Emulator only. An emulator, container, or QEMU result is not a Raspberry Pi 5 result.'
+              echo
+              echo '```'
+              cat pi5-boot-logs/pi5-unit-table.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f pi5-harness-logs/pi5-unit-table.txt ]; then
+            {
+              echo '## Fixture harness unit table'
+              echo
+              echo 'This table is the CI fixture, not the product seed, and not a Raspberry Pi 5.'
+              echo
+              echo '```'
+              cat pi5-harness-logs/pi5-unit-table.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload journal and unit table
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi5-boot-logs
+          path: |
+            pi5-boot-logs/**
+            pi5-harness-logs/**
+          if-no-files-found: warn
