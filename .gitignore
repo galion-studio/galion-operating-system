@@ -18,6 +18,8 @@ node_modules/
 dist/
 build/
 target/
+pi5-boot-logs/
+pi5-harness-logs/
 __pycache__/
 *.pyc
 *.log
