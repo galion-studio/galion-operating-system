@@ -36,22 +36,13 @@ fn main() {
             std::process::exit(1);
         }
     };
-    if !v4
-        .local_addr()
-        .map(|addr| addr.ip().is_loopback())
-        .unwrap_or(false)
-    {
+    if !v4.local_addr().is_ok_and(|addr| addr.ip().is_loopback()) {
         eprintln!("galion-welcome: refusing a socket that is not loopback");
         std::process::exit(1);
     }
-    let bound = v4.local_addr().map(|addr| addr.port()).unwrap_or(port);
+    let bound = v4.local_addr().map_or(port, |addr| addr.port());
     match TcpListener::bind((Ipv6Addr::LOCALHOST, bound)) {
-        Ok(v6)
-            if v6
-                .local_addr()
-                .map(|addr| addr.ip().is_loopback())
-                .unwrap_or(false) =>
-        {
+        Ok(v6) if v6.local_addr().is_ok_and(|addr| addr.ip().is_loopback()) => {
             thread::spawn(move || accept_loop(v6));
         }
         _ => eprintln!("galion-welcome: IPv6 loopback is not available"),

@@ -4,6 +4,8 @@
 //! Boot orders. The kernel is already running before these phases.
 //! Recording a phase does not perform it.
 
+use std::fmt::Write;
+
 use crate::early::{BootError, EarlyBoot};
 use crate::handoff::{describe, desktop_handoff, Endpoint, ONE_PATH};
 use crate::supervise::{desktop_services, voice_service, AdmitError, Machine, Service, Supervisor};
@@ -113,7 +115,7 @@ impl Plan {
             if matches!(phase, Phase::Supervise | Phase::HandoffDesktop) {
                 continue;
             }
-            out.push_str(&format!("phase {}\n", phase_name(*phase)));
+            let _ = writeln!(out, "phase {}", phase_name(*phase));
         }
         if self.profile == Profile::Desktop {
             out.push_str(&tone_line(self.tone));
@@ -140,7 +142,7 @@ impl Plan {
                         "GALION_ONE_URL http on the IPv4 loopback interface, port 18181, path /one\n",
                     );
                     out.push_str("handoff current while the console and research are alive\n");
-                    out.push_str(&format!("console {}\n", describe(&handoff)));
+                    let _ = writeln!(out, "console {}", describe(&handoff));
                 }
                 out.push_str("galion-voiced absent\n");
                 out.push_str("galion-one absent\n");
@@ -348,10 +350,10 @@ fn service_line(service: &crate::supervise::Service) -> String {
         line.push_str(" listen none");
     }
     if let Some(port) = service.port {
-        line.push_str(&format!(" port {port}"));
+        let _ = write!(line, " port {port}");
     }
     if let Some(dir) = &service.workdir {
-        line.push_str(&format!(" workdir {dir}"));
+        let _ = write!(line, " workdir {dir}");
     }
     line.push('\n');
     line

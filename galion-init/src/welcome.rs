@@ -7,6 +7,8 @@
 //! [`UnitSnapshot`] from the machine. This module does not bind, spawn, or
 //! talk to systemd itself.
 
+use std::fmt::Write;
+
 /// IPv4 loopback port for the welcome page. The systemd unit names this port.
 pub const WELCOME_PORT: u16 = 18711;
 
@@ -151,13 +153,14 @@ pub fn rows_from_snapshot(snapshot: &UnitSnapshot) -> Vec<ServiceRow> {
 pub fn render_page(rows: &[ServiceRow]) -> String {
     let mut list = String::new();
     for row in rows {
-        list.push_str(&format!(
+        let _ = write!(
+            list,
             "<li class=\"{tone}\"><span class=\"mark {tone}\" aria-hidden=\"true\"></span><div><h2>{name}</h2><p>{role}</p></div><p class=\"state\">{state}</p></li>",
             tone = row.tone,
             name = escape(&row.name),
             role = escape(&row.role),
             state = escape(row.state),
-        ));
+        );
     }
     document(
         "Each Galion service on this machine, and whether it is up.",
