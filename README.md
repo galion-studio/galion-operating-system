@@ -35,6 +35,10 @@ Hermes stays the centre for knowledge and tools in both. Galion Voice, the voice
 
 Galion OS is the direction we're building towards, starting with Open Mind and Hermes. The Galion OS Voice profile comes first. Downloads will be listed here once the first image is ready.
 
+## Raspberry Pi 5
+
+The short path onto a Pi 5 is [Galion on a Raspberry Pi 5](docs/PI5.md).
+
 ## Brand, site, and Galion Labs
 
 Branding V2, the static landing pages, and the Galion Labs community kit:
