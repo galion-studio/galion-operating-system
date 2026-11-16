@@ -54,6 +54,8 @@ The workflow is `.github/workflows/pi-seed-boot.yml`. The product-seed logs are 
 
 `pi5-harness-logs` in that artifact is a different table. The harness tarball is built by `scripts/pi5-fixture-seed.sh`. It is a shell stub with the same unit shape, so the Bookworm guest can be checked even when the product archive is being built in another step. `fixture: yes` in `pi5-install.log` marks it. That table is not the product seed and it is not a hardware result.
 
+When the product seed contains `bin/galion-core`, `install.sh` adds `galion-core.service`. That unit is a oneshot ordered after `galion-os.target`, with a 3 second start timeout. `ExecStart=-` records a non-zero exit from the binary and still treats the unit as successful. A failed `systemctl start` of that unit does not fail `install.sh`. The binary prints one line, `Galion OS. I'm here.`, to the journal and to the console. The product-seed step of this job requires that line in `pi5-journal.log`. The fixture seed has no `galion-core`, so the harness journal is not checked for it. A line in the emulator journal is not a Raspberry Pi 5 reading.
+
 The product tarball is `galion-os-pi5-seed-<sha>.tar.gz`. This job does not invent a second archive. `scripts/pi5-require-seed.sh` uses a tarball already in the tree, or the packager named in `.github/workflows/pi-seed.yml`, or `packaging/pi-seed.sh`. The seed change owns that packager, the static binaries, and the units inside the archive.
 
 ## What you run on a Pi

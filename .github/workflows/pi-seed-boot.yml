@@ -79,6 +79,7 @@ jobs:
           export PATH
           command -v rust-lld
           export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld
+          # The packager copies every aarch64 release executable, including galion-core.
           cargo build --manifest-path galion-init/Cargo.toml --locked --release --target aarch64-unknown-linux-musl
 
       - name: Produce the product seed tarball
@@ -96,6 +97,12 @@ jobs:
           grep -q 'not a Raspberry Pi 5 result' pi5-boot-logs/pi5-unit-table.txt
           if grep -q '^environment: raspberry-pi$' pi5-boot-logs/pi5-unit-table.txt; then
             echo "emulator claimed to be a Raspberry Pi" >&2
+            exit 1
+          fi
+          # The greeting is the galion-core oneshot. The journal is the
+          # emulator's journal. A match here is not a Raspberry Pi 5 result.
+          if ! grep -F "Galion OS. I'm here." pi5-boot-logs/pi5-journal.log; then
+            echo "boot journal is missing the galion-core greeting" >&2
             exit 1
           fi
 
