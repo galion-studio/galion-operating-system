@@ -42,7 +42,7 @@ One image family, two profiles that already have notes, and one desktop payload 
 | Hermes GUI | [hermes-later.md](voice-profile/hermes-later.md) | One window, one gradient, one prompt field. | Roadmap. The window backend is still an owner pick in that note. |
 | Desktop image | This file | The control console, on loopback. | The image this plan describes. x86_64 first. |
 
-**Decided.** PID 1 is `galion-init`. The desktop image waits for that binary. It does not boot through systemd, and it does not boot through the `galion-boot` supervisor. The voice notes already name `galion-init` for the Voice profile and the Hermes GUI ([voice-first.md](voice-profile/voice-first.md), [hermes-later.md](voice-profile/hermes-later.md)). The binary is not in this repository, and obsidian-open-mind at `de7480e71ce98191d2ee11f018fa15be6c5a1707` has no `crates/galion-init`. What the binary must provide before this image can boot is [§10](#d2-init-decided).
+**Decided.** PID 1 is `galion-init`. The desktop image waits for that binary. It does not boot through systemd, and it does not boot through the `galion-boot` supervisor. The voice notes already name `galion-init` for the Voice profile and the Hermes GUI ([voice-first.md](voice-profile/voice-first.md), [hermes-later.md](voice-profile/hermes-later.md)). The image binary is not in this repository. `galion-init/` is an in-memory prototype: it refuses to run as PID 1, and it does not mount, set the clock, or supervise a real process. obsidian-open-mind at `de7480e71ce98191d2ee11f018fa15be6c5a1707` has no `crates/galion-init`. What the binary must provide before this image can boot is [§10](#d2-init-decided).
 
 The systemd units in the other trees stay as reference. `deploy/systemd/galion-research.service` records user `galion`, working directory `/opt/galion/research/current`, and port 8787. `deploy/galion-one.service` records the Galion One binary this image leaves off. This image does not install either unit as the boot path.
 
@@ -288,13 +288,13 @@ The comparison in [§3](#3-base-distro-options) stays as the record of the rows 
 
 Wait for `galion-init`. The desktop image does not boot through systemd. It does not boot through the `galion-boot` supervisor.
 
-`galion-init` is not in this repository. It is not at `crates/galion-init` in the Open Mind commit above. Until that binary exists, this image does not boot, and the image job in [§7](#7-build-pipeline) stays off.
+`galion-init/` in this repository is the in-memory prototype. It refuses to be PID 1. It is not the image binary this decision waits for, and it is not at `crates/galion-init` in the Open Mind commit above. Until that image binary exists, this image does not boot, and the image job in [§7](#7-build-pipeline) stays off.
 
 The voice note already says what the binary is ([voice-profile/PACKAGING.md](voice-profile/PACKAGING.md) §3 and §6, [voice-first.md](voice-profile/voice-first.md)). Before this desktop image can boot, that binary must provide all of the following.
 
 | What `galion-init` must provide | Where that requirement comes from |
 |---|---|
-| The binary itself, static musl, as PID 1. | Voice packaging note §3. It is absent today. |
+| The binary itself, static musl, as PID 1. | Voice packaging note §3. The prototype in this repository refuses PID 1, so that image binary is still absent. |
 | Mount the filesystems. The desktop root is squashfs. | Voice packaging note §3. This plan's root type. |
 | Bring up the network far enough that the loopback interface exists. | Voice packaging note §3: it brings up the network. The listeners in [§5](#5-first-boot) bind after that. |
 | Set the clock. | Voice packaging note §3. |
