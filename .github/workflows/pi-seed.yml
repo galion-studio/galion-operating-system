@@ -19,7 +19,16 @@ jobs:
           targets: aarch64-unknown-linux-musl,x86_64-unknown-linux-musl
 
       - name: qemu-user
-        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          # Ubuntu 26.04 makes qemu-user-static a virtual package with more
+          # than one provider, so apt will not install that name. The
+          # emulator binary is in qemu-user, as qemu-aarch64.
+          if ! sudo apt-get install -y qemu-user-static; then
+            sudo apt-get install -y qemu-user
+          fi
+          command -v qemu-aarch64-static || command -v qemu-aarch64
 
       - name: Build static musl binaries
         run: |

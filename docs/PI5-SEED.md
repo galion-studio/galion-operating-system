@@ -45,7 +45,7 @@ Links in those copies that point at the brand guide, the site, or the Labs kit a
 
 ## What was actually run
 
-The aarch64 binary is smoke-run under `qemu-user` (`qemu-aarch64-static`) in GitHub Actions and, when this note was written, on the machine that prepared the change. The smoke run is `galion-init desktop`, which must exit 0 and print the in-memory desktop plan, and `galion-init --execute`, which must exit 2 and print no plan.
+The aarch64 binary is smoke-run under qemu-user in GitHub Actions. The runner calls `qemu-aarch64-static` when that name exists, and `qemu-aarch64` on Ubuntu 26.04, where the static emulator no longer has the `-static` suffix. The same smoke run was done on the machine that prepared this change. The smoke run is `galion-init desktop`, which must exit 0 and print the in-memory desktop plan, and `galion-init --execute`, which must exit 2 and print no plan.
 
 That is not a boot on Raspberry Pi 5 hardware. No Pi 5, no SSD, and no Raspberry Pi OS image was used to produce or test this seed. `install.sh` was run twice against an empty directory tree (`GALION_SYSROOT`), which checks that the copy and the systemd enable symlink are idempotent. It was not run on a booted Pi, so `systemctl start galion-os.target` on a live system is untested.
 
