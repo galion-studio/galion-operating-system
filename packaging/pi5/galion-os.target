@@ -1,7 +1,7 @@
 [Unit]
 Description=Galion OS
-Wants=galion-init.service
-After=galion-init.service
+Wants=galion-init.service galion-welcome.service
+After=galion-init.service galion-welcome.service
 
 [Install]
 WantedBy=multi-user.target

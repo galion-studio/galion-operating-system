@@ -27,8 +27,16 @@ cmp "$root/docs/voice-profile/voice-first.md" "$seed/ideology/docs/voice-profile
 cmp "$root/docs/voice-profile/hermes-later.md" "$seed/ideology/docs/voice-profile/hermes-later.md"
 test -f "$seed/systemd/galion-os.target"
 test -f "$seed/systemd/galion-init.service"
+test -f "$seed/systemd/galion-welcome.service"
 test -x "$seed/bin/galion-init"
+test -x "$seed/bin/galion-welcome"
 test -x "$seed/install.sh"
+grep -q 'galion-welcome.service' "$seed/systemd/galion-os.target"
+grep -q 'ExecStart=/opt/galion/bin/galion-welcome' "$seed/systemd/galion-welcome.service"
+if grep -E '^[[:space:]]*PrivateNetwork[[:space:]]*=' "$seed/systemd/galion-welcome.service"; then
+  echo "test-pi-seed: welcome page must stay on the machine loopback" >&2
+  exit 1
+fi
 
 if grep -E '(curl|wget|apt-get|apt |ssh |nc )' "$seed/install.sh"; then
   echo "test-pi-seed: install.sh names a network command" >&2
@@ -50,6 +58,8 @@ fi
 sudo GALION_SYSROOT="$sysroot" sh "$seed/install.sh"
 sudo GALION_SYSROOT="$sysroot" sh "$seed/install.sh"
 cmp "$seed/bin/galion-init" "$sysroot/opt/galion/bin/galion-init"
+cmp "$seed/bin/galion-welcome" "$sysroot/opt/galion/bin/galion-welcome"
+test -f "$sysroot/etc/systemd/system/galion-welcome.service"
 cmp "$root/LICENSE" "$sysroot/opt/galion/LICENSE"
 test -f "$sysroot/etc/systemd/system/galion-os.target"
 test -L "$sysroot/etc/systemd/system/multi-user.target.wants/galion-os.target"

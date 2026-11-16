@@ -1,0 +1,21 @@
+[Unit]
+Description=Galion OS welcome
+Documentation=file:/opt/galion/PI5-SEED.md
+PartOf=galion-os.target
+After=galion-init.service
+# Default listen port is 18711, on the IPv4 loopback interface.
+# Leave this unit on the host network namespace so the page stays reachable.
+# GalionExpected: active/running
+
+[Service]
+Type=simple
+ExecStart=/opt/galion/bin/galion-welcome
+User=galion
+Group=galion
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=galion-os.target

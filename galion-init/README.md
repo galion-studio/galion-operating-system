@@ -80,6 +80,10 @@ cargo build --manifest-path galion-init/Cargo.toml --locked --release --target x
 
 The binary still refuses PID 1 and `--execute`. The seed runs it under Raspberry Pi OS systemd. It does not become the host init.
 
+## Welcome page
+
+`galion-welcome` is a second binary in this package. It is not the init prototype and it is not PID 1. `galion-os.target` starts it after `galion-init.service`. It binds the IPv4 loopback interface, and the IPv6 loopback interface when that address exists, on port 18711. The page is HTML. Its styles sit in the page. It asks `systemctl` which Galion units are up, and it does not open a socket on any other interface. The library renders that page and does not bind. See [PI5-SEED.md](../docs/PI5-SEED.md).
+
 ## Licence
 
 The repository [LICENSE](../LICENSE). This note does not restate it.
