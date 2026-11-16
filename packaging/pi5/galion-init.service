@@ -1,0 +1,20 @@
+[Unit]
+Description=Galion OS init plan
+Documentation=file:/opt/galion/PI5-SEED.md
+PartOf=galion-os.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/galion/bin/galion-init desktop
+User=galion
+Group=galion
+NoNewPrivileges=yes
+PrivateNetwork=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=galion-os.target

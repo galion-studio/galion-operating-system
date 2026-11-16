@@ -1,0 +1,14 @@
+# Static musl for every binary built from this tree.
+# rust-lld is the linker name Cargo invokes. It is not on PATH by default.
+# It lives at $(rustc --print sysroot)/lib/rustlib/<host>/bin/rust-lld.
+# The Pi 5 workflow prepends that directory, then sets
+# CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld
+# and CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld.
+
+[target.aarch64-unknown-linux-musl]
+linker = "rust-lld"
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.x86_64-unknown-linux-musl]
+linker = "rust-lld"
+rustflags = ["-C", "target-feature=+crt-static"]
