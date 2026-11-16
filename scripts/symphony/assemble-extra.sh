@@ -26,6 +26,10 @@ ROOT=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
   printf 'error: openmind-desktop binary is missing\n' >&2
   exit 1
 }
+[ -f "$FETCH/probe-targets" ] || {
+  printf 'error: probe-targets binary is missing\n' >&2
+  exit 1
+}
 [ -f "$FETCH/sources.env" ] || {
   printf 'error: sources.env is missing\n' >&2
   exit 1
@@ -35,7 +39,8 @@ rm -rf "$DEST"
 mkdir -p "$DEST"
 cp "$FETCH/research-pi5-seed.tar.gz" "$DEST/research-pi5-seed.tar.gz"
 cp "$FETCH/openmind-desktop" "$DEST/openmind-desktop"
-chmod 0755 "$DEST/openmind-desktop"
+cp "$FETCH/probe-targets" "$DEST/probe-targets"
+chmod 0755 "$DEST/openmind-desktop" "$DEST/probe-targets"
 cp "$ROOT/guest-run.sh" "$DEST/run.sh"
 cp "$ROOT/health-table.sh" "$DEST/health-table.sh"
 cp "$ROOT/prepare-root.sh" "$DEST/prepare-root.sh"
@@ -44,5 +49,6 @@ chmod 0755 "$DEST/run.sh" "$DEST/health-table.sh" "$DEST/prepare-root.sh"
 {
   printf 'OS_SHA=%s\n' "$(tr -d '[:space:]' <"$OS_SHA_FILE")"
   cat "$FETCH/sources.env"
+  printf 'PROBE_TARGETS=%s\n' stand-in
 } >"$DEST/meta.env"
 printf '%s\n' "$DEST"

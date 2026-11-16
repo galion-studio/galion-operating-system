@@ -21,6 +21,7 @@ sh -n scripts/symphony/prepare-root.sh
 sh -n scripts/symphony/fetch-seeds.sh
 sh -n scripts/symphony/build-os-seed.sh
 sh -n scripts/symphony/assemble-extra.sh
+sh -n scripts/symphony/build-probe-targets.sh
 sh -n scripts/symphony/pins.sh
 sh -n scripts/pi5-seed-boot.sh
 sh -n scripts/pi5-seed-guest.sh
@@ -28,6 +29,10 @@ ok 'sh -n'
 
 grep -q 'PI5_BOOT_EXTRA' scripts/pi5-seed-boot.sh || fail 'boot hook'
 grep -q '/opt/seed-boot/extra/run.sh' scripts/pi5-seed-guest.sh || fail 'guest hook'
+grep -q 'probe-targets' scripts/symphony/guest-run.sh || fail 'guest starts probe targets'
+grep -q 'probe-targets: listening' scripts/symphony/guest-run.sh || fail 'guest waits for stand-ins'
+grep -q 'probe-targets' scripts/symphony/assemble-extra.sh || fail 'assemble copies probe targets'
+grep -q 'PROBE_TARGETS' scripts/symphony/assemble-extra.sh || fail 'assemble records stand-ins'
 ok 'boot hook'
 
 # shellcheck disable=SC1091
@@ -118,6 +123,31 @@ if sh scripts/symphony/health-table.sh "$tmp/pass" >"$tmp/pass.out"; then
 else
   cat "$tmp/pass.out" >&2
   fail 'passing installed services and one down probe'
+fi
+
+cp -a "$tmp/pass" "$tmp/up"
+printf 'PROBE_TARGETS=stand-in\n' >>"$tmp/up/meta.env"
+cat >"$tmp/up/http/desktop-probes" <<'EOF'
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"read_only":true,"writes":0,"timeout_ms":2000,"probes":[{"service":"nerve","enabled":true,"state":"up","host":"localhost","port":8670,"path":"/health","http_status":200,"detail":"200","observed_mode":null},{"service":"cortex","enabled":true,"state":"up","host":"localhost","port":8674,"path":"/health","http_status":200,"detail":"200","observed_mode":"dry-run"},{"service":"console","enabled":true,"state":"up","host":"localhost","port":18080,"path":"/api/v1/health","http_status":200,"detail":"200","observed_mode":null},{"service":"hermes","enabled":true,"state":"up","host":"localhost","port":8642,"path":"/health","http_status":200,"detail":"200","observed_mode":null},{"service":"voice","enabled":true,"state":"up","host":"localhost","port":8002,"path":"/health","http_status":200,"detail":"200","observed_mode":null},{"service":"desk","enabled":true,"state":"up","host":"localhost","port":8646,"path":"/health","http_status":200,"detail":"200","observed_mode":null}]}
+EOF
+if sh scripts/symphony/health-table.sh "$tmp/up" >"$tmp/up.out"; then
+  grep -q 'loopback stand-ins started for this emulator' "$tmp/up.out" || fail 'stand-in note'
+  grep -q 'They are not the Open Mind services.' "$tmp/up.out" || fail 'stand-in honesty'
+  grep -q 'http://localhost:8670/health' "$tmp/up.out" || fail 'nerve url'
+  grep -q 'http://localhost:18080/api/v1/health' "$tmp/up.out" || fail 'console url'
+  grep -q 'http://localhost:8646/health' "$tmp/up.out" || fail 'desk url'
+  grep -q '^summary: 11 PASS, 0 FAIL$' "$tmp/up.out" || fail 'stand-in summary'
+  grep -q '^installed: 5 PASS, 0 FAIL$' "$tmp/up.out" || fail 'stand-in installed'
+  for name in nerve cortex console hermes voice desk; do
+    grep -E "^${name}[[:space:]]" "$tmp/up.out" | grep -q 'PASS' || fail "stand-in $name"
+  done
+  ok 'six probe stand-ins read as up'
+else
+  cat "$tmp/up.out" >&2
+  fail 'six probe stand-ins read as up'
 fi
 
 cp -a "$tmp/pass" "$tmp/bad-research"
