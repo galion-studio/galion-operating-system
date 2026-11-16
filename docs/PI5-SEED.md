@@ -1,0 +1,84 @@
+# Galion OS on a Raspberry Pi 5 SSD
+
+This note is how to put the Pi 5 seed on a machine. The seed is a tarball of static binaries. It is not a disk image, and it does not replace Raspberry Pi OS.
+
+The workflow that builds it is `.github/workflows/pi-seed.yml`. It does not create a GitHub release.
+
+## What the tarball is
+
+The file is `galion-os-pi5-seed-<sha>.tar.gz`. `<sha>` is the full git commit that produced it. GitHub Actions uploads that file as a workflow artifact of the same name. Nothing in the workflow publishes a release.
+
+Inside the top-level directory:
+
+| Path | What it is |
+|---|---|
+| `bin/galion-init` | The release binary for `aarch64-unknown-linux-musl`. Static. Symbols stripped. |
+| `systemd/galion-os.target` | The target `install.sh` enables. |
+| `systemd/galion-init.service` | Oneshot service the target starts. It runs `galion-init desktop` and exits. |
+| `install.sh` | Copies the seed onto the machine and enables the target. Idempotent. No network. |
+| `LICENSE` | The repository `LICENSE`, byte for byte. |
+| `NOTICE` | The repository `NOTICE`. |
+| `PI5-SEED.md` | This note. |
+| `ideology/` | Notes that already say what Galion OS is. See below. |
+| `SHA256SUMS` | `sha256sum` output for every other file in the directory. |
+
+`galion-init` in this repository is the in-memory prototype. On the Pi it is not PID 1. Raspberry Pi OS systemd stays PID 1. The service runs the binary as the unprivileged user `galion`. The binary prints the desktop boot plan and exits. It refuses `--execute`. If its process id is 1, it exits 2. It does not mount filesystems, set the clock, open a socket, or supervise a real console.
+
+`galion-voiced` and `galion-probe` are not in this repository. They are not in the seed.
+
+The same workflow also builds `x86_64-unknown-linux-musl` and runs that binary on the runner. That binary is not in the tarball. The Pi 5 is aarch64. On the toolchain used to prepare this note, `file` reports the aarch64 binary as `statically linked` and the x86_64 binary as `static-pie linked`. Both are stripped, and `ldd` reports no dynamic loader. A newer Rust may mark aarch64 as `static-pie linked` as well. The packager accepts either phrase.
+
+Release profile for both triples: `opt-level = 3`, fat LTO, `codegen-units = 1`, `strip = true`. The linker is `rust-lld`, set with `CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER` and `CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER`. `rust-lld` is the binary in the Rust sysroot's `lib/rustlib/<host>/bin` directory. It is not on `PATH` until the workflow prepends that directory. Musl targets are linked with `crt-static`.
+
+The voice packaging note still describes a different archive, with `opt-level = "z"` for `galion-init`, and it is not what this seed builds.
+
+## Ideology files
+
+This repository has no `docs/ideology` directory and no file with ideology in its name. The seed does not invent one. `ideology/` in the tarball is a byte-for-byte copy of notes that are already in the tree:
+
+- `README.md`
+- `docs/voice-profile/README.md`
+- `docs/voice-profile/voice-first.md`
+- `docs/voice-profile/hermes-later.md`
+
+Links in those copies that point at the brand guide, the site, or the Labs kit are links to files that are not in the tarball. If a `docs/ideology` directory is added later, the packager copies that directory instead and leaves these four files out.
+
+## What was actually run
+
+The aarch64 binary is smoke-run under `qemu-user` (`qemu-aarch64-static`) in GitHub Actions and, when this note was written, on the machine that prepared the change. The smoke run is `galion-init desktop`, which must exit 0 and print the in-memory desktop plan, and `galion-init --execute`, which must exit 2 and print no plan.
+
+That is not a boot on Raspberry Pi 5 hardware. No Pi 5, no SSD, and no Raspberry Pi OS image was used to produce or test this seed. `install.sh` was run twice against an empty directory tree (`GALION_SYSROOT`), which checks that the copy and the systemd enable symlink are idempotent. It was not run on a booted Pi, so `systemctl start galion-os.target` on a live system is untested.
+
+## Flash Raspberry Pi OS Bookworm 64-bit
+
+The current Raspberry Pi OS 64-bit download is Debian 13 (Trixie). Bookworm is the older image. On the [Raspberry Pi OS downloads page](https://www.raspberrypi.com/software/operating-systems/) it is listed as **Raspberry Pi OS (Legacy, 64-bit)**: "A port of Debian Bookworm". Use that 64-bit Legacy image, not the Trixie image Imager offers as the default.
+
+1. On another computer, install [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
+2. Choose the device Raspberry Pi 5.
+3. Choose the operating system Raspberry Pi OS (Legacy) 64-bit, the Bookworm port. If the first screen only offers the current 64-bit image, open the other-images list and pick the Legacy 64-bit Bookworm image. Do not pick a 32-bit image. The seed binary is aarch64.
+4. Choose the SSD as the storage device. That is a USB SSD, or an NVMe drive in an enclosure the computer can write. Writing erases that disk.
+5. Write the image. Imager can set a hostname, a user, and SSH before it writes. Those settings are Raspberry Pi OS. This repository does not choose them. The seed does not contain a password, a key, or an address.
+6. Connect the SSD to the Pi 5 and boot. A USB SSD is the path that does not depend on extra bootloader steps. An NVMe drive on the Pi 5's PCIe connector only boots if the Pi's bootloader tries that device. Updating that bootloader is Raspberry Pi's procedure, not part of this seed, and it was not run here.
+
+Boot the Pi once so Raspberry Pi OS has finished its own first-boot resize. Then copy the tarball. A USB stick is enough. `install.sh` does not download anything, and it does not need a network.
+
+## Install the seed
+
+On the booted Pi, as root:
+
+```sh
+tar -xzf galion-os-pi5-seed-<sha>.tar.gz
+cd galion-os-pi5-seed-<sha>
+sha256sum -c SHA256SUMS
+sudo ./install.sh
+```
+
+`install.sh` checks `SHA256SUMS` again, copies `bin/` to `/opt/galion/bin/`, copies `LICENSE`, `NOTICE`, this note, and `ideology/` to `/opt/galion/`, installs the units into `/etc/systemd/system/`, creates the system user `galion` if it is missing, and enables `galion-os.target`. On a running system it also starts that target. Run it again and it does the same work without failing.
+
+`GALION_SYSROOT` selects a mounted root instead of the machine you are on. The script then uses `useradd --root` and `systemctl --root`, and it does not start the target, because that system is not the one that is booted. Leaving the variable unset installs onto the running machine.
+
+After a successful start, `systemctl status galion-os.target` should show the target active and `galion-init.service` exited 0. The service output is the in-memory desktop plan. There is no desktop on the framebuffer and no voice daemon.
+
+## Licence
+
+The repository [LICENSE](../LICENSE). This note does not restate it.

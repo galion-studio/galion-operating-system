@@ -5,3 +5,11 @@ edition = "2021"
 license = "MIT"
 publish = false
 description = "In-memory prototype of galion-init. Does not replace the host init."
+
+# Seed binaries. Static musl, opt-level 3, fat LTO, one codegen unit, symbols stripped.
+# The voice archive note's opt-level "z" is a different package and is not built here.
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

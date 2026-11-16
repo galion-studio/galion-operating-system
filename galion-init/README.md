@@ -64,6 +64,22 @@ The binary takes the same words as the shell plan. No argument prints the voice 
 
 `walk_desktop` steps that desktop plan once on an in-memory machine. The console row is recorded before research, the handoff path is `/one`, and the tone sample count is zero. It does not fork. `walk_down` takes that same step and then records the stop: research first, while the console is still up, then the console, and neither row restarts. The binary command `walk` prints both orders and does not print process ids. `--silence` still plays nothing. The handoff stays current only while the console row and the research row are both alive. After the console exits, it is not current again until that row is alive. If research exits while the console is down, it does not return until the console row is alive again. A recorded stop does not bring either row back.
 
+## Static build
+
+The release profile in `Cargo.toml` is opt-level 3, fat LTO, one codegen unit, and stripped symbols. Both musl triples link with `rust-lld`. That binary is not on `PATH` until the Rust sysroot's `lib/rustlib/<host>/bin` directory is prepended. The Pi 5 seed packages the aarch64 binary only. See [PI5-SEED.md](../docs/PI5-SEED.md).
+
+```sh
+sysroot=$(rustc --print sysroot)
+host=$(rustc -vV | sed -n 's/^host: //p')
+PATH="$sysroot/lib/rustlib/$host/bin:$PATH"
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld
+cargo build --manifest-path galion-init/Cargo.toml --locked --release --target aarch64-unknown-linux-musl
+cargo build --manifest-path galion-init/Cargo.toml --locked --release --target x86_64-unknown-linux-musl
+```
+
+The binary still refuses PID 1 and `--execute`. The seed runs it under Raspberry Pi OS systemd. It does not become the host init.
+
 ## Licence
 
 The repository [LICENSE](../LICENSE). This note does not restate it.

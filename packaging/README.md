@@ -9,7 +9,7 @@ Copyright © 2026 Galion Labs. All rights reserved.
 
 The licence text is `LICENSE`. This page does not restate it.
 
-This directory is a dry-run skeleton of the image in draft #13, `docs/PACKAGING.md` §7. It prints one desktop image story: Ubuntu 26.04, `galion-init`, the console on port 18181, research on port 8787, and the static pages as files. Job 4 stays off until `galion-init` exists and the owner asks for a workflow. This lane adds no workflow, no ISO, and no download.
+This directory is a dry-run skeleton of the image in `docs/PACKAGING.md` §7. It prints one desktop image story: Ubuntu 26.04, `galion-init`, the console on port 18181, research on port 8787, and the static pages as files. The dry run writes no ISO and no download. The Pi 5 seed below is a separate tarball.
 
 `galion-voiced` and `galion-probe` are the voice profile. They are named in `packages/voice-profile.list` and are not desktop payloads.
 
@@ -23,3 +23,7 @@ The first command exits 0 and writes nothing. `--execute`, `--build`, `--flash`,
 `sh packaging/check-pr-13.sh` records that pull request #13 is on `main`. It does not merge anything. `sh packaging/check-one-story.sh` checks that this dry run and `galion-init/prototype.sh desktop` name the same boot: `galion-init` planned, console port 18181, research port 8787, handoff `/one`, tone not played.
 
 `sh packaging/layout.sh` prints the four desktop files the image root would hold: the console and research as user `galion`, and the two static page directories with no user. `galion-voiced` and `galion-probe` are off this image. The command writes nothing. An argument exits 2.
+
+## Pi 5 seed
+
+`sh packaging/pi-seed.sh` packs a different artifact: `galion-os-pi5-seed-<sha>.tar.gz`, the static `aarch64-unknown-linux-musl` `galion-init` binary, `galion-os.target`, and `install.sh`. The workflow is `.github/workflows/pi-seed.yml`. The install note is [docs/PI5-SEED.md](../docs/PI5-SEED.md). This tarball is not the desktop image above. It does not write an ISO or a disk image, and it does not publish a release.
