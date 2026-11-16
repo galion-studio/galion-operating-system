@@ -1,0 +1,7 @@
+[package]
+name = "probe-targets"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Loopback stand-ins for the six openmind-desktop probes. Emulator only."

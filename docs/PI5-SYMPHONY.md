@@ -28,6 +28,21 @@ The research unit is the one in that seed: `galion-research-pi5.service`, loopba
 | `openmind-desktop` | `GET http://127.0.0.1:18181/` PASS when the control console page is returned. `GET http://127.0.0.1:18181/probes` PASS when the read-only probe report is returned. |
 | Each service in that probe report | The host, port, and path from the report. `up` is PASS. Anything else is FAIL. |
 
-`installed:` counts `galion-init.service`, `galion-os.target`, `galion-research`, and both `openmind-desktop` endpoints. `summary:` counts every row, including services the desktop probed and this job did not start. Those probe rows can be FAIL while `installed:` is `0 FAIL`. The job fails when `installed:` has a FAIL, or when the guest is not aarch64 Debian Bookworm with no default route and `environment: emulator`.
+`installed:` counts `galion-init.service`, `galion-os.target`, `galion-research`, and both `openmind-desktop` endpoints. `summary:` counts every row, including the six services in the desktop probe report.
+
+Before it reads `/probes`, the guest starts `probe-targets`, a static loopback stand-in. It answers the six default probes from that desktop commit:
+
+| Service | Probe |
+|---|---|
+| nerve | `GET http://localhost:8670/health` |
+| cortex | `GET http://localhost:8674/health` |
+| console | `GET http://localhost:18080/api/v1/health` |
+| hermes | `GET http://localhost:8642/health` |
+| voice | `GET http://localhost:8002/health` |
+| desk | `GET http://localhost:8646/health` |
+
+Each answer is HTTP 200. Cortex's body includes `"mode":"dry-run"`. The desktop copies that field and does not write it back. These stand-ins are not nerve, cortex, the console, Hermes, voice, or desk. The table says so. A PASS on those rows is an emulator reading of the stand-in. It is not a reading from those services, and it is not a Raspberry Pi 5 result.
+
+The formatter still prints FAIL when a probe is not up. Those rows do not change the script's exit code. The workflow requires `summary: 11 PASS, 0 FAIL`, which is the five installed rows plus the six stand-ins. The job fails when `installed:` has a FAIL, when that summary is not all PASS, or when the guest is not aarch64 Debian Bookworm with no default route and `environment: emulator`.
 
 The header says this table is not a Raspberry Pi 5 result. A PASS is an emulator reading. It is not a reading from Raspberry Pi 5 hardware, Raspberry Pi OS, or an SSD.
