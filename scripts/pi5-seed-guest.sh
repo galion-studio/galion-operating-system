@@ -156,6 +156,14 @@ if [ "$bin_ok" -ne 1 ]; then
   die "galion-init was not installed under /opt/galion"
 fi
 
+extra_rc=0
+if [ -f /opt/seed-boot/extra/run.sh ]; then
+  set +e
+  sh /opt/seed-boot/extra/run.sh
+  extra_rc=$?
+  set -e
+fi
+
 cp /tmp/pi5-flash-check.sh /tmp/pi5-flash-check-run.sh
 chmod +x /tmp/pi5-flash-check-run.sh
 set +e
@@ -189,4 +197,12 @@ grep -q '^network: no-default-route$' "$LOG/pi5-environment.txt" \
 grep -q '^machine: aarch64$' "$LOG/pi5-environment.txt" \
   || die "environment file is not aarch64"
 
+if [ -f "$LOG/pi5-health-table.txt" ]; then
+  printf '\n----- health table -----\n'
+  cat "$LOG/pi5-health-table.txt"
+fi
+
+if [ "$extra_rc" -ne 0 ]; then
+  exit "$extra_rc"
+fi
 exit "$table_rc"
