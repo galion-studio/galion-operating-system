@@ -18,6 +18,9 @@ jobs:
         with:
           targets: aarch64-unknown-linux-musl,x86_64-unknown-linux-musl
 
+      - name: Test galion-init
+        run: cargo test --manifest-path galion-init/Cargo.toml --locked
+
       - name: qemu-user
         run: |
           set -euo pipefail
@@ -41,28 +44,32 @@ jobs:
           export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld
           cargo build --manifest-path galion-init/Cargo.toml --locked --release --target aarch64-unknown-linux-musl
           cargo build --manifest-path galion-init/Cargo.toml --locked --release --target x86_64-unknown-linux-musl
-          aarch64=galion-init/target/aarch64-unknown-linux-musl/release/galion-init
-          amd64=galion-init/target/x86_64-unknown-linux-musl/release/galion-init
-          file_aarch64=$(file "$aarch64")
-          file_amd64=$(file "$amd64")
-          printf '%s\n' "$file_aarch64" | grep -q 'ARM aarch64'
-          printf '%s\n' "$file_amd64" | grep -q 'x86-64'
-          printf '%s\n' "$file_aarch64" | grep -Eq 'statically linked|static-pie linked'
-          printf '%s\n' "$file_amd64" | grep -Eq 'statically linked|static-pie linked'
-          printf '%s\n' "$file_aarch64" | grep -q 'stripped'
-          printf '%s\n' "$file_amd64" | grep -q 'stripped'
-          ldd_aarch64=$(ldd "$aarch64" 2>&1 || true)
-          ldd_amd64=$(ldd "$amd64" 2>&1 || true)
-          printf '%s\n' "$ldd_aarch64" | grep -Eq 'statically linked|not a dynamic executable'
-          printf '%s\n' "$ldd_amd64" | grep -Eq 'statically linked|not a dynamic executable'
           {
             echo "### Binary sizes"
-            stat -c '%s %n' "$aarch64" "$amd64"
+            echo "Sizes from this runner. Not a Raspberry Pi 5 measurement."
           } >> "$GITHUB_STEP_SUMMARY"
+          for name in galion-init galion-welcome; do
+            aarch64="galion-init/target/aarch64-unknown-linux-musl/release/$name"
+            amd64="galion-init/target/x86_64-unknown-linux-musl/release/$name"
+            file_aarch64=$(file "$aarch64")
+            file_amd64=$(file "$amd64")
+            printf '%s\n' "$file_aarch64" | grep -q 'ARM aarch64'
+            printf '%s\n' "$file_amd64" | grep -q 'x86-64'
+            printf '%s\n' "$file_aarch64" | grep -Eq 'statically linked|static-pie linked'
+            printf '%s\n' "$file_amd64" | grep -Eq 'statically linked|static-pie linked'
+            printf '%s\n' "$file_aarch64" | grep -q 'stripped'
+            printf '%s\n' "$file_amd64" | grep -q 'stripped'
+            ldd_aarch64=$(ldd "$aarch64" 2>&1 || true)
+            ldd_amd64=$(ldd "$amd64" 2>&1 || true)
+            printf '%s\n' "$ldd_aarch64" | grep -Eq 'statically linked|not a dynamic executable'
+            printf '%s\n' "$ldd_amd64" | grep -Eq 'statically linked|not a dynamic executable'
+            stat -c '%s %n' "$aarch64" "$amd64" >> "$GITHUB_STEP_SUMMARY"
+          done
 
       - name: Smoke-run aarch64 under qemu-user
         run: |
           set -euo pipefail
+          echo "qemu-user smoke of galion-init. This is not a Raspberry Pi 5 result."
           if command -v qemu-aarch64-static >/dev/null; then
             qemu=qemu-aarch64-static
           else
@@ -81,6 +88,12 @@ jobs:
           amd64=galion-init/target/x86_64-unknown-linux-musl/release/galion-init
           out_amd64=$("$amd64" desktop)
           printf '%s\n' "$out_amd64" | grep -q 'profile desktop'
+
+      - name: Welcome page on the runner loopback
+        run: |
+          set -euo pipefail
+          echo "Runner loopback only. This is not a Raspberry Pi 5 result."
+          sh packaging/test-welcome-page.sh galion-init/target/x86_64-unknown-linux-musl/release/galion-welcome
 
       - name: Package seed and install it twice
         run: sh packaging/test-pi-seed.sh

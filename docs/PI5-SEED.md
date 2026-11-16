@@ -13,8 +13,10 @@ Inside the top-level directory:
 | Path | What it is |
 |---|---|
 | `bin/galion-init` | The release binary for `aarch64-unknown-linux-musl`. Static. Symbols stripped. |
-| `systemd/galion-os.target` | The target `install.sh` enables. |
+| `bin/galion-welcome` | The welcome page, same target and the same static link. It listens on the loopback interface only. |
+| `systemd/galion-os.target` | The target `install.sh` enables. It starts init, then the welcome page. |
 | `systemd/galion-init.service` | Oneshot service the target starts. It runs `galion-init desktop` and exits. |
+| `systemd/galion-welcome.service` | Stays running. Serves the welcome page on port 18711. |
 | `install.sh` | Copies the seed onto the machine and enables the target. Idempotent. No network. |
 | `LICENSE` | The repository `LICENSE`, byte for byte. |
 | `NOTICE` | The repository `NOTICE`. |
@@ -23,6 +25,8 @@ Inside the top-level directory:
 | `SHA256SUMS` | `sha256sum` output for every other file in the directory. |
 
 `galion-init` in this repository is the in-memory prototype. On the Pi it is not PID 1. Raspberry Pi OS systemd stays PID 1. The service runs the binary as the unprivileged user `galion`. The binary prints the desktop boot plan and exits. It refuses `--execute`. If its process id is 1, it exits 2. It does not mount filesystems, set the clock, open a socket, or supervise a real console.
+
+`galion-welcome` is the other binary. It is not PID 1 either. It binds the loopback interface, port 18711, and serves one HTML page. The styles are in the page. The page does not load a font, a script, or any other host. It lists the Galion units on the machine and says whether each one is up. Init shows as finished, because the oneshot exits after the plan. Open Mind, Research, and Voice show as not on this machine until those units exist. The page reads `systemctl` on the machine. It does not record a boot time, a byte size, or a hardware result.
 
 `galion-voiced` and `galion-probe` are not in this repository. They are not in the seed.
 
@@ -48,6 +52,8 @@ Links in those copies that point at the brand guide, the site, or the Labs kit a
 The aarch64 binary is smoke-run under qemu-user in GitHub Actions. The runner calls `qemu-aarch64-static` when that name exists, and `qemu-aarch64` on Ubuntu 26.04, where the static emulator no longer has the `-static` suffix. The same smoke run was done on the machine that prepared this change. The smoke run is `galion-init desktop`, which must exit 0 and print the in-memory desktop plan, and `galion-init --execute`, which must exit 2 and print no plan.
 
 That is not a boot on Raspberry Pi 5 hardware. No Pi 5, no SSD, and no Raspberry Pi OS image was used to produce or test this seed. `install.sh` was run twice against an empty directory tree (`GALION_SYSROOT`), which checks that the copy and the systemd enable symlink are idempotent. It was not run on a booted Pi, so `systemctl start galion-os.target` on a live system is untested.
+
+The welcome page is also checked on the runner, from the x86_64 `galion-welcome` binary, over that runner's loopback interface (`sh packaging/test-welcome-page.sh`). That check is not a Raspberry Pi 5 result. The aarch64 `galion-welcome` binary is the one in the tarball. It is checked with `file` and `ldd` in the workflow. It was not run on a Pi 5, and this note does not treat the runner check as a substitute.
 
 ## Flash Raspberry Pi OS Bookworm 64-bit
 
@@ -77,7 +83,7 @@ sudo ./install.sh
 
 `GALION_SYSROOT` selects a mounted root instead of the machine you are on. The script then uses `useradd --root` and `systemctl --root`, and it does not start the target, because that system is not the one that is booted. Leaving the variable unset installs onto the running machine.
 
-After a successful start, `systemctl status galion-os.target` should show the target active and `galion-init.service` exited 0. The service output is the in-memory desktop plan. There is no desktop on the framebuffer and no voice daemon.
+After a successful start, `systemctl status galion-os.target` should show the target active, `galion-init.service` exited 0, and `galion-welcome.service` running. The service output of init is the in-memory desktop plan. On the machine, open the loopback name `localhost` and port 18711. That page is the welcome. There is no desktop on the framebuffer and no voice daemon. The page is not a measurement of the board.
 
 ## Licence
 

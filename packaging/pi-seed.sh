@@ -33,6 +33,7 @@ fi
 
 cp "$root/packaging/pi5/galion-os.target" "$dest/systemd/galion-os.target"
 cp "$root/packaging/pi5/galion-init.service" "$dest/systemd/galion-init.service"
+cp "$root/packaging/pi5/galion-welcome.service" "$dest/systemd/galion-welcome.service"
 cp "$root/packaging/pi5/install.sh" "$dest/install.sh"
 chmod 0755 "$dest/install.sh"
 cp "$root/LICENSE" "$dest/LICENSE"
