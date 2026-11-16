@@ -222,7 +222,33 @@ SYSTEMCTL=$tmp/no-such-systemctl sh "$ROOT/scripts/pi5-flash-check.sh" >"$tmp/no
 rc=$?
 set -e
 [ "$rc" -eq 2 ] || fail "missing systemctl exit $rc"
+grep -q 'systemctl is not available' "$tmp/nosys.err" || fail 'missing systemctl message'
 ok 'missing systemctl'
+
+fix=$tmp/listfail
+mkdir -p "$fix"
+cat >"$fix/systemctl" <<'EOF'
+#!/bin/sh
+printf '%s\n' 'Failed to connect to bus: host is down' >&2
+exit 2
+EOF
+chmod 755 "$fix/systemctl"
+set +e
+SYSTEMCTL=$fix/systemctl sh "$ROOT/scripts/pi5-flash-check.sh" >"$tmp/listfail.out" 2>"$tmp/listfail.err"
+rc=$?
+set -e
+[ "$rc" -eq 2 ] || fail "list-unit-files exit $rc"
+grep -q 'systemctl list-unit-files failed: Failed to connect to bus: host is down' "$tmp/listfail.err" || fail 'list-unit-files message'
+ok 'list-unit-files error'
+
+printf '%s\n' 'galion-init.service active' >"$tmp/bad-expect"
+set +e
+GALION_EXPECTATIONS=$tmp/bad-expect SYSTEMCTL=$tmp/active/systemctl sh "$ROOT/scripts/pi5-flash-check.sh" >"$tmp/badexpect.out" 2>"$tmp/badexpect.err"
+rc=$?
+set -e
+[ "$rc" -eq 2 ] || fail "bad expectations exit $rc"
+grep -q 'expectations line must be a Galion unit' "$tmp/badexpect.err" || fail 'bad expectations message'
+ok 'bad expectations line'
 
 repo=$tmp/repo-empty
 mkdir -p "$repo"
