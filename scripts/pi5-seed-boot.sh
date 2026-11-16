@@ -9,6 +9,12 @@
 # run the seed's install.sh, and start galion-os.target. The machine is a
 # QEMU virt board. It is not a Raspberry Pi 5.
 #
+# PI5_BOOT_EXTRA, when set, is a directory copied to /opt/seed-boot/extra
+# before boot. If that directory contains prepare-root.sh, this script runs
+# it on the host with the mounted guest root as its argument. The guest
+# runs /opt/seed-boot/extra/run.sh after the OS seed install when that file
+# exists. Unset, the boot is the OS seed only.
+#
 # The Debian nocloud image does not ship cloud-init, so the check is a
 # one-shot unit written into the disk before boot. The unit is not a
 # Galion unit.
@@ -91,6 +97,10 @@ cleanup() {
     printf '\n----- unit table -----\n'
     cat "$LOG_DIR/pi5-unit-table.txt"
   fi
+  if [ -f "$LOG_DIR/pi5-health-table.txt" ]; then
+    printf '\n----- health table -----\n'
+    cat "$LOG_DIR/pi5-health-table.txt"
+  fi
   rm -rf "$work"
   trap - EXIT
   exit "$status"
@@ -172,6 +182,17 @@ sync
 systemctl poweroff || poweroff
 EOF
 sudo chmod 755 "$MNT/opt/seed-boot/run.sh" "$MNT/opt/seed-boot/pi5-seed-guest.sh" "$MNT/opt/seed-boot/pi5-flash-check.sh"
+if [ -n "${PI5_BOOT_EXTRA:-}" ]; then
+  if [ ! -d "$PI5_BOOT_EXTRA" ]; then
+    printf 'error: PI5_BOOT_EXTRA is not a directory: %s\n' "$PI5_BOOT_EXTRA" >&2
+    exit 1
+  fi
+  sudo mkdir -p "$MNT/opt/seed-boot/extra"
+  sudo cp -a "$PI5_BOOT_EXTRA/." "$MNT/opt/seed-boot/extra/"
+  if [ -f "$PI5_BOOT_EXTRA/prepare-root.sh" ]; then
+    sudo sh "$PI5_BOOT_EXTRA/prepare-root.sh" "$MNT"
+  fi
+fi
 sudo tee "$MNT/etc/systemd/system/pi5-seed-boot.service" >/dev/null <<'EOF'
 [Unit]
 Description=Galion seed boot check

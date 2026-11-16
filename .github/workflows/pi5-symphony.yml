@@ -1,0 +1,143 @@
+# One offline arm64 Debian Bookworm VM. Galion OS from this repository's
+# main, Galion Research built from the public commit of hermes-research
+# pull request 14, and openmind-desktop built from the public commit of
+# obsidian-open-mind pull request 100. The guest has no NIC.
+# A green table is an emulator result. It is not a Raspberry Pi 5 result.
+
+name: Pi 5 symphony
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/pi5-symphony.yml"
+      - "scripts/symphony/**"
+      - "scripts/pi5-seed-boot.sh"
+      - "scripts/pi5-seed-guest.sh"
+      - "docs/PI5-SYMPHONY.md"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/pi5-symphony.yml"
+      - "scripts/symphony/**"
+      - "scripts/pi5-seed-boot.sh"
+      - "scripts/pi5-seed-guest.sh"
+      - "docs/PI5-SYMPHONY.md"
+      - "galion-init/**"
+      - "packaging/**"
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: pi5-symphony-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  symphony:
+    name: symphony
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check the health table formatter
+        run: sh scripts/symphony/test-health-table.sh
+
+      - name: Check the OS boot scripts still parse
+        run: sh scripts/test-pi5-seed-boot.sh
+
+      - name: QEMU system emulator
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-arm qemu-efi-aarch64 cloud-image-utils binutils
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-musl
+
+      - name: Node.js for the research seed build
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.23.4"
+
+      - name: Build research and desktop from public git
+        run: sh scripts/symphony/fetch-seeds.sh "$RUNNER_TEMP/symphony-fetch"
+
+      - name: Build the Galion OS seed from origin/main
+        id: os
+        run: |
+          set -eu
+          tarball=$(sh scripts/symphony/build-os-seed.sh "$RUNNER_TEMP/symphony-os" | tail -n 1)
+          case "$tarball" in
+            /*) ;;
+            *)
+              echo "OS seed path was not a file path" >&2
+              exit 1
+              ;;
+          esac
+          printf 'tarball=%s\n' "$tarball" >> "$GITHUB_OUTPUT"
+          printf 'sha=%s\n' "$(cat "$RUNNER_TEMP/symphony-os/os-sha")" >> "$GITHUB_OUTPUT"
+
+      - name: Stage the extra seeds
+        id: extra
+        run: |
+          set -eu
+          dest=$(sh scripts/symphony/assemble-extra.sh \
+            "$RUNNER_TEMP/symphony-extra" \
+            "$RUNNER_TEMP/symphony-os/os-sha" \
+            "$RUNNER_TEMP/symphony-fetch")
+          printf 'dir=%s\n' "$dest" >> "$GITHUB_OUTPUT"
+
+      - name: Boot one offline Bookworm VM with the three seeds
+        run: |
+          set -eu
+          PI5_BOOT_EXTRA="${{ steps.extra.outputs.dir }}" \
+            sh scripts/pi5-seed-boot.sh "${{ steps.os.outputs.tarball }}"
+
+      - name: Require the health table
+        if: always()
+        run: |
+          set -eu
+          table=pi5-boot-logs/pi5-health-table.txt
+          test -f "$table"
+          cat "$table"
+          grep -q 'An emulator, container, or QEMU result is not a Raspberry Pi 5 result.' "$table"
+          grep -q 'This table is not a Raspberry Pi 5 result.' "$table"
+          grep -q '^environment: emulator$' "$table"
+          grep -q '^hardware-claim: none$' "$table"
+          grep -q '^machine: aarch64$' "$table"
+          grep -q '^os-codename: bookworm$' "$table"
+          grep -q '^network: no-default-route$' "$table"
+          grep -q '^installed: [0-9][0-9]* PASS, 0 FAIL$' "$table"
+          grep -q '^contract: ok$' "$table"
+          if grep -q '^environment: raspberry-pi$' "$table"; then
+            echo "emulator claimed to be a Raspberry Pi" >&2
+            exit 1
+          fi
+
+      - name: Record the health table
+        if: always()
+        run: |
+          if [ -f pi5-boot-logs/pi5-health-table.txt ]; then
+            {
+              echo '## Pi 5 symphony health table'
+              echo
+              echo 'Emulator only. An emulator, container, or QEMU result is not a Raspberry Pi 5 result.'
+              echo
+              echo '```'
+              cat pi5-boot-logs/pi5-health-table.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload the health table and guest logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi5-symphony-logs
+          path: pi5-boot-logs/**
+          if-no-files-found: warn
