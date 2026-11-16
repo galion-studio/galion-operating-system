@@ -33,7 +33,7 @@ Hermes stays the centre for knowledge and tools in both. Galion Voice, the voice
 
 ## Status
 
-Galion OS is the direction we're building towards, starting with Open Mind and Hermes. The Galion OS Voice profile comes first. Downloads will be listed here once the first image is ready.
+Galion OS is the direction we're building towards, starting with Open Mind and Hermes. The Galion OS Voice profile comes first. `galion-init` in this repository is an in-memory prototype of the boot plan. It refuses to be PID 1, and it is not an image. Downloads will be listed here once the first image is ready.
 
 ## Raspberry Pi 5
 
