@@ -1,0 +1,35 @@
+name: Musl reproducibility
+
+on:
+  pull_request:
+    paths:
+      - ".cargo/**"
+      - "galion-init/**"
+      - "scripts/repro-musl.sh"
+      - ".github/workflows/musl-repro.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".cargo/**"
+      - "galion-init/**"
+      - "scripts/repro-musl.sh"
+      - ".github/workflows/musl-repro.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  repro:
+    name: musl-repro
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-musl,x86_64-unknown-linux-musl
+
+      - name: Build each static binary twice
+        run: sh scripts/repro-musl.sh
