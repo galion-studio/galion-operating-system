@@ -101,5 +101,94 @@ for word in (
 for banned in ("http://", "https://", "127.0.0.1"):
     if banned in body:
         raise SystemExit("page contains %s" % banned)
-print("test-welcome-page: passed on loopback. This is not a Raspberry Pi 5 result.")
+for token in ("--om-ink", "#0B0F14", "#58C4FF", "--om-space-4", "Jost"):
+    if token not in body:
+        raise SystemExit("missing token %s" % token)
+for retired in ("#f5a524", "#7c3aed", "#F5A524", "#7C3AED"):
+    if retired in body:
+        raise SystemExit("page still uses %s" % retired)
+print("test-welcome-page: down page passed on loopback. This is not a Raspberry Pi 5 result.")
+PY
+
+kill "$pid" 2>/dev/null || true
+wait "$pid" 2>/dev/null || true
+pid=
+
+cat >"$work/systemctl" <<'EOF'
+#!/bin/sh
+case "$1" in
+  list-units)
+    printf '%s\n' \
+      'galion-os.target loaded active active Galion OS' \
+      'galion-init.service loaded active exited Galion OS init plan' \
+      'galion-welcome.service loaded active running Galion OS welcome' \
+      'galion-research.service loaded active running Galion Research'
+    ;;
+  list-unit-files)
+    printf '%s\n' \
+      'galion-os.target enabled enabled' \
+      'galion-init.service enabled enabled' \
+      'galion-welcome.service enabled enabled' \
+      'galion-research.service enabled enabled'
+    ;;
+  show)
+    printf '%s\n' \
+      'Id=openmind-desktop.service' \
+      'LoadState=loaded' \
+      'ActiveState=active' \
+      'SubState=running'
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+exit 0
+EOF
+chmod 0755 "$work/systemctl"
+
+port=$(python3 -c 'import socket; s=socket.socket(); s.bind(("localhost", 0)); print(s.getsockname()[1]); s.close()')
+GALION_WELCOME_PORT="$port" GALION_SYSTEMCTL="$work/systemctl" "$bin" >"$work/out" 2>"$work/err" &
+pid=$!
+
+i=0
+while [ "$i" -lt 50 ]; do
+  if ! kill -0 "$pid" 2>/dev/null; then
+    echo "test-welcome-page: up server exited" >&2
+    cat "$work/err" >&2
+    exit 1
+  fi
+  if grep -q "port $port" "$work/err"; then
+    break
+  fi
+  i=$((i + 1))
+  sleep 0.1
+done
+if ! grep -q "port $port" "$work/err"; then
+  echo "test-welcome-page: up server did not listen" >&2
+  cat "$work/err" >&2
+  exit 1
+fi
+
+python3 - "$port" <<'PY'
+import sys
+import urllib.request
+
+port = sys.argv[1]
+url = "http://localhost:%s/" % port
+with urllib.request.urlopen(url, timeout=3) as res:
+    body = res.read().decode("utf-8")
+    status = res.status
+if status != 200:
+    raise SystemExit("status %s" % status)
+for href in (
+    'href="http://127.0.0.1:8787/"',
+    'href="http://127.0.0.1:18181/"',
+):
+    if href not in body:
+        raise SystemExit("missing %s" % href)
+if "Not on this machine" not in body:
+    raise SystemExit("voice should stay absent")
+if "<script" in body.lower():
+    raise SystemExit("script")
+print("test-welcome-page: up page passed on loopback. This is not a Raspberry Pi 5 result.")
 PY

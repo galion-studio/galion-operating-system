@@ -4,6 +4,8 @@
 
 Static pages for galion.app. HTML and CSS, one small stylesheet, self-hosted fonts, and two small scripts that choose the currency. No tracking, no payment form. galion.app is the only domain. One nav links every path.
 
+These editorial pages use [`assets/site.css`](assets/site.css) and the voice ground in the brand guide. Product surfaces share [`assets/tokens.css`](assets/tokens.css): Open Mind colour, type, and spacing. The welcome page embeds that file. These pages do not.
+
 | Path | File | Page |
 |---|---|---|
 | `/` | [index.html](index.html) | Galion OS, the home page. Free forever. Open source. |

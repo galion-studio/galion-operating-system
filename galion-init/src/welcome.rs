@@ -10,6 +10,8 @@
 /// IPv4 loopback port for the welcome page. The systemd unit names this port.
 pub const WELCOME_PORT: u16 = 18711;
 
+const TOKENS_CSS: &str = include_str!("../../site/assets/tokens.css");
+
 pub const STATE_UP: &str = "Up";
 pub const STATE_FINISHED: &str = "Finished";
 pub const STATE_COMING: &str = "Coming up";
@@ -25,6 +27,8 @@ pub struct ServiceRow {
     pub role: String,
     pub state: &'static str,
     pub tone: &'static str,
+    /// Loopback page for this service, set only while its state is [`STATE_UP`].
+    pub href: Option<String>,
 }
 
 /// Texts collected by the binary. `None` means that read failed.
@@ -99,7 +103,16 @@ pub fn rows_from_snapshot(snapshot: &UnitSnapshot) -> Vec<ServiceRow> {
     let desktop = snapshot.desktop_show.as_deref().map(parse_show);
     let mut rows = Vec::new();
     for known in KNOWN {
-        let (state, tone) = if known.desktop {
+        let (state, tone) = if known.id == "galion-research.service" {
+            prefer(
+                listed_state(units.as_ref(), files.as_ref(), known.id),
+                listed_state(
+                    units.as_ref(),
+                    files.as_ref(),
+                    "galion-research-pi5.service",
+                ),
+            )
+        } else if known.desktop {
             desktop_state(desktop.as_ref(), known.id)
         } else {
             listed_state(units.as_ref(), files.as_ref(), known.id)
@@ -107,6 +120,7 @@ pub fn rows_from_snapshot(snapshot: &UnitSnapshot) -> Vec<ServiceRow> {
         rows.push(ServiceRow {
             name: known.name.to_string(),
             role: known.role.to_string(),
+            href: href_for(known.id, state),
             state,
             tone,
         });
@@ -115,11 +129,15 @@ pub fn rows_from_snapshot(snapshot: &UnitSnapshot) -> Vec<ServiceRow> {
         let mut extra_ids: Vec<String> = units
             .iter()
             .map(|live| live.id.clone())
-            .filter(|id| is_galion_unit(id) && !known_id(id))
+            .filter(|id| is_galion_unit(id) && !known_id(id) && !research_alias(id))
             .collect();
         if let Some(files) = files.as_ref() {
             for id in files {
-                if is_galion_unit(id) && !known_id(id) && !extra_ids.iter().any(|have| have == id) {
+                if is_galion_unit(id)
+                    && !known_id(id)
+                    && !research_alias(id)
+                    && !extra_ids.iter().any(|have| have == id)
+                {
                     extra_ids.push(id.clone());
                 }
             }
@@ -134,6 +152,7 @@ pub fn rows_from_snapshot(snapshot: &UnitSnapshot) -> Vec<ServiceRow> {
                 role: "Galion unit.".to_string(),
                 state,
                 tone,
+                href: None,
             });
         }
         if hidden > 0 {
@@ -142,6 +161,7 @@ pub fn rows_from_snapshot(snapshot: &UnitSnapshot) -> Vec<ServiceRow> {
                 role: format!("{hidden} more Galion units are on this machine."),
                 state: STATE_UNREAD,
                 tone: "unread",
+                href: None,
             });
         }
     }
@@ -151,10 +171,13 @@ pub fn rows_from_snapshot(snapshot: &UnitSnapshot) -> Vec<ServiceRow> {
 pub fn render_page(rows: &[ServiceRow]) -> String {
     let mut list = String::new();
     for row in rows {
+        let name = match &row.href {
+            Some(href) => format!("<a href=\"{}\">{}</a>", escape(href), escape(&row.name)),
+            None => escape(&row.name),
+        };
         list.push_str(&format!(
             "<li class=\"{tone}\"><span class=\"mark {tone}\" aria-hidden=\"true\"></span><div><h2>{name}</h2><p>{role}</p></div><p class=\"state\">{state}</p></li>",
             tone = row.tone,
-            name = escape(&row.name),
             role = escape(&row.role),
             state = escape(row.state),
         ));
@@ -210,6 +233,41 @@ pub fn answer(request: &str, rows: &[ServiceRow]) -> Vec<u8> {
 
 fn known_id(id: &str) -> bool {
     KNOWN.iter().any(|known| known.id == id)
+}
+
+fn research_alias(id: &str) -> bool {
+    id == "galion-research-pi5.service"
+}
+
+fn href_for(id: &str, state: &str) -> Option<String> {
+    if state != STATE_UP {
+        return None;
+    }
+    let port = match id {
+        "openmind-desktop.service" => crate::DESKTOP_PORT,
+        "galion-research.service" => crate::RESEARCH_PORT,
+        _ => return None,
+    };
+    Some(format!("http://127.0.0.1:{port}/"))
+}
+
+fn prefer<'a>(primary: (&'a str, &'a str), other: (&'a str, &'a str)) -> (&'a str, &'a str) {
+    if rank(other.0) > rank(primary.0) {
+        other
+    } else {
+        primary
+    }
+}
+
+fn rank(state: &str) -> u8 {
+    match state {
+        STATE_UP => 6,
+        STATE_COMING => 5,
+        STATE_FINISHED => 4,
+        STATE_DOWN => 3,
+        STATE_UNREAD => 2,
+        _ => 1,
+    }
 }
 
 fn listed_state(
@@ -354,12 +412,13 @@ fn document(lede: &str, body: &str, services: bool) -> String {
         ""
     };
     let note = if services {
-        "<p class=\"note\">Finished means the unit did its work and exited. Reload the page to read the machine again. In development. This page stays on this machine.</p>"
+        "<p class=\"note\">Finished means the unit did its work and exited. A linked name is open on this machine. Reload the page to read the machine again. In development. This page stays on this machine.</p>"
     } else {
         ""
     };
     format!(
-        "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"dark\"><meta name=\"theme-color\" content=\"#0A0A0C\"><title>Galion OS</title><style>{css}</style></head><body>{skip}<main><p class=\"kicker\">Galion OS</p><div class=\"presence\" aria-hidden=\"true\"></div><h1>Welcome.</h1><p class=\"lede\">{lede}</p><hr class=\"rule\">{body}{note}</main></body></html>",
+        "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"dark light\"><meta name=\"theme-color\" content=\"#05070A\" media=\"(prefers-color-scheme: dark)\"><meta name=\"theme-color\" content=\"#F7F9FB\" media=\"(prefers-color-scheme: light)\"><title>Galion OS</title><style>{tokens}{css}</style></head><body>{skip}<main><p class=\"kicker\">Galion OS</p><div class=\"presence\" aria-hidden=\"true\"></div><h1>Welcome.</h1><p class=\"lede\">{lede}</p><hr class=\"rule\">{body}{note}</main></body></html>",
+        tokens = TOKENS_CSS,
         css = PAGE_CSS,
         lede = escape(lede),
     )
@@ -380,109 +439,114 @@ fn escape(text: &str) -> String {
 }
 
 const PAGE_CSS: &str = r#"
-:root { color-scheme: dark; }
 * { box-sizing: border-box; }
-html { scroll-padding-top: 4rem; }
+html { scroll-padding-top: var(--om-space-6); }
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #0a0a0c;
-  background-image:
-    radial-gradient(ellipse 70% 46% at 8% -10%, rgba(245, 165, 36, 0.14), transparent 58%),
-    radial-gradient(ellipse 52% 40% at 100% 0%, rgba(124, 58, 237, 0.18), transparent 52%);
-  color: #f5f5f7;
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
-  font-size: 1.0625rem;
-  line-height: 1.55;
+  background: var(--om-bg-deep);
+  color: var(--om-fg);
+  font-family: var(--om-font-sans);
+  font-size: var(--om-size-body);
+  line-height: var(--om-leading);
 }
-main { max-width: 40rem; margin: 0 auto; padding: 3.5rem 1.5rem 3rem; }
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--om-space-6) var(--om-space-4) var(--om-space-5);
+}
 .kicker {
-  margin: 0 0 1.5rem;
-  color: #b695cf;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-.presence {
-  width: 3.25rem;
-  height: 3.25rem;
-  margin: 0 0 1.25rem;
-  border-radius: 50%;
-  background: #f5f5f7;
-  animation: breath 7s ease-in-out infinite;
-}
-h1, h2 {
-  font-family: "Jost", "IBM Plex Sans", system-ui, sans-serif;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-h1 { margin: 0; font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.05; }
-.lede { margin: 1rem 0 0; max-width: 36ch; font-size: 1.15rem; }
-.rule {
-  height: 1px;
-  margin: 2rem 0 1.5rem;
-  border: 0;
-  background: linear-gradient(90deg, #f5a524, #7c3aed);
-  opacity: 0.75;
-}
-ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.65rem; }
-li {
-  display: grid;
-  grid-template-columns: 1.4rem 1fr auto;
-  gap: 0.9rem;
-  align-items: center;
-  margin: 0;
-  padding: 1rem 1.1rem;
-  background: #141418;
-  border: 1px solid #2c2c33;
-  border-radius: 18px;
-}
-h2 { margin: 0; font-size: 1.2rem; line-height: 1.2; }
-li p { margin: 0.2rem 0 0; color: #a7b6c4; font-size: 0.95rem; }
-.state {
-  margin: 0;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 0.78rem;
+  margin: 0 0 var(--om-space-4);
+  color: var(--om-fg-muted);
+  font-family: var(--om-font-mono);
+  font-size: var(--om-size-label);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-li.up .state { color: #f5f5f7; }
-li.finished .state, li.coming .state { color: #b695cf; }
-li.down .state { color: #f5a524; }
-li.absent .state, li.unread .state { color: #a7b6c4; }
-.mark {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 50%;
-  background: #f5f5f7;
-  box-shadow: 0 0 0 6px rgba(245, 245, 247, 0.06);
+.presence {
+  width: var(--om-space-6);
+  height: var(--om-space-6);
+  margin: 0 0 var(--om-space-3);
+  border-radius: var(--om-radius-pill);
+  background: var(--om-fg);
+  animation: breath 7s ease-in-out infinite;
 }
-.mark.finished, .mark.coming { opacity: 0.55; }
-.mark.down { background: transparent; box-shadow: inset 0 0 0 1.5px #f5a524; }
-.mark.absent, .mark.unread { background: transparent; box-shadow: inset 0 0 0 1.5px #2c2c33; }
-.note, .back { margin: 1.75rem 0 0; color: #a7b6c4; font-size: 0.95rem; max-width: 42ch; }
-a { color: #f5a524; }
+h1, h2 {
+  font-family: var(--om-font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+h1 { margin: 0; font-size: var(--om-space-6); line-height: 1.15; }
+.lede { margin: var(--om-space-3) 0 0; max-width: 36ch; }
+.rule {
+  height: 1px;
+  margin: var(--om-space-5) 0 var(--om-space-4);
+  border: 0;
+  background: var(--om-border);
+}
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--om-space-2); }
+li {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr auto;
+  gap: var(--om-space-3);
+  align-items: center;
+  margin: 0;
+  padding: var(--om-space-3) var(--om-space-4);
+  background: var(--om-panel);
+  border: 1px solid var(--om-border);
+  border-radius: var(--om-radius-md);
+}
+h2 { margin: 0; font-size: var(--om-size-title); line-height: 1.2; }
+li p { margin: 0.2rem 0 0; color: var(--om-fg-muted); font-size: var(--om-size-meta); }
+.state {
+  margin: 0;
+  font-family: var(--om-font-mono);
+  font-size: var(--om-size-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+li.up .state { color: var(--om-accent); }
+li.finished .state, li.coming .state { color: var(--om-slate); }
+li.down .state, li.absent .state, li.unread .state { color: var(--om-fg-muted); }
+.mark {
+  width: var(--om-space-2);
+  height: var(--om-space-2);
+  border-radius: var(--om-radius-pill);
+  background: var(--om-fg);
+}
+.mark.finished, .mark.coming { background: var(--om-slate); }
+.mark.down, .mark.absent, .mark.unread {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--om-border);
+}
+.mark.up { background: var(--om-accent); }
+.note, .back {
+  margin: var(--om-space-5) 0 0;
+  color: var(--om-fg-muted);
+  font-size: var(--om-size-meta);
+  max-width: 42ch;
+}
+a { color: var(--om-accent); }
 .skip {
   position: absolute;
-  left: 12px;
+  left: var(--om-space-3);
   top: -48px;
-  background: #f5a524;
-  color: #0a0a0c;
-  padding: 0.4rem 0.7rem;
-  border-radius: 8px;
+  background: var(--om-accent);
+  color: var(--om-accent-fg);
+  padding: var(--om-space-2) var(--om-space-3);
+  border-radius: var(--om-radius-sm);
 }
-.skip:focus { top: 12px; }
-:focus-visible { outline: 2px solid #f5a524; outline-offset: 3px; }
+.skip:focus { top: var(--om-space-3); }
+:focus-visible { outline: 2px solid var(--om-focus); outline-offset: 3px; }
 @keyframes breath {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(0.96); opacity: 0.88; }
 }
 @media (max-width: 560px) {
   li { grid-template-columns: 1.4rem 1fr; }
-  .state { grid-column: 2; margin-top: 0.35rem; }
+  .state { grid-column: 2; margin-top: var(--om-space-2); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -584,9 +648,85 @@ galion-voiced.service disabled
         let page = render_page(&rows);
         assert!(page.contains("galion-&lt;b&gt;.service"));
         assert!(!page.contains("<b>"));
-        assert!(!page.contains("http://"));
+        assert!(page.contains("href=\"http://127.0.0.1:8787/\""));
+        assert!(page.contains("<h2><a href=\"http://127.0.0.1:8787/\">Research</a></h2>"));
+        assert!(!page.contains("18181"));
         assert!(!page.contains("https://"));
         assert!(!page.to_ascii_lowercase().contains("<script"));
+    }
+
+    #[test]
+    fn fresh_seed_has_no_loopback_link_and_uses_open_mind_tokens() {
+        let page = render_page(&rows_from_snapshot(&seed_snapshot()));
+        assert!(!page.contains("http://"));
+        assert!(!page.contains("https://"));
+        assert!(!page.contains("127.0.0.1"));
+        assert!(page.contains("--om-ink"));
+        assert!(page.contains("#0B0F14"));
+        assert!(page.contains("#58C4FF"));
+        assert!(page.contains("\"Jost\""));
+        assert!(page.contains("--om-space-4"));
+        assert!(!page.to_ascii_lowercase().contains("#f5a524"));
+        assert!(!page.to_ascii_lowercase().contains("#7c3aed"));
+        assert!(rows_from_snapshot(&seed_snapshot())
+            .iter()
+            .all(|row| row.href.is_none()));
+    }
+
+    #[test]
+    fn links_research_and_the_desktop_only_while_up() {
+        let mut snapshot = seed_snapshot();
+        snapshot.list_units = Some(
+            "\
+galion-os.target loaded active active Galion OS
+galion-init.service loaded active exited Galion OS init plan
+galion-welcome.service loaded active running Galion OS welcome
+galion-research.service loaded active running Galion Research
+galion-voiced.service loaded activating start Galion Voice
+"
+            .to_string(),
+        );
+        snapshot.desktop_show = Some(
+            "\
+Id=openmind-desktop.service
+LoadState=loaded
+ActiveState=active
+SubState=running
+"
+            .to_string(),
+        );
+        let rows = rows_from_snapshot(&snapshot);
+        let research = rows.iter().find(|row| row.name == "Research").unwrap();
+        let desktop = rows.iter().find(|row| row.name == "Open Mind").unwrap();
+        let voice = rows.iter().find(|row| row.name == "Voice").unwrap();
+        assert_eq!(research.href.as_deref(), Some("http://127.0.0.1:8787/"));
+        assert_eq!(desktop.href.as_deref(), Some("http://127.0.0.1:18181/"));
+        assert_eq!(voice.state, STATE_COMING);
+        assert!(voice.href.is_none());
+        let page = render_page(&rows);
+        assert!(page.contains("href=\"http://127.0.0.1:8787/\""));
+        assert!(page.contains("href=\"http://127.0.0.1:18181/\""));
+        assert!(!page.contains("galion-voiced"));
+    }
+
+    #[test]
+    fn pi5_research_unit_links_once() {
+        let mut snapshot = seed_snapshot();
+        snapshot.list_units = Some(
+            "\
+galion-os.target loaded active active Galion OS
+galion-init.service loaded active exited Galion OS init plan
+galion-welcome.service loaded active running Galion OS welcome
+galion-research-pi5.service loaded active running Galion Research
+"
+            .to_string(),
+        );
+        let rows = rows_from_snapshot(&snapshot);
+        let research: Vec<_> = rows.iter().filter(|row| row.name == "Research").collect();
+        assert_eq!(research.len(), 1);
+        assert_eq!(research[0].state, STATE_UP);
+        assert_eq!(research[0].href.as_deref(), Some("http://127.0.0.1:8787/"));
+        assert!(!rows.iter().any(|row| row.name.contains("pi5")));
     }
 
     #[test]
