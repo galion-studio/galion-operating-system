@@ -73,7 +73,11 @@ sc list-unit-files --no-legend --no-pager 'galion-*' >"$tmp/list" 2>"$tmp/list.e
 list_rc=$?
 set -e
 if [ "$list_rc" -gt 1 ]; then
-  die "systemctl list-unit-files failed"
+  detail=$(head -n 1 "$tmp/list.err" | tr -d '\r')
+  if [ -n "$detail" ]; then
+    die "systemctl list-unit-files failed: $detail"
+  fi
+  die "systemctl list-unit-files failed (exit $list_rc)"
 fi
 while read -r name _rest; do
   [ -n "$name" ] || continue
@@ -116,8 +120,9 @@ while read -r name active sub _rest; do
   case "$name" in
     \#*) continue ;;
   esac
-  is_galion_unit "$name" || continue
-  [ -n "${active:-}" ] && [ -n "${sub:-}" ] || continue
+  if ! is_galion_unit "$name" || [ -z "${active:-}" ] || [ -z "${sub:-}" ]; then
+    die "expectations line must be a Galion unit, an active state, and a substate: ${name} ${active:-} ${sub:-}"
+  fi
   printf '%s %s\n' "$active" "$sub" >"$tmp/expect.$name"
   add_unit "$name"
 done <"$tmp/expectations"

@@ -753,6 +753,14 @@ tbody th {
   color: var(--text);
 }
 
+.site-footer nav a,
+.card p:last-child a,
+.price p:last-child a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 .site-footer a[aria-current="page"] {
   font-weight: 600;
   text-decoration-thickness: 2px;

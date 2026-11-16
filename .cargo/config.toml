@@ -4,11 +4,15 @@
 # The Pi 5 workflow prepends that directory, then sets
 # CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld
 # and CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld.
+#
+# --build-id=none keeps the linker from writing a note that is not a
+# function of the source. scripts/repro-musl.sh builds each triple twice,
+# from two directories, and requires the stripped binaries to match.
 
 [target.aarch64-unknown-linux-musl]
 linker = "rust-lld"
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = ["-C", "target-feature=+crt-static", "-C", "link-arg=--build-id=none"]
 
 [target.x86_64-unknown-linux-musl]
 linker = "rust-lld"
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = ["-C", "target-feature=+crt-static", "-C", "link-arg=--build-id=none"]
