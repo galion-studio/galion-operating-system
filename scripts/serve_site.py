@@ -69,7 +69,12 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     handler = partial(SiteHandler, directory=str(SITE))
-    server = ThreadingHTTPServer((args.host, args.port), handler)
+    try:
+        server = ThreadingHTTPServer((args.host, args.port), handler)
+    except OSError as exc:
+        reason = exc.strerror or str(exc)
+        print(f"error: cannot listen on {args.host}:{args.port} ({reason})", file=sys.stderr)
+        return 1
     print(f"PORT {server.server_address[1]}", flush=True)
     try:
         server.serve_forever()
