@@ -24,7 +24,7 @@ mod welcome;
 
 pub use boot::{
     desktop_plan, handoff_ready, voice_plan, walk_desktop, walk_down, DesktopWalk, DownWalk, Phase,
-    Plan, Profile,
+    Plan, Profile, WalkError,
 };
 pub use cli::{invocation, Invocation};
 pub use early::{BootError, EarlyBoot, MountSpec, DESKTOP_MOUNTS};

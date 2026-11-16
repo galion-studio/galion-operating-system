@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 // SPDX-FileCopyrightText: 2026 Galion Labs
 
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use galion_init::{
     admit, check_desktop_bind, desktop_plan, handoff_ready, invocation, one_target,
     running_as_host_init, tone_hook, tone_samples, voice_plan, walk_desktop, walk_down, AdmitError,
@@ -8,6 +10,10 @@ use galion_init::{
     Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_MOUNTS, DESKTOP_PORT, ONE_PATH,
     RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
+
+fn admitted_desktop(silence: bool, playback_present: bool) -> galion_init::Plan {
+    desktop_plan(silence, playback_present).expect("desktop services admit")
+}
 
 fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
     Service {
@@ -34,7 +40,7 @@ fn this_process_is_not_pid_1() {
 
 #[test]
 fn desktop_boot_order_ends_at_the_desktop_handoff() {
-    let plan = desktop_plan(false, true);
+    let plan = admitted_desktop(false, true);
     assert_eq!(plan.profile, Profile::Desktop);
     assert_eq!(
         plan.phases,
@@ -102,7 +108,7 @@ fn tone_hook_is_planned_at_432_hz_and_plays_nothing() {
         assert_eq!(BOOT_TONE_HZ, 432);
         assert_eq!(tone_samples(hook), 0);
     }
-    let plan = desktop_plan(false, false);
+    let plan = admitted_desktop(false, false);
     assert_eq!(plan.tone, Some(ToneHook::Planned { hz: 432 }));
     assert!(plan.phases.last() == Some(&Phase::HandoffDesktop));
 }
@@ -115,7 +121,7 @@ fn silence_skips_the_tone_and_keeps_the_desktop() {
     });
     assert_eq!(hook, ToneHook::Silenced);
     assert_eq!(tone_samples(hook), 0);
-    let plan = desktop_plan(true, true);
+    let plan = admitted_desktop(true, true);
     assert_eq!(plan.tone, Some(ToneHook::Silenced));
     assert!(plan.service("openmind-desktop").is_some());
     let text = plan.render();
@@ -125,7 +131,7 @@ fn silence_skips_the_tone_and_keeps_the_desktop() {
 
 #[test]
 fn handoff_is_ipv4_loopback_port_18181_and_other_binds_are_refused() {
-    let plan = desktop_plan(false, true);
+    let plan = admitted_desktop(false, true);
     let handoff = plan.handoff.expect("desktop plan has a handoff");
     assert_eq!(handoff.host, Host::Ipv4Loopback);
     assert_eq!(handoff.port, DESKTOP_PORT);
@@ -157,7 +163,7 @@ fn handoff_is_ipv4_loopback_port_18181_and_other_binds_are_refused() {
 
 #[test]
 fn desktop_services_match_the_packaging_handoff() {
-    let plan = desktop_plan(false, true);
+    let plan = admitted_desktop(false, true);
     let names: Vec<_> = plan
         .supervisor
         .services()
@@ -212,7 +218,7 @@ fn one_desktop_walk_starts_the_console_then_research_and_plays_nothing() {
     for silence in [false, true] {
         for playback_present in [false, true] {
             let mut machine = Machine::new(0);
-            let walk = walk_desktop(silence, playback_present, &mut machine);
+            let walk = walk_desktop(silence, playback_present, &mut machine).expect("desktop walk");
             assert!(walk.console_pid < walk.research_pid);
             assert_ne!(walk.console_pid, 1);
             assert_ne!(walk.research_pid, 1);
@@ -231,7 +237,7 @@ fn one_desktop_walk_starts_the_console_then_research_and_plays_nothing() {
 fn the_down_walk_records_research_before_the_console_and_does_not_restart() {
     for silence in [false, true] {
         let mut machine = Machine::new(0);
-        let down = walk_down(silence, true, &mut machine);
+        let down = walk_down(silence, true, &mut machine).expect("desktop walk down");
         assert!(down.up.console_pid < down.up.research_pid);
         assert_ne!(down.up.console_pid, 1);
         assert_ne!(down.up.research_pid, 1);
@@ -252,7 +258,7 @@ fn the_down_walk_records_research_before_the_console_and_does_not_restart() {
 
 #[test]
 fn the_handoff_is_current_only_while_the_console_is_alive() {
-    let mut plan = desktop_plan(false, true);
+    let mut plan = admitted_desktop(false, true);
     let mut machine = Machine::new(0);
     assert!(!handoff_ready(&plan, &machine));
     plan.supervisor.tick(&mut machine);
@@ -281,7 +287,7 @@ fn the_handoff_is_current_only_while_the_console_is_alive() {
 
 #[test]
 fn a_stop_brings_research_down_before_the_console_and_does_not_restart() {
-    let mut plan = desktop_plan(false, true);
+    let mut plan = admitted_desktop(false, true);
     let mut machine = Machine::new(0);
     plan.supervisor.tick(&mut machine);
     assert!(handoff_ready(&plan, &machine));
@@ -324,7 +330,7 @@ fn a_stop_brings_research_down_before_the_console_and_does_not_restart() {
 
 #[test]
 fn a_stop_before_the_first_tick_starts_nothing() {
-    let mut plan = desktop_plan(false, true);
+    let mut plan = admitted_desktop(false, true);
     let mut machine = Machine::new(0);
     plan.supervisor.request_stop();
     plan.supervisor.tick(&mut machine);
@@ -351,7 +357,7 @@ fn the_handoff_drops_when_research_comes_down_and_stays_down() {
     let mut boot = supervised_boot();
     assert_eq!(boot.release(false), Err(BootError::OutOfOrder));
 
-    let mut plan = desktop_plan(false, true);
+    let mut plan = admitted_desktop(false, true);
     let mut machine = Machine::new(0);
     plan.supervisor.tick(&mut machine);
     boot.handoff(handoff_ready(&plan, &machine)).unwrap();
@@ -379,7 +385,7 @@ fn the_handoff_drops_when_research_comes_down_and_stays_down() {
 #[test]
 fn a_dropped_handoff_can_be_recorded_again_after_the_console_returns() {
     let mut boot = supervised_boot();
-    let mut plan = desktop_plan(false, true);
+    let mut plan = admitted_desktop(false, true);
     let mut machine = Machine::new(0);
     plan.supervisor.tick(&mut machine);
     boot.handoff(handoff_ready(&plan, &machine)).unwrap();
@@ -398,7 +404,7 @@ fn a_dropped_handoff_can_be_recorded_again_after_the_console_returns() {
 
 #[test]
 fn research_does_not_return_while_the_console_is_down() {
-    let mut plan = desktop_plan(false, true);
+    let mut plan = admitted_desktop(false, true);
     let mut machine = Machine::new(0);
     plan.supervisor.tick(&mut machine);
     let console = plan.supervisor.pid_of("openmind-desktop").unwrap();
@@ -461,7 +467,7 @@ fn early_boot_mounts_loopback_and_clock_before_supervision() {
     boot.tone(0).unwrap();
     assert_eq!(boot.samples(), 0);
 
-    let mut plan = desktop_plan(false, true);
+    let mut plan = admitted_desktop(false, true);
     let mut machine = Machine::new(0);
     assert!(machine.procs.is_empty());
     plan.supervisor.tick(&mut machine);
@@ -490,7 +496,7 @@ fn early_boot_mounts_loopback_and_clock_before_supervision() {
 
 #[test]
 fn research_starts_only_after_the_desktop_child_is_alive() {
-    let mut plan = desktop_plan(false, true);
+    let mut plan = admitted_desktop(false, true);
     let mut machine = Machine::new(0);
     assert!(plan.supervisor.pid_of("openmind-desktop").is_none());
     assert!(plan.supervisor.pid_of("galion-research").is_none());
@@ -644,7 +650,7 @@ fn host_init_shell_and_secrets_are_refused() {
 
 #[test]
 fn render_names_the_in_memory_runtime() {
-    let text = desktop_plan(false, true).render();
+    let text = admitted_desktop(false, true).render();
     assert_eq!(
         text,
         "\
@@ -724,4 +730,60 @@ fn contains_dotted_quad(text: &str) -> bool {
                     .iter()
                     .all(|part| part.chars().all(|c| c.is_ascii_digit()))
         })
+}
+
+#[test]
+fn refusals_name_the_reason() {
+    let messages = [
+        BootError::OutOfOrder.to_string(),
+        BootError::HandoffNotReady.to_string(),
+        BootError::HandoffStillCurrent.to_string(),
+        BootError::RefusedMount.to_string(),
+        BindError::NotLoopback.to_string(),
+        BindError::ProbePort.to_string(),
+        BindError::UnusedStagingPort.to_string(),
+        BindError::NotDesktopPort.to_string(),
+        AdmitError::EmptyArgv { name: "job".into() }.to_string(),
+        AdmitError::RelativeProgram { name: "job".into() }.to_string(),
+        AdmitError::HostInit { name: "job".into() }.to_string(),
+        AdmitError::Shell { name: "job".into() }.to_string(),
+        AdmitError::BadName { name: "job".into() }.to_string(),
+        AdmitError::EmptyUser { name: "job".into() }.to_string(),
+        AdmitError::SecretOnArgv { name: "job".into() }.to_string(),
+        AdmitError::DotDot { name: "job".into() }.to_string(),
+        AdmitError::RelativeWorkdir { name: "job".into() }.to_string(),
+        galion_init::WalkError::MissingTone.to_string(),
+        galion_init::WalkError::MissingRow("openmind-desktop").to_string(),
+        galion_init::WalkError::Boot(BootError::OutOfOrder).to_string(),
+        galion_init::WalkError::Admit(AdmitError::Shell { name: "job".into() }).to_string(),
+    ];
+    let needles = [
+        "before the step",
+        "both be alive",
+        "still current",
+        "desktop table",
+        "loopback",
+        "18080",
+        "18081",
+        "18181",
+        "empty argument list",
+        "absolute path",
+        "host init",
+        "shell",
+        "service name",
+        "empty user",
+        "secret marker",
+        "contains ..",
+        "workdir",
+        "tone hook",
+        "openmind-desktop",
+        "before the step",
+        "shell",
+    ];
+    assert_eq!(messages.len(), needles.len());
+    for (text, needle) in messages.iter().zip(needles) {
+        assert!(text.contains(needle), "{text} missing {needle}");
+        assert!(!text.to_ascii_lowercase().contains("unwrap"), "{text}");
+        assert!(!text.to_ascii_lowercase().contains("panic"), "{text}");
+    }
 }

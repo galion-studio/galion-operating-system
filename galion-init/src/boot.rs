@@ -4,7 +4,7 @@
 //! Boot orders. The kernel is already running before these phases.
 //! Recording a phase does not perform it.
 
-use crate::early::EarlyBoot;
+use crate::early::{BootError, EarlyBoot};
 use crate::handoff::{describe, desktop_handoff, Endpoint, ONE_PATH};
 use crate::supervise::{desktop_services, voice_service, AdmitError, Machine, Service, Supervisor};
 use crate::tone::{tone_hook, tone_samples, ToneHook, ToneInput};
@@ -52,6 +52,50 @@ pub struct Plan {
     pub supervisor: Supervisor,
 }
 
+/// Why a desktop walk could not be recorded.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum WalkError {
+    Admit(AdmitError),
+    Boot(BootError),
+    MissingTone,
+    MissingRow(&'static str),
+}
+
+impl std::fmt::Display for WalkError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WalkError::Admit(err) => write!(f, "{err}"),
+            WalkError::Boot(err) => write!(f, "{err}"),
+            WalkError::MissingTone => write!(f, "the desktop plan has no tone hook"),
+            WalkError::MissingRow(name) => {
+                write!(f, "the desktop walk recorded no child named {name}")
+            }
+        }
+    }
+}
+
+impl std::error::Error for WalkError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            WalkError::Admit(err) => Some(err),
+            WalkError::Boot(err) => Some(err),
+            WalkError::MissingTone | WalkError::MissingRow(_) => None,
+        }
+    }
+}
+
+impl From<AdmitError> for WalkError {
+    fn from(err: AdmitError) -> Self {
+        WalkError::Admit(err)
+    }
+}
+
+impl From<BootError> for WalkError {
+    fn from(err: BootError) -> Self {
+        WalkError::Boot(err)
+    }
+}
+
 impl Plan {
     /// Print the plan in the same order as `prototype.sh`.
     ///
@@ -79,7 +123,7 @@ impl Plan {
             out.push_str("phase supervise\n");
         }
         for service in self.supervisor.services() {
-            out.push_str(&service_line(service));
+            out.push_str(&service_line(&service));
         }
         match self.profile {
             Profile::Voice => {
@@ -116,10 +160,13 @@ impl Plan {
 
 /// Desktop image plan. `silence` selects the silenced hook and does not
 /// read a file. `playback_present` does not drop later phases.
-pub fn desktop_plan(silence: bool, playback_present: bool) -> Plan {
-    let supervisor = Supervisor::try_new(desktop_services())
-        .expect("desktop service list satisfies the admit rules");
-    Plan {
+///
+/// # Errors
+///
+/// Returns the admit refusal when a desktop service is not allowed.
+pub fn desktop_plan(silence: bool, playback_present: bool) -> Result<Plan, AdmitError> {
+    let supervisor = Supervisor::try_new(desktop_services())?;
+    Ok(Plan {
         profile: Profile::Desktop,
         phases: DESKTOP_ORDER,
         tone: Some(tone_hook(ToneInput {
@@ -128,7 +175,7 @@ pub fn desktop_plan(silence: bool, playback_present: bool) -> Plan {
         })),
         handoff: Some(desktop_handoff()),
         supervisor,
-    }
+    })
 }
 
 /// One in-memory step of the desktop boot. PIDs are rows in `machine`.
@@ -147,16 +194,20 @@ struct Stepped {
     walk: DesktopWalk,
 }
 
-fn step_desktop(silence: bool, playback_present: bool, machine: &mut Machine) -> Stepped {
-    let mut plan = desktop_plan(silence, playback_present);
+fn step_desktop(
+    silence: bool,
+    playback_present: bool,
+    machine: &mut Machine,
+) -> Result<Stepped, WalkError> {
+    let mut plan = desktop_plan(silence, playback_present)?;
     let mut boot = EarlyBoot::new();
-    boot.mount().expect("desktop mounts");
-    boot.loopback().expect("loopback");
-    boot.clock().expect("clock");
-    let samples = tone_samples(plan.tone.expect("desktop plan has a tone hook"));
-    boot.tone(samples).expect("tone");
+    boot.mount()?;
+    boot.loopback()?;
+    boot.clock()?;
+    let samples = tone_samples(plan.tone.ok_or(WalkError::MissingTone)?);
+    boot.tone(samples)?;
     plan.supervisor.tick(machine);
-    boot.supervise().expect("supervise");
+    boot.supervise()?;
     let ready = handoff_ready(&plan, machine);
     let handoff_path = if boot.handoff(ready).is_ok() {
         ONE_PATH
@@ -167,22 +218,30 @@ fn step_desktop(silence: bool, playback_present: bool, machine: &mut Machine) ->
         console_pid: plan
             .supervisor
             .pid_of("openmind-desktop")
-            .expect("console row"),
+            .ok_or(WalkError::MissingRow("openmind-desktop"))?,
         research_pid: plan
             .supervisor
             .pid_of("galion-research")
-            .expect("research row"),
+            .ok_or(WalkError::MissingRow("galion-research"))?,
         samples: boot.samples(),
         handoff_path,
     };
-    Stepped { plan, boot, walk }
+    Ok(Stepped { plan, boot, walk })
 }
 
 /// Step the desktop plan once. The console is recorded before research.
 /// The handoff path is `/one` only after both rows are alive. `galion-voiced`
 /// is not started.
-pub fn walk_desktop(silence: bool, playback_present: bool, machine: &mut Machine) -> DesktopWalk {
-    step_desktop(silence, playback_present, machine).walk
+///
+/// # Errors
+///
+/// Returns the admit or boot refusal, or names the row that was not recorded.
+pub fn walk_desktop(
+    silence: bool,
+    playback_present: bool,
+    machine: &mut Machine,
+) -> Result<DesktopWalk, WalkError> {
+    Ok(step_desktop(silence, playback_present, machine)?.walk)
 }
 
 /// The same desktop step, then a recorded stop. Research is first, the
@@ -196,12 +255,19 @@ pub struct DownWalk {
     pub restarted: bool,
 }
 
-pub fn walk_down(silence: bool, playback_present: bool, machine: &mut Machine) -> DownWalk {
+/// # Errors
+///
+/// Returns the same refusals as [`walk_desktop`].
+pub fn walk_down(
+    silence: bool,
+    playback_present: bool,
+    machine: &mut Machine,
+) -> Result<DownWalk, WalkError> {
     let Stepped {
         mut plan,
         mut boot,
         walk,
-    } = step_desktop(silence, playback_present, machine);
+    } = step_desktop(silence, playback_present, machine)?;
     plan.supervisor.request_stop();
     plan.supervisor.tick(machine);
     let research_down = plan.supervisor.pid_of("galion-research").is_none();
@@ -214,7 +280,7 @@ pub fn walk_down(silence: bool, playback_present: bool, machine: &mut Machine) -
     machine.now = 10_000;
     plan.supervisor.tick(machine);
     let restarted = machine.procs.len() != rows || machine.procs.iter().any(|proc| proc.alive);
-    DownWalk {
+    Ok(DownWalk {
         up: walk,
         first: if research_down && console_still_up && dropped {
             "galion-research"
@@ -228,7 +294,7 @@ pub fn walk_down(silence: bool, playback_present: bool, machine: &mut Machine) -
         },
         console_still_up,
         restarted,
-    }
+    })
 }
 
 /// The desktop handoff is current only while the console and research rows
@@ -273,7 +339,7 @@ fn tone_line(tone: Option<ToneHook>) -> String {
     }
 }
 
-fn service_line(service: crate::supervise::Service) -> String {
+fn service_line(service: &crate::supervise::Service) -> String {
     let mut line = format!("service {} user {}", service.name, service.user);
     if service.name == "galion-voiced" {
         line.push_str(" binary absent");

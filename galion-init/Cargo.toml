@@ -13,3 +13,21 @@ opt-level = 3
 lto = true
 codegen-units = 1
 strip = true
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+# Public names follow the module (ToneHook, desktop_handoff).
+module_name_repetitions = "allow"
+# Callers already use the returned plan. Annotating every getter does not change the boot.
+must_use_candidate = "allow"
+# Display on the error is the message a boot prints.
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+# Prose names such as PID and HTML are not code identifiers.
+doc_markdown = "allow"
+# A panic on a runtime path is a failed boot. Tests may still unwrap.
+unwrap_used = "deny"
+expect_used = "deny"

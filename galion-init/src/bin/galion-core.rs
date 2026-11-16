@@ -18,7 +18,12 @@ fn greeting() -> &'static str {
 }
 
 fn main() {
-    print!("{}", greeting());
+    use std::io::Write;
+    let mut stdout = std::io::stdout().lock();
+    if stdout.write_all(greeting().as_bytes()).is_err() {
+        let _ = std::io::stderr().write_all(b"galion-core: could not write the greeting\n");
+        std::process::exit(1);
+    }
 }
 
 #[cfg(test)]
