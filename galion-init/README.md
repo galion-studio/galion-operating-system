@@ -82,7 +82,7 @@ The binary still refuses PID 1 and `--execute`. The seed runs it under Raspberry
 
 ## Welcome page
 
-`galion-welcome` is a second binary in this package. It is not the init prototype and it is not PID 1. `galion-os.target` starts it after `galion-init.service`. It binds the IPv4 loopback interface, and the IPv6 loopback interface when that address exists, on port 18711. The page is HTML. Its styles sit in the page. It asks `systemctl` which Galion units are up, and it does not open a socket on any other interface. The library renders that page and does not bind. See [PI5-SEED.md](../docs/PI5-SEED.md).
+`galion-welcome` is a second binary in this package. It is not the init prototype and it is not PID 1. `galion-os.target` starts it after `galion-init.service`. It binds the IPv4 loopback interface, and the IPv6 loopback interface when that address exists, on port 18711. The page is HTML. It embeds [`site/assets/tokens.css`](../site/assets/tokens.css), the shared Open Mind colour, type, and spacing, and it does not load a font, a script, or any other host. It asks `systemctl` which Galion units are up. When Research is up, its name links to `http://127.0.0.1:8787/`. When Open Mind is up, its name links to `http://127.0.0.1:18181/`. `galion-research-pi5.service` counts as Research. The library renders that page and does not bind. See [PI5-SEED.md](../docs/PI5-SEED.md).
 
 ## Licence
 

@@ -1,7 +1,8 @@
 # One offline arm64 Debian Bookworm VM. Galion OS from this repository's
 # main, Galion Research built from the public commit of hermes-research
 # pull request 14, and openmind-desktop built from the public commit of
-# obsidian-open-mind pull request 100. The guest has no NIC.
+# obsidian-open-mind pull request 100. The guest also starts loopback
+# stand-ins for the six desktop probe targets. The guest has no NIC.
 # A green table is an emulator result. It is not a Raspberry Pi 5 result.
 
 name: Pi 5 symphony
@@ -59,6 +60,9 @@ jobs:
         with:
           targets: aarch64-unknown-linux-musl
 
+      - name: Build the desktop probe stand-ins
+        run: sh scripts/symphony/build-probe-targets.sh "$RUNNER_TEMP/symphony-fetch"
+
       - name: Node.js for the research seed build
         uses: actions/setup-node@v4
         with:
@@ -113,6 +117,15 @@ jobs:
           grep -q '^os-codename: bookworm$' "$table"
           grep -q '^network: no-default-route$' "$table"
           grep -q '^installed: [0-9][0-9]* PASS, 0 FAIL$' "$table"
+          grep -q '^summary: 11 PASS, 0 FAIL$' "$table"
+          grep -q 'loopback stand-ins started for this emulator' "$table"
+          grep -q 'They are not the Open Mind services.' "$table"
+          for name in nerve cortex console hermes voice desk; do
+            if ! grep -E "^${name}[[:space:]]" "$table" | grep -q 'PASS'; then
+              echo "probe stand-in ${name} was not PASS" >&2
+              exit 1
+            fi
+          done
           grep -q '^contract: ok$' "$table"
           if grep -q '^environment: raspberry-pi$' "$table"; then
             echo "emulator claimed to be a Raspberry Pi" >&2

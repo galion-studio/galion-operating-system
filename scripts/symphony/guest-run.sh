@@ -168,8 +168,22 @@ else
   printf 'error: openmind-desktop binary is missing\n' >"$FACTS/http/desktop-root"
 fi
 
+if [ -x "$EXTRA/probe-targets" ]; then
+  "$EXTRA/probe-targets" >"$LOG/probe-targets.log" 2>&1 &
+else
+  printf 'error: probe-targets binary is missing\n' >"$LOG/probe-targets.log"
+fi
+
 wait_port 8787 || true
 wait_port 18181 || true
+n=0
+while [ "$n" -lt 30 ]; do
+  if grep -q 'probe-targets: listening' "$LOG/probe-targets.log" 2>/dev/null; then
+    break
+  fi
+  n=$((n + 1))
+  sleep 1
+done
 if [ ! -s "$FACTS/http/research" ]; then
   http_get 127.0.0.1 8787 /health "$FACTS/http/research"
 fi
@@ -188,6 +202,8 @@ record_unit openmind-desktop.service
   systemctl status --no-pager --full galion-research-pi5.service || true
   printf '----- openmind-desktop -----\n'
   systemctl status --no-pager --full openmind-desktop.service || true
+  printf '----- probe-targets -----\n'
+  cat "$LOG/probe-targets.log" 2>/dev/null || true
 } >"$LOG/pi5-symphony-status.txt" 2>&1 || true
 
 set +e

@@ -339,7 +339,7 @@ Quote these, and stop:
 - obsidian-open-mind: `Copyright (c) 3000 Galion / galion-studio`, which is the `LICENSE` line and the `SPDX-FileCopyrightText` line on the desktop sources. `package-local.sh` copies that `LICENSE` into the desktop tarball.
 - Open Mind's `LICENSES/` directory also holds Apache-2.0 and CC0 texts. The NOTICE points at that directory. It does not fold those texts into the MIT paragraph.
 
-galion-one-voice's README line is `© 2026 Maciej Grajczyk`. That tree is not copied onto this image. Weights stay `none`. Its line stays out of this NOTICE.
+galion-one-voice's README line is `© 2026 Galion Labs`. That tree is not copied onto this image. Weights stay `none`. Its line stays out of this NOTICE.
 
 **Why the repositories support it.** The three `LICENSE` files say what the bullets say. The plan already says each tree keeps its own `LICENSE` until an owner writes the notice. Rewriting either copyright line would be a change to a licence file. This note does not make that change.
 

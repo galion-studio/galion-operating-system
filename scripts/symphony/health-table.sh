@@ -2,10 +2,11 @@
 # Print one PASS/FAIL table from facts collected in the guest.
 #
 # Exit 0 when the installed services meet their own checks and the guest
-# is the offline arm64 Bookworm emulator. Rows for services this job did
-# not start stay in the table and do not change that exit code. Exit 1
-# when an installed check fails or that guest contract fails. Exit 2 on
-# usage.
+# is the offline arm64 Bookworm emulator. Probe rows stay in the table.
+# The guest starts loopback stand-ins for those six rows; a FAIL there does
+# not by itself change this exit code. The symphony workflow requires the
+# summary to be all PASS. Exit 1 when an installed check fails or the guest
+# contract fails. Exit 2 on usage.
 #
 # A PASS here is an emulator reading. It is not a Raspberry Pi 5 result.
 
@@ -220,6 +221,9 @@ printf 'desktop-commit: %s\n' "$desktop_sha"
 printf 'desktop-source: %s\n' "$(meta DESKTOP_SOURCE)"
 printf 'note: %s\n' "$HONESTY"
 printf 'note: This table is not a Raspberry Pi 5 result.\n'
+if [ "$(meta PROBE_TARGETS)" = stand-in ]; then
+  printf 'note: The six probe rows are loopback stand-ins started for this emulator. They are not the Open Mind services.\n'
+fi
 printf '\n'
 printf '%-28s %-42s %-6s %-8s %s\n' SERVICE ENDPOINT HTTP VERDICT NOTE
 

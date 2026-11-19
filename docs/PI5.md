@@ -80,6 +80,42 @@ The table says which machine it read. On a Raspberry Pi, outside a container, it
 
 The script starts `galion-os.target`, then reads every unit whose name starts with `galion-`. It does not start the other units by name. `galion-research-pi5.service` is one of those names once it is installed. `openmind-desktop.service` is not. The desktop's check is the symphony table, and that table has only been produced in the emulator.
 
+## What a real pass looks like
+
+After the SSD boots Raspberry Pi OS (Legacy) 64-bit with the seeds installed, run this from a checkout of this repository on the Pi. The seed tarball does not contain the script. Copy the checkout, not only the tarball.
+
+```sh
+sudo sh scripts/pi5/board-report.sh
+```
+
+An optional path writes the same text to a file. Paste the text back.
+
+The script records the device-tree model, the kernel, the architecture, and the boot medium the kernel names for `/`. It starts each seed unit that is installed. The unit rows are [`scripts/pi5-flash-check.sh`](../scripts/pi5-flash-check.sh). The loopback rows are [`scripts/symphony/health-table.sh`](../scripts/symphony/health-table.sh). This page does not restate those verdicts.
+
+Exit 0 means the report was written and the unit check could be run. FAIL rows inside it are still failures. Exit 2 means the report could not be written, or the unit check could not be run.
+
+This script has not been run on a Raspberry Pi 5. A run under CI or QEMU is not a pass on the board. The fields below are empty on purpose. Nothing in this repository has filled them.
+
+```
+GALION BOARD REPORT
+model:
+kernel:
+arch:
+root:
+root-cmdline:
+boot-medium:
+block:
+block-sectors:
+
+----- starts -----
+
+----- unit check (scripts/pi5-flash-check.sh) -----
+
+----- loopback check (scripts/symphony/health-table.sh) -----
+```
+
+A pass is a model line, read from `/proc/device-tree/model`, that names a Raspberry Pi; the unit check saying `environment: raspberry-pi` and `hardware-claim: device-tree`, with no FAIL row; and the loopback table's installed rows PASS. `contract:` on that table stays `failed`. The health table requires the offline emulator, so a board fails the contract. That line is the contract. It is not a failed flash. Leave the Pi's network as it is.
+
 ## When something is wrong
 
 The notes already decide these. This list is the pointer.
