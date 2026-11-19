@@ -646,6 +646,17 @@ fn host_init_shell_and_secrets_are_refused() {
         voice_plan("galion-voiced"),
         Err(AdmitError::RelativeProgram { .. })
     ));
+
+    let mut empty = fixture("job", Restart::No, 1);
+    empty.argv.clear();
+    let Err(err) = admit(&empty) else {
+        panic!("empty argv was admitted");
+    };
+    assert_eq!(err, AdmitError::EmptyArgv { name: "job".into() });
+    let text = err.to_string();
+    assert_eq!(text, "service job has an empty argument list");
+    assert!(!text.to_ascii_lowercase().contains("unwrap"));
+    assert!(!text.to_ascii_lowercase().contains("panic"));
 }
 
 #[test]

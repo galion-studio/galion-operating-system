@@ -348,12 +348,11 @@ pub fn admit(service: &Service) -> Result<(), AdmitError> {
             name: service.name.clone(),
         });
     }
-    if service.argv.is_empty() {
+    let Some(program) = service.argv.first() else {
         return Err(AdmitError::EmptyArgv {
             name: service.name.clone(),
         });
-    }
-    let program = &service.argv[0];
+    };
     if !program.starts_with('/') {
         return Err(AdmitError::RelativeProgram {
             name: service.name.clone(),
