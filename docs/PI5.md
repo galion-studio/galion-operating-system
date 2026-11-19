@@ -44,6 +44,15 @@ The file is an artifact of [`.github/workflows/pi-seed.yml`](../.github/workflow
 
 `install.sh` is idempotent. A second run does the same work and exits 0.
 
+[`scripts/pi5/first-boot.sh`](../scripts/pi5/first-boot.sh) is the calm way to run that install on the machine. A second run is safe. Each step is one line in the report, and a failed line says what to do next. Save that report beside the board report:
+
+```sh
+sudo sh scripts/pi5/first-boot.sh /path/to/galion-os-pi5-seed-<sha> pi5-first-boot.txt
+sudo sh scripts/pi5/board-report.sh pi5-board.txt
+```
+
+The offline test of this script uses stubbed files and a stubbed `systemctl`. That test is not a Raspberry Pi 5 result. This script has not been run on a Pi 5.
+
 When that artifact contains `bin/galion-core`, the same script installs the greeting. The unit, the journal line, and a start that does not fail the install are in the [boot note](PI5-SEED-BOOT.md). The line was required in the emulator journal only.
 
 The target also starts the welcome page. What the page lists, and where it listens, is in the OS seed note. Open Mind, Research, and Voice stay off that page until their units exist. Voice is not in these seeds. The page is not a measurement of the board.
