@@ -27,6 +27,7 @@ fn fixture(name: &str, restart: Restart, restart_sec: u64) -> Service {
         after: Vec::new(),
         port: None,
         handoff: None,
+        calm: false,
     }
 }
 
@@ -182,6 +183,7 @@ fn desktop_services_match_the_packaging_handoff() {
     assert!(desktop.after.is_empty());
     assert_eq!(desktop.port, Some(DESKTOP_PORT));
     assert!(desktop.handoff.is_none());
+    assert!(desktop.calm);
     assert!(desktop.argv.iter().all(|arg| !arg.contains(':')));
 
     let research = plan.service("galion-research").unwrap();
@@ -193,6 +195,7 @@ fn desktop_services_match_the_packaging_handoff() {
     assert_eq!(research.user, "galion");
     assert_eq!(research.after, vec!["openmind-desktop"]);
     assert_eq!(research.port, Some(RESEARCH_PORT));
+    assert!(research.calm);
     assert_eq!(research.env, vec![("PORT".to_string(), "8787".to_string())]);
     let one = research.handoff.expect("research hands off to One");
     assert_eq!(one, one_target());
@@ -597,6 +600,55 @@ fn start_limit_pauses_for_300_seconds_then_allows_one_more() {
     supervisor.tick(&mut machine);
     assert!(supervisor.pid_of("boom").is_some());
     assert_ne!(supervisor.pid_of("boom"), Some(1));
+}
+
+#[test]
+fn a_calm_desktop_service_backs_off_and_says_so() {
+    let mut service = fixture("openmind-desktop", Restart::Always, 5);
+    service.calm = true;
+    let mut supervisor = Supervisor::try_new(vec![service]).unwrap();
+    let mut machine = Machine::new(0);
+    let mut previous = 0u64;
+    let mut saw_line = false;
+    for _ in 0..8 {
+        supervisor.tick(&mut machine);
+        let pid = supervisor.pid_of("openmind-desktop").unwrap();
+        assert!(machine.exited(pid, false));
+        let started = machine.now;
+        supervisor.tick(&mut machine);
+        let next = supervisor.next_start_of("openmind-desktop").unwrap();
+        let wait = next - started;
+        assert!(wait <= START_LIMIT_WINDOW_SEC);
+        if previous == 0 {
+            assert_eq!(wait, 5);
+            assert!(supervisor.status_line("openmind-desktop").is_none());
+        } else if wait < START_LIMIT_WINDOW_SEC {
+            assert_eq!(wait, previous * 2);
+            assert!(supervisor.status_line("openmind-desktop").is_none());
+        } else {
+            assert_eq!(wait, START_LIMIT_WINDOW_SEC);
+            let line = supervisor.status_line("openmind-desktop").unwrap();
+            assert_eq!(line.lines().count(), 1);
+            assert!(line.contains("openmind-desktop keeps failing"));
+            assert!(line.contains("seconds"));
+            assert!(!line.to_ascii_lowercase().contains("unwrap"));
+            assert!(!line.to_ascii_lowercase().contains("panic"));
+            saw_line = true;
+        }
+        previous = wait;
+        machine.now = next;
+    }
+    assert!(saw_line);
+
+    supervisor.tick(&mut machine);
+    let pid = supervisor.pid_of("openmind-desktop").unwrap();
+    assert!(machine.exited(pid, true));
+    supervisor.tick(&mut machine);
+    assert!(supervisor.status_line("openmind-desktop").is_none());
+    assert_eq!(
+        supervisor.next_start_of("openmind-desktop").unwrap() - machine.now,
+        5
+    );
 }
 
 #[test]

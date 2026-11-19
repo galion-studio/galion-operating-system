@@ -33,8 +33,8 @@ pub use handoff::{
     DESKTOP_PATH, DESKTOP_PORT, ONE_PATH, RESEARCH_PORT,
 };
 pub use supervise::{
-    admit, desktop_services, voice_service, AdmitError, Machine, Proc, Restart, Service,
-    Supervisor, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
+    admit, desktop_services, failing_status, voice_service, AdmitError, Machine, Proc, Restart,
+    Service, Supervisor, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
 pub use tone::{tone_hook, tone_samples, ToneHook, ToneInput, BOOT_TONE_HZ};
 pub use welcome::{answer, rows_from_snapshot, ServiceRow, UnitSnapshot, WELCOME_PORT};

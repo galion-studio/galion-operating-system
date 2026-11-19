@@ -6,6 +6,8 @@
 //! The restart rule and the start limit match `galion-boot`'s plain
 //! supervisor (10 starts in a 300 second window, then a 300 second pause;
 //! `always`, `on-failure`, or `no`; no shell; absolute program path).
+//! A desktop service with [`Service::calm`] waits longer after each failed
+//! exit. That wait never grows past the same window.
 //! This module does not fork, signal a process, call systemctl, or write
 //! a pid file. Every child is a row in [`Machine`].
 
@@ -56,6 +58,9 @@ pub struct Service {
     /// Where this service sends a person onward. The desktop research row
     /// points at One on the console.
     pub handoff: Option<Endpoint>,
+    /// After a failed exit, double the wait, and never wait longer than
+    /// [`START_LIMIT_WINDOW_SEC`]. A clean exit returns to `restart_sec`.
+    pub calm: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -160,6 +165,10 @@ struct Slot {
     starts: Vec<u64>,
     next_start: u64,
     done: bool,
+    /// Failed exits since the last clean exit. The first failure still waits
+    /// [`Service::restart_sec`].
+    failures: u32,
+    notice: Option<String>,
 }
 
 pub struct Supervisor {
@@ -181,6 +190,8 @@ impl Supervisor {
                     starts: Vec::new(),
                     next_start: 0,
                     done: false,
+                    failures: 0,
+                    notice: None,
                 })
                 .collect(),
             stopping: false,
@@ -207,6 +218,14 @@ impl Supervisor {
             .iter()
             .find(|slot| slot.svc.name == name)
             .and_then(|slot| slot.pid)
+    }
+
+    /// The sentence recorded when `name` keeps failing and is waiting.
+    pub fn status_line(&self, name: &str) -> Option<String> {
+        self.slots
+            .iter()
+            .find(|slot| slot.svc.name == name)
+            .and_then(|slot| slot.notice.clone())
     }
 
     pub fn next_start_of(&self, name: &str) -> Option<u64> {
@@ -282,17 +301,37 @@ impl Supervisor {
         }
         let ok = proc.code_ok.unwrap_or(false);
         let restart = self.slots[index].svc.restart;
-        let restart_sec = self.slots[index].svc.restart_sec;
+        let base = self.slots[index].svc.restart_sec;
+        let calm = self.slots[index].svc.calm;
+        let name = self.slots[index].svc.name.clone();
         self.slots[index].pid = None;
-        let delay = match (restart, ok) {
-            (Restart::Always, _) | (Restart::OnFailure, false) => Some(restart_sec),
-            (Restart::OnFailure, true) | (Restart::No, _) => None,
+        let should_restart = match (restart, ok) {
+            (Restart::Always, _) | (Restart::OnFailure, false) => true,
+            (Restart::OnFailure, true) | (Restart::No, _) => false,
         };
-        match delay {
-            Some(sec) => {
-                self.slots[index].next_start = machine.now.saturating_add(sec);
+        if !should_restart || ok {
+            if ok {
+                self.slots[index].failures = 0;
             }
-            None => self.slots[index].done = true,
+            self.slots[index].notice = None;
+            if should_restart {
+                self.slots[index].next_start = machine.now.saturating_add(base);
+            } else {
+                self.slots[index].done = true;
+                self.slots[index].failures = 0;
+            }
+            return;
+        }
+        let extra = self.slots[index].failures;
+        self.slots[index].failures = self.slots[index].failures.saturating_add(1);
+        let wait = if calm {
+            capped_backoff(base, extra)
+        } else {
+            base
+        };
+        self.slots[index].next_start = machine.now.saturating_add(wait);
+        if calm && extra > 0 && wait == START_LIMIT_WINDOW_SEC {
+            self.slots[index].notice = Some(failing_status(&name, wait));
         }
     }
 
@@ -316,11 +355,17 @@ impl Supervisor {
             .starts
             .retain(|started| now.saturating_sub(*started) <= START_LIMIT_WINDOW_SEC);
         if self.slots[index].starts.len() >= START_LIMIT_BURST {
-            self.slots[index].next_start = now.saturating_add(START_LIMIT_WINDOW_SEC);
+            let wait = START_LIMIT_WINDOW_SEC;
+            self.slots[index].next_start = now.saturating_add(wait);
+            if self.slots[index].svc.calm {
+                let name = self.slots[index].svc.name.clone();
+                self.slots[index].notice = Some(failing_status(&name, wait));
+            }
             return;
         }
         let name = self.slots[index].svc.name.clone();
         let pid = machine.alloc_pid();
+        self.slots[index].notice = None;
         self.slots[index].starts.push(now);
         self.slots[index].pid = Some(pid);
         machine.procs.push(Proc {
@@ -422,6 +467,7 @@ pub fn desktop_services() -> Vec<Service> {
             after: Vec::new(),
             port: Some(crate::handoff::DESKTOP_PORT),
             handoff: None,
+            calm: true,
         },
         Service {
             name: "galion-research".to_string(),
@@ -434,6 +480,7 @@ pub fn desktop_services() -> Vec<Service> {
             after: vec!["openmind-desktop".to_string()],
             port: Some(RESEARCH_PORT),
             handoff: Some(one_target()),
+            calm: true,
         },
     ]
 }
@@ -453,7 +500,30 @@ pub fn voice_service(program: &str) -> Service {
         after: Vec::new(),
         port: None,
         handoff: None,
+        calm: false,
     }
+}
+
+/// Wait after a failed exit. The first failure waits `base`. Each later
+/// failure doubles that wait, and the wait never passes
+/// [`START_LIMIT_WINDOW_SEC`].
+fn capped_backoff(base: u64, extra_failures: u32) -> u64 {
+    if base == 0 || base >= START_LIMIT_WINDOW_SEC {
+        return base.min(START_LIMIT_WINDOW_SEC);
+    }
+    let mut wait = base;
+    for _ in 0..extra_failures {
+        if wait >= START_LIMIT_WINDOW_SEC / 2 {
+            return START_LIMIT_WINDOW_SEC;
+        }
+        wait = wait.saturating_mul(2);
+    }
+    wait
+}
+
+/// One sentence for a service that keeps failing and is waiting.
+pub fn failing_status(name: &str, wait_sec: u64) -> String {
+    format!("{name} keeps failing. The next try waits {wait_sec} seconds.")
 }
 
 fn base_name(path: &str) -> &str {
