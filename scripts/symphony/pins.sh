@@ -1,5 +1,7 @@
 #!/bin/sh
+# shellcheck disable=SC2034
 # Commits the symphony job builds. Public git, no token.
+# The names below are read by the scripts that source this file.
 # hermes-research pull request 14 merge.
 # obsidian-open-mind pull request 100 merge.
 

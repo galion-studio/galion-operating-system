@@ -8,8 +8,10 @@
 # The health table's contract requires the emulator, so on a board that
 # line is failed. That is the contract. It is not a broken flash.
 #
-# GALION_PROC     proc tree (default /proc)
+# GALION_PROC     proc tree (default /proc). The unit check reads the same tree.
 # GALION_SYS      sysfs tree (default /sys)
+# GALION_VIRT     if set, including empty, used instead of systemd-detect-virt
+# GALION_ROOT     passed through to the unit check for container marks
 # SYSTEMCTL       systemctl binary (the unit check reads the same name)
 #
 # Exit 0 when the report is written and the unit check could be run.
@@ -126,7 +128,11 @@ environment_kind() {
       return
       ;;
   esac
-  virt=$(systemd-detect-virt 2>/dev/null || true)
+  if [ -n "${GALION_VIRT+x}" ]; then
+    virt=$GALION_VIRT
+  else
+    virt=$(systemd-detect-virt 2>/dev/null || true)
+  fi
   case "$virt" in
     qemu|kvm|docker|podman|container|systemd-nspawn|lxc|lxc-libvirt|wsl|bochs|uml|bhyve|qnx|acrn)
       printf '%s\n' emulator

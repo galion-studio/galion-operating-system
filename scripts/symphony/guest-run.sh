@@ -198,11 +198,11 @@ record_unit galion-research-pi5.service
 record_unit openmind-desktop.service
 
 {
-  printf '----- galion-research-pi5 -----\n'
+  printf '%s\n' '----- galion-research-pi5 -----'
   systemctl status --no-pager --full galion-research-pi5.service || true
-  printf '----- openmind-desktop -----\n'
+  printf '%s\n' '----- openmind-desktop -----'
   systemctl status --no-pager --full openmind-desktop.service || true
-  printf '----- probe-targets -----\n'
+  printf '%s\n' '----- probe-targets -----'
   cat "$LOG/probe-targets.log" 2>/dev/null || true
 } >"$LOG/pi5-symphony-status.txt" 2>&1 || true
 

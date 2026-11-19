@@ -17,6 +17,10 @@
 # GALION_NO_START       set to 1 to skip systemctl start
 # GALION_EXPECTATIONS   optional file of documented states
 # SYSTEMCTL             systemctl binary (tests set this)
+# GALION_PROC           proc tree for the device-tree model (default /proc)
+# GALION_VIRT           if set, including empty, used instead of systemd-detect-virt
+# GALION_ROOT           root for /.dockerenv and /run/.containerenv (default /)
+# Leave those three unset on a board. The offline test sets them.
 
 set -eu
 
@@ -129,9 +133,20 @@ done <"$tmp/expectations"
 
 sort -u "$units" >"$tmp/units.sorted"
 
+proc=${GALION_PROC:-/proc}
+rootfs=${GALION_ROOT:-/}
+
+detect_virt() {
+  if [ -n "${GALION_VIRT+x}" ]; then
+    printf '%s\n' "$GALION_VIRT"
+    return
+  fi
+  systemd-detect-virt 2>/dev/null || true
+}
+
 read_model() {
-  if [ -r /proc/device-tree/model ]; then
-    tr -d '\000\n' </proc/device-tree/model
+  if [ -r "$proc/device-tree/model" ]; then
+    tr -d '\000\n' <"$proc/device-tree/model"
   fi
 }
 
@@ -152,7 +167,7 @@ undash() {
 }
 
 environment_kind() {
-  if [ -f /.dockerenv ] || [ -f /run/.containerenv ]; then
+  if [ -f "$rootfs/.dockerenv" ] || [ -f "$rootfs/run/.containerenv" ]; then
     printf '%s\n' emulator
     return
   fi
@@ -163,7 +178,7 @@ environment_kind() {
       return
       ;;
   esac
-  virt=$(systemd-detect-virt 2>/dev/null || true)
+  virt=$(detect_virt)
   case "$virt" in
     qemu|kvm|docker|podman|container|systemd-nspawn|lxc|lxc-libvirt|wsl|bochs|uml|bhyve|qnx|acrn)
       printf '%s\n' emulator
@@ -176,7 +191,7 @@ environment_kind() {
 ENV_KIND=$(environment_kind)
 MODEL=$(read_model || true)
 [ -n "$MODEL" ] || MODEL='-'
-VIRT=$(systemd-detect-virt 2>/dev/null || true)
+VIRT=$(detect_virt)
 [ -n "$VIRT" ] || VIRT='-'
 MACHINE=$(uname -m 2>/dev/null || printf '%s' unknown)
 if [ "$ENV_KIND" = raspberry-pi ]; then
