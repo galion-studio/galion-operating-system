@@ -20,8 +20,10 @@ set -- \
   packaging/test-pi-seed.sh \
   packaging/test-welcome-page.sh \
   scripts/pi5/board-report.sh \
+  scripts/pi5/first-boot.sh \
   scripts/pi5/lint.sh \
   scripts/pi5/test-board-report.sh \
+  scripts/pi5/test-first-boot.sh \
   scripts/pi5-fixture-seed.sh \
   scripts/pi5-flash-check.sh \
   scripts/pi5-require-seed.sh \
