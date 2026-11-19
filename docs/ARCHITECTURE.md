@@ -79,6 +79,31 @@ The desktop default is `127.0.0.1:18181`. Another loopback address, including `:
 
 The symphony emulator also answers six probe URLs with static stand-ins on ports 8670, 8674, 18080, 8642, 8002, and 8646. Those stand-ins are not nerve, cortex, the console, Hermes, voice, or desk. The voice stand-in uses port 8002, which is also the `galion-one` mouth default above. The stand-in is not that process. The table and the contract are [docs/PI5-SYMPHONY.md](PI5-SYMPHONY.md).
 
+## Read this machine
+
+[`tools/galion-status`](../tools/galion-status) checks each port in the table, and the cortex stand-in on 8674, on `127.0.0.1`. It prints `up`, `down`, or `not installed`. It does not start a process. `--execute` exits 2.
+
+`up` means the port accepted a connection. Galion Research is `up` when `GET /health` includes `{"ok":true,"service":"galion-research","bind":"127.0.0.1"}`. Open Mind memory is `up` when `GET /health` answers 2xx. A redirect is left alone.
+
+A closed port is `down` when one of these files is present, and `not installed` when none of them is:
+
+| Row | File |
+|---|---|
+| `galion-welcome` | `/etc/systemd/system/galion-welcome.service`, `/opt/galion/bin/galion-welcome` |
+| `openmind-desktop` | `/etc/systemd/system/openmind-desktop.service`, `/opt/galion/openmind-desktop/openmind-desktop` |
+| Galion Research | `/etc/systemd/system/galion-research.service`, `/etc/systemd/system/galion-research-pi5.service`, `/opt/galion/research/current` |
+| `galion-one` and its mouth | `/etc/systemd/system/galion-one.service`, `/opt/galion/openmind/dist/bin/galion-one` ([docs/PACKAGING.md](PACKAGING.md)) |
+| `openmind-nerve` | `/etc/systemd/system/galion-nerve.service` |
+| Ollama | `/usr/bin/ollama`, `/usr/local/bin/ollama` |
+
+The other rows have no install file on this page. A closed port there is `not installed`.
+
+```sh
+cargo run --manifest-path tools/galion-status/Cargo.toml --locked --quiet
+```
+
+The reading is the machine the command runs on.
+
 ## How a turn moves
 
 The four programs do not discover each other. A person opens each loopback page, or sets an environment variable the note already names.

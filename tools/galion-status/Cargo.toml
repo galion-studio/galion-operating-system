@@ -1,0 +1,7 @@
+[package]
+name = "galion-status"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Loopback status for the ports in docs/ARCHITECTURE.md. Does not start them."
