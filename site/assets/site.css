@@ -290,10 +290,6 @@ main {
   text-transform: uppercase;
 }
 
-.kicker.amber {
-  color: var(--amber);
-}
-
 h1,
 h2,
 h3 {
@@ -307,12 +303,6 @@ h1 {
   margin: 0 0 20px;
   font-size: clamp(2.5rem, 5.4vw, 4.4rem);
   max-width: 14ch;
-}
-
-h1.slogan {
-  max-width: 18ch;
-  font-size: clamp(2.15rem, 4.4vw, 3.5rem);
-  line-height: 1.12;
 }
 
 h2 {
