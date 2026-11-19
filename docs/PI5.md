@@ -64,6 +64,8 @@ The order inside that script:
 2. Research is unpacked, checked with `sha256sum -c SHA256SUMS`, and installed as `galion-research-pi5.service`. The unit file is inside the research archive. A bad checksum is recorded, and the script continues to the desktop.
 3. The desktop binary is `openmind-desktop`. Obsidian Open Mind pull request 100 shipped that binary and no systemd unit. The unit this job installs is [`scripts/symphony/openmind-desktop.service`](../scripts/symphony/openmind-desktop.service).
 
+The menu entries and icons are copied with [`desktop/install.sh`](../desktop/install.sh).
+
 [`scripts/symphony/prepare-root.sh`](../scripts/symphony/prepare-root.sh) copies shared libraries onto the emulator disk only when that nocloud image does not already have them. It is a step for the virtual machine. It is not a step for Raspberry Pi OS, and it was not run against Raspberry Pi OS.
 
 After the install, the script prints the symphony health table and uses that table's exit code. The table's contract passes only for the offline arm64 Bookworm emulator. A Raspberry Pi fails the contract. That exit is the contract. It is not a report that the board is broken.
