@@ -22,7 +22,9 @@ set -- \
   scripts/pi5/board-report.sh \
   scripts/pi5/first-boot.sh \
   scripts/pi5/lint.sh \
+  scripts/pi5/pack-reports.sh \
   scripts/pi5/test-board-report.sh \
+  scripts/pi5/test-pack-reports.sh \
   scripts/pi5/test-first-boot.sh \
   scripts/pi5-fixture-seed.sh \
   scripts/pi5-flash-check.sh \
