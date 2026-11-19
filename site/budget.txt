@@ -1,0 +1,7 @@
+# Measured by Link check job 135918870866, run 44625716990, commit 9511aadee24970a6594251e1498bcf8bc372dec3.
+/ bytes=126314 requests=21
+/labs/ bytes=123507 requests=16
+/one/ bytes=125508 requests=15
+/operating-system/ bytes=126752 requests=15
+/research/ bytes=122012 requests=15
+/voice/ bytes=125718 requests=15
