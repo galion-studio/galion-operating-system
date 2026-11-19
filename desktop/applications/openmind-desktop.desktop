@@ -1,0 +1,17 @@
+# Local launch of the Obsidian desktop seed.
+# scripts/symphony/openmind-desktop.service starts
+# /opt/galion/openmind-desktop/openmind-desktop with --listen and
+# --stack off. This entry keeps those flags and does not write the
+# listen address. The icon is the Galion OS mark. The brand guide has
+# no separate Obsidian desktop icon.
+[Desktop Entry]
+Type=Application
+Name=Obsidian Open Mind
+GenericName=Obsidian desktop
+Comment=Local control console
+Exec=/opt/galion/openmind-desktop/openmind-desktop --listen --stack off
+TryExec=/opt/galion/openmind-desktop/openmind-desktop
+Icon=galion-os
+Terminal=false
+Categories=System;
+StartupNotify=false

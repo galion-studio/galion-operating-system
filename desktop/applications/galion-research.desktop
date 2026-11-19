@@ -1,0 +1,16 @@
+# Local launch of the Galion Research Pi 5 seed.
+# The seed unit runs this binary as user galion, in
+# /opt/galion/research/current, with PORT set. This entry does not
+# switch user and does not name a listen address.
+[Desktop Entry]
+Type=Application
+Name=Galion Research
+GenericName=Research desk
+Comment=Local research desk
+Exec=env PORT=8787 /opt/galion/research/current/galion-research
+Path=/opt/galion/research/current
+TryExec=/opt/galion/research/current/galion-research
+Icon=galion-research
+Terminal=false
+Categories=Science;
+StartupNotify=false
