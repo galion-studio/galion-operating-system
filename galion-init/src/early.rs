@@ -54,6 +54,21 @@ pub enum BootError {
     RefusedMount,
 }
 
+impl std::fmt::Display for BootError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            BootError::OutOfOrder => "a boot step ran before the step it follows",
+            BootError::HandoffNotReady => {
+                "the handoff needs the console and research to both be alive"
+            }
+            BootError::HandoffStillCurrent => "the handoff is still current, so it was not dropped",
+            BootError::RefusedMount => "a mount is outside the desktop table",
+        })
+    }
+}
+
+impl std::error::Error for BootError {}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EarlyBoot {
     stage: Stage,

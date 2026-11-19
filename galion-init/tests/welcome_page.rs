@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 // SPDX-FileCopyrightText: 2026 Galion Labs
 
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 //! The welcome binary on the loopback interface.
 //! This is not a Raspberry Pi 5 result.
 
@@ -76,9 +78,10 @@ fn welcome_binary_serves_the_loopback_page() {
     let mut child = ChildGuard(child);
     let deadline = Instant::now() + Duration::from_secs(5);
     loop {
-        if Instant::now() >= deadline {
-            panic!("welcome binary did not accept a connection");
-        }
+        assert!(
+            Instant::now() < deadline,
+            "welcome binary did not accept a connection"
+        );
         match child.0.try_wait() {
             Ok(Some(status)) => panic!("welcome binary exited {status}"),
             Ok(None) => {}
@@ -142,9 +145,10 @@ fn welcome_binary_links_research_and_the_desktop_when_up() {
     let mut child = ChildGuard(child);
     let deadline = Instant::now() + Duration::from_secs(5);
     loop {
-        if Instant::now() >= deadline {
-            panic!("welcome binary did not accept a connection");
-        }
+        assert!(
+            Instant::now() < deadline,
+            "welcome binary did not accept a connection"
+        );
         match child.0.try_wait() {
             Ok(Some(status)) => panic!("welcome binary exited {status}"),
             Ok(None) => {}

@@ -9,7 +9,7 @@
 #![forbid(unsafe_code)]
 
 use std::env;
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::net::{Ipv4Addr, Ipv6Addr, TcpListener, TcpStream};
 use std::process::{Command, Stdio};
 use std::thread;
@@ -22,12 +22,12 @@ fn main() {
         eprintln!("galion-welcome: refusing to run as PID 1.");
         std::process::exit(2);
     }
-    let port = match welcome_port() {
-        Some(port) => port,
-        None => {
-            eprintln!("galion-welcome: GALION_WELCOME_PORT is not a port");
-            std::process::exit(2);
-        }
+    let Some(port) = welcome_port() else {
+        let _ = writeln!(
+            io::stderr(),
+            "galion-welcome: GALION_WELCOME_PORT is not a port"
+        );
+        std::process::exit(2);
     };
     let v4 = match TcpListener::bind((Ipv4Addr::LOCALHOST, port)) {
         Ok(listener) => listener,
@@ -36,22 +36,13 @@ fn main() {
             std::process::exit(1);
         }
     };
-    if !v4
-        .local_addr()
-        .map(|addr| addr.ip().is_loopback())
-        .unwrap_or(false)
-    {
+    if !v4.local_addr().is_ok_and(|addr| addr.ip().is_loopback()) {
         eprintln!("galion-welcome: refusing a socket that is not loopback");
         std::process::exit(1);
     }
-    let bound = v4.local_addr().map(|addr| addr.port()).unwrap_or(port);
+    let bound = v4.local_addr().map_or(port, |addr| addr.port());
     match TcpListener::bind((Ipv6Addr::LOCALHOST, bound)) {
-        Ok(v6)
-            if v6
-                .local_addr()
-                .map(|addr| addr.ip().is_loopback())
-                .unwrap_or(false) =>
-        {
+        Ok(v6) if v6.local_addr().is_ok_and(|addr| addr.ip().is_loopback()) => {
             thread::spawn(move || accept_loop(v6));
         }
         _ => eprintln!("galion-welcome: IPv6 loopback is not available"),
@@ -61,13 +52,19 @@ fn main() {
 }
 
 fn welcome_port() -> Option<u16> {
-    match env::var("GALION_WELCOME_PORT") {
-        Err(_) => Some(WELCOME_PORT),
-        Ok(value) if value.is_empty() => None,
-        Ok(value) => value.parse().ok(),
+    let Ok(value) = env::var("GALION_WELCOME_PORT") else {
+        return Some(WELCOME_PORT);
+    };
+    if value.is_empty() {
+        None
+    } else {
+        value.parse().ok()
     }
 }
 
+/// Owns `listener` for the life of the process. `incoming` only borrows it,
+/// and the IPv6 thread needs that ownership to move.
+#[allow(clippy::needless_pass_by_value)]
 fn accept_loop(listener: TcpListener) {
     for conn in listener.incoming() {
         let Ok(mut stream) = conn else {
@@ -86,14 +83,13 @@ fn read_request(stream: &mut TcpStream) -> String {
     let mut filled = 0;
     while filled < buf.len() {
         match stream.read(&mut buf[filled..]) {
-            Ok(0) => break,
+            Ok(0) | Err(_) => break,
             Ok(n) => {
                 filled += n;
                 if buf[..filled].windows(4).any(|window| window == b"\r\n\r\n") {
                     break;
                 }
             }
-            Err(_) => break,
         }
     }
     String::from_utf8_lossy(&buf[..filled]).into_owned()

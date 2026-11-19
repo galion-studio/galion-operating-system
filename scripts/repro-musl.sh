@@ -1,7 +1,7 @@
 #!/bin/sh
 # Build the static musl binaries twice, from two directories, and require
-# the bytes to match. The recorded inputs are this rustc, the triple, and
-# galion-init/Cargo.lock.
+# the bytes to match. The recorded inputs are this rustc, the triple,
+# galion-init/Cargo.lock, and the welcome page stylesheet.
 set -eu
 
 root=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
@@ -20,7 +20,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-tar -C "$root" --exclude galion-init/target -cf "$work/src.tar" .cargo galion-init
+# welcome.rs embeds this file. The release build reads it from the copy.
+tar -C "$root" --exclude galion-init/target -cf "$work/src.tar" \
+  .cargo galion-init site/assets/tokens.css
 mkdir -p "$work/a" "$work/b"
 tar -C "$work/a" -xf "$work/src.tar"
 tar -C "$work/b" -xf "$work/src.tar"

@@ -146,7 +146,7 @@ fn check_rows(rows: &[ServiceRow]) {
 
 fn check_invocation(args: &[&str]) {
     let got = invocation(args.iter().copied());
-    if args.iter().any(|arg| *arg == "--execute") {
+    if args.contains(&"--execute") {
         match got {
             Invocation::Refuse(message) => assert!(message.contains("refusing --execute")),
             other => panic!("--execute was accepted: {other:?}"),
@@ -158,7 +158,7 @@ fn check_invocation(args: &[&str]) {
         .copied()
         .filter(|arg| matches!(*arg, "voice" | "desktop" | "walk"))
         .collect();
-    let silence = args.iter().any(|arg| *arg == "--silence");
+    let silence = args.contains(&"--silence");
     let unknown = args
         .iter()
         .any(|arg| !matches!(*arg, "--silence" | "voice" | "desktop" | "walk"));
@@ -275,9 +275,10 @@ fn systemd_text_only_names_galion_units() {
 
     let mut lines = String::new();
     for index in 0..40 {
-        lines.push_str(&format!(
-            "galion-extra{index}.service loaded active running extra\n"
-        ));
+        let _ = std::fmt::Write::write_fmt(
+            &mut lines,
+            format_args!("galion-extra{index}.service loaded active running extra\n"),
+        );
     }
     lines.push_str("not-galion.service loaded active running skip\n");
     lines.push_str("galion-<b>.service loaded active running nasty\n");

@@ -25,7 +25,7 @@ where
     I: IntoIterator<Item = &'a str>,
 {
     let args: Vec<&str> = args.into_iter().collect();
-    if args.iter().any(|arg| *arg == "--execute") {
+    if args.contains(&"--execute") {
         return Invocation::Refuse(REFUSE_EXECUTE);
     }
     let mut silence = false;

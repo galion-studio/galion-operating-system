@@ -85,6 +85,21 @@ pub enum BindError {
     NotDesktopPort,
 }
 
+impl std::fmt::Display for BindError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            BindError::NotLoopback => "the desktop bind is not a loopback host",
+            BindError::ProbePort => "port 18080 is the console probe, not the desktop",
+            BindError::UnusedStagingPort => {
+                "port 18081 is the unused staging port, not the desktop"
+            }
+            BindError::NotDesktopPort => "the desktop bind is not port 18181",
+        })
+    }
+}
+
+impl std::error::Error for BindError {}
+
 /// Accept only a loopback host class on the desktop port.
 pub fn check_desktop_bind(host: Host, port: u16) -> Result<(), BindError> {
     if !host.is_loopback() {

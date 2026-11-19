@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 // SPDX-FileCopyrightText: 2026 Galion Labs
 
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use std::process::Command;
 
 fn run(args: &[&str]) -> std::process::Output {

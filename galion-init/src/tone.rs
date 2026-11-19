@@ -25,8 +25,13 @@ pub enum ToneHook {
 }
 
 pub fn tone_hook(input: ToneInput) -> ToneHook {
-    let _playback_present = input.playback_present;
-    if input.silence {
+    // `playback_present` is part of the contract: a missing device is not fatal
+    // and still plays nothing. It does not select a different hook.
+    let ToneInput {
+        silence,
+        playback_present: _,
+    } = input;
+    if silence {
         ToneHook::Silenced
     } else {
         ToneHook::Planned { hz: BOOT_TONE_HZ }

@@ -7,6 +7,8 @@
 //! [`UnitSnapshot`] from the machine. This module does not bind, spawn, or
 //! talk to systemd itself.
 
+use std::fmt::Write;
+
 /// IPv4 loopback port for the welcome page. The systemd unit names this port.
 pub const WELCOME_PORT: u16 = 18711;
 
@@ -175,12 +177,14 @@ pub fn render_page(rows: &[ServiceRow]) -> String {
             Some(href) => format!("<a href=\"{}\">{}</a>", escape(href), escape(&row.name)),
             None => escape(&row.name),
         };
-        list.push_str(&format!(
+        let _ = write!(
+            list,
             "<li class=\"{tone}\"><span class=\"mark {tone}\" aria-hidden=\"true\"></span><div><h2>{name}</h2><p>{role}</p></div><p class=\"state\">{state}</p></li>",
             tone = row.tone,
+            name = name,
             role = escape(&row.role),
             state = escape(row.state),
-        ));
+        );
     }
     document(
         "Each Galion service on this machine, and whether it is up.",
@@ -438,7 +442,7 @@ fn escape(text: &str) -> String {
     out
 }
 
-const PAGE_CSS: &str = r#"
+const PAGE_CSS: &str = r"
 * { box-sizing: border-box; }
 html { scroll-padding-top: var(--om-space-6); }
 body {
@@ -552,9 +556,10 @@ a { color: var(--om-accent); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .presence { transform: none; }
 }
-"#;
+";
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
 

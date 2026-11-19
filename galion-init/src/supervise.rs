@@ -71,6 +71,35 @@ pub enum AdmitError {
     RelativeWorkdir { name: String },
 }
 
+impl std::fmt::Display for AdmitError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AdmitError::EmptyArgv { name } => {
+                write!(f, "service {name} has an empty argument list")
+            }
+            AdmitError::RelativeProgram { name } => {
+                write!(f, "service {name} program is not an absolute path")
+            }
+            AdmitError::HostInit { name } => write!(f, "service {name} names the host init"),
+            AdmitError::Shell { name } => write!(f, "service {name} program is a shell"),
+            AdmitError::BadName { name } => write!(
+                f,
+                "service name {name} is empty or uses a character other than letters, digits, '-', '_', or '.'"
+            ),
+            AdmitError::EmptyUser { name } => write!(f, "service {name} has an empty user"),
+            AdmitError::SecretOnArgv { name } => {
+                write!(f, "service {name} carries a secret marker")
+            }
+            AdmitError::DotDot { name } => write!(f, "service {name} path contains .."),
+            AdmitError::RelativeWorkdir { name } => {
+                write!(f, "service {name} workdir is not absolute")
+            }
+        }
+    }
+}
+
+impl std::error::Error for AdmitError {}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Proc {
     pub pid: u32,
@@ -234,9 +263,10 @@ impl Supervisor {
         }) else {
             return;
         };
-        let pid = self.slots[index].pid.expect("live child");
+        let Some(pid) = self.slots[index].pid.take() else {
+            return;
+        };
         machine.exited(pid, true);
-        self.slots[index].pid = None;
         self.slots[index].done = true;
     }
 
@@ -255,8 +285,7 @@ impl Supervisor {
         let restart_sec = self.slots[index].svc.restart_sec;
         self.slots[index].pid = None;
         let delay = match (restart, ok) {
-            (Restart::Always, _) => Some(restart_sec),
-            (Restart::OnFailure, false) => Some(restart_sec),
+            (Restart::Always, _) | (Restart::OnFailure, false) => Some(restart_sec),
             (Restart::OnFailure, true) | (Restart::No, _) => None,
         };
         match delay {
