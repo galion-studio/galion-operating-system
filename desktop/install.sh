@@ -5,7 +5,8 @@
 # Copyright © 2026 Galion Labs. All rights reserved.
 # The licence text is LICENSE. This script does not restate it.
 #
-# Copy or remove the freedesktop entries and icons in this directory.
+# Copy or remove the freedesktop entries, the icon set, and the
+# opt-in GTK session defaults in this directory.
 # It does not start the programs and it does not open a socket.
 #
 #   sh desktop/install.sh --user
@@ -14,10 +15,12 @@
 #   sh desktop/install.sh --user --uninstall
 #   sh desktop/install.sh --system --uninstall --dry-run
 #
-# --user writes under XDG_DATA_HOME, or $HOME/.local/share when that
-# variable is unset. --system writes under /usr/local/share. Raspberry
-# Pi OS Bookworm and Ubuntu both search those two places. --dry-run
-# prints the paths and writes nothing.
+# --user writes entries and icons under XDG_DATA_HOME, or
+# $HOME/.local/share when that variable is unset, and GTK files under
+# XDG_CONFIG_HOME, or $HOME/.config. --system writes entries and icons
+# under /usr/local/share and GTK files under /etc/xdg. Raspberry Pi OS
+# Bookworm and Ubuntu already search those places. --dry-run prints
+# the paths and writes nothing.
 
 set -eu
 
@@ -72,8 +75,17 @@ if [ "$scope" = user ]; then
     printf 'error: HOME is unset, so the user scope has no directory.\n' >&2
     exit 1
   fi
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    config=$XDG_CONFIG_HOME
+  elif [ -n "${HOME:-}" ]; then
+    config=$HOME/.config
+  else
+    printf 'error: HOME is unset, so the user scope has no directory.\n' >&2
+    exit 1
+  fi
 else
   data=/usr/local/share
+  config=/etc/xdg
 fi
 
 apps=$data/applications
@@ -116,6 +128,19 @@ remove_file() {
   printf 'remove %s\n' "$dest"
 }
 
+session_file() {
+  major=$1
+  name=$2
+  src=$ROOT/desktop/gtk/$name
+  dest=$config/gtk-$major/$name
+  if [ "$action" = install ]; then
+    require_file "$src"
+    place "$src" "$dest"
+  else
+    remove_file "$dest"
+  fi
+}
+
 if [ "$action" = install ]; then
   for name in galion-research.desktop openmind-desktop.desktop galion-voice.desktop; do
     src=$ROOT/desktop/applications/$name
@@ -135,6 +160,11 @@ else
     remove_file "$icons/$name.svg"
   done
 fi
+
+for major in 3.0 4.0; do
+  session_file "$major" settings.ini
+  session_file "$major" gtk.css
+done
 
 if [ "$dry" -eq 1 ]; then
   written=no

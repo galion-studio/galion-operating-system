@@ -25,7 +25,9 @@ sh desktop/validate.sh
 
 The command runs `desktop-file-validate` from `desktop-file-utils` and checks that the icon files are the brand marks above. It exits 2 if it is given an argument. It does not install the entries.
 
-[install.sh](install.sh) copies those entries and icons, or removes the same six files with `--uninstall`. `--user` writes under `XDG_DATA_HOME`, or `$HOME/.local/share` when that variable is unset. `--system` writes under `/usr/local/share`. Raspberry Pi OS Bookworm and Ubuntu already search both places. `--dry-run` prints the paths and writes nothing. The script does not start the apps.
+[install.sh](install.sh) copies those entries, the icon set, and the opt-in GTK session defaults, or removes them with `--uninstall`. `--user` writes entries and icons under `XDG_DATA_HOME`, or `$HOME/.local/share` when that variable is unset, and GTK files under `XDG_CONFIG_HOME`, or `$HOME/.config`. `--system` writes entries and icons under `/usr/local/share` and GTK files under `/etc/xdg`. Raspberry Pi OS Bookworm and Ubuntu already search those places. `--dry-run` prints the paths and writes nothing. The script does not start the apps.
+
+The session defaults are [gtk/settings.ini](gtk/settings.ini) and [gtk/gtk.css](gtk/gtk.css), copied for GTK 3 and GTK 4. Dark is the token default. Light follows `prefers-color-scheme`. The font name is IBM Plex Sans at the 16px body size. The bundled faces are WOFF2 web subsets, so they are not copied into a font directory. The 3.2s ease is the breath on the landing pages, and `prefers-reduced-motion` removes animation and transition. `gtk-application-prefer-dark-theme` and `gtk-enable-animations` are left unset so the desktop's own dark, light, and reduced-motion choices stay in charge.
 
 ```sh
 sh desktop/install.sh --user

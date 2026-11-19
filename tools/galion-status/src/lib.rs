@@ -258,6 +258,27 @@ pub fn render(lines: &[Line]) -> String {
     out
 }
 
+/// One JSON array. `name`, `port`, and `state` are the fields other scripts read.
+pub fn render_json(lines: &[Line]) -> String {
+    let mut out = String::from("[\n");
+    for (i, line) in lines.iter().enumerate() {
+        if i > 0 {
+            out.push_str(",\n");
+        }
+        out.push_str(&format!(
+            "  {{\"name\":\"{}\",\"port\":{},\"state\":\"{}\"}}",
+            line.name,
+            line.port,
+            line.verdict.as_str()
+        ));
+    }
+    if !lines.is_empty() {
+        out.push('\n');
+    }
+    out.push_str("]\n");
+    out
+}
+
 fn http_matches(
     stream: &mut TcpStream,
     path: &str,
@@ -457,5 +478,29 @@ mod tests {
         let lines = check(&[row], Path::new("/no/such/galion-status-root"), timeout());
         assert_eq!(lines[0].verdict, Verdict::Up);
         assert!(render(&lines).contains("up"));
+    }
+
+    #[test]
+    fn json_names_and_ports_follow_the_service_table() {
+        let lines: Vec<Line> = services()
+            .iter()
+            .map(|row| Line {
+                name: row.name,
+                port: row.port,
+                verdict: Verdict::NotInstalled,
+            })
+            .collect();
+        let json = render_json(&lines);
+        assert!(json.starts_with("[\n"));
+        assert!(json.ends_with("]\n"));
+        for row in services() {
+            let entry = format!(
+                "{{\"name\":\"{}\",\"port\":{},\"state\":\"not installed\"}}",
+                row.name, row.port
+            );
+            assert!(json.contains(&entry), "{json}");
+        }
+        assert!(!json.contains("18081"));
+        assert!(!json.contains("Galion local status"));
     }
 }
