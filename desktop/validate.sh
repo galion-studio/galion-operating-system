@@ -72,6 +72,8 @@ expect_files "desktop file" "$(printf '%s\n' \
   icons/hicolor/scalable/apps/galion-os.svg \
   icons/hicolor/scalable/apps/galion-research.svg \
   icons/hicolor/scalable/apps/galion-voice.svg \
+  install.sh \
+  test-install.sh \
   validate.sh)" "$files"
 
 # Scan the entries and the note. Skip this script: its patterns are the

@@ -19,7 +19,13 @@ jobs:
       - name: Install desktop-file-utils
         run: |
           sudo apt-get update
-          sudo apt-get install -y desktop-file-utils
+          sudo apt-get install -y desktop-file-utils shellcheck
 
       - name: Validate desktop entries
         run: sh desktop/validate.sh
+
+      - name: Shellcheck the install script
+        run: shellcheck --severity=warning -s sh desktop/install.sh desktop/test-install.sh
+
+      - name: Install into a temporary XDG home
+        run: sh desktop/test-install.sh
