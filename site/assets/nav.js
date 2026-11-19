@@ -51,6 +51,15 @@
       closeMenu(false);
     });
 
+    var header = document.querySelector(".site-header");
+    if (header) {
+      header.addEventListener("focusout", function (event) {
+        var next = event.relatedTarget;
+        if (!next || header.contains(next)) return;
+        closeMenu(false);
+      });
+    }
+
     window.addEventListener("pagehide", function () {
       toggle.checked = false;
     });

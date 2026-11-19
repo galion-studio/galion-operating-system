@@ -44,6 +44,15 @@ The file is an artifact of [`.github/workflows/pi-seed.yml`](../.github/workflow
 
 `install.sh` is idempotent. A second run does the same work and exits 0.
 
+[`scripts/pi5/first-boot.sh`](../scripts/pi5/first-boot.sh) is the calm way to run that install on the machine. A second run is safe. Each step is one line in the report, and a failed line says what to do next. Save that report beside the board report:
+
+```sh
+sudo sh scripts/pi5/first-boot.sh /path/to/galion-os-pi5-seed-<sha> pi5-first-boot.txt
+sudo sh scripts/pi5/board-report.sh pi5-board.txt
+```
+
+The offline test of this script uses stubbed files and a stubbed `systemctl`. That test is not a Raspberry Pi 5 result. This script has not been run on a Pi 5.
+
 When that artifact contains `bin/galion-core`, the same script installs the greeting. The unit, the journal line, and a start that does not fail the install are in the [boot note](PI5-SEED-BOOT.md). The line was required in the emulator journal only.
 
 The target also starts the welcome page. What the page lists, and where it listens, is in the OS seed note. Open Mind, Research, and Voice stay off that page until their units exist. Voice is not in these seeds. The page is not a measurement of the board.
@@ -63,6 +72,8 @@ The order inside that script:
 1. The user `galion` is already there, because the OS seed's `install.sh` creates it. If the user is missing, the script writes `symphony: user galion is missing` and does not start the other two units.
 2. Research is unpacked, checked with `sha256sum -c SHA256SUMS`, and installed as `galion-research-pi5.service`. The unit file is inside the research archive. A bad checksum is recorded, and the script continues to the desktop.
 3. The desktop binary is `openmind-desktop`. Obsidian Open Mind pull request 100 shipped that binary and no systemd unit. The unit this job installs is [`scripts/symphony/openmind-desktop.service`](../scripts/symphony/openmind-desktop.service).
+
+The menu entries and icons are copied with [`desktop/install.sh`](../desktop/install.sh).
 
 [`scripts/symphony/prepare-root.sh`](../scripts/symphony/prepare-root.sh) copies shared libraries onto the emulator disk only when that nocloud image does not already have them. It is a step for the virtual machine. It is not a step for Raspberry Pi OS, and it was not run against Raspberry Pi OS.
 

@@ -1,0 +1,36 @@
+name: Local status
+
+on:
+  pull_request:
+    paths:
+      - "tools/galion-status/**"
+      - ".github/workflows/galion-status.yml"
+      - "docs/ARCHITECTURE.md"
+  push:
+    branches: [main]
+    paths:
+      - "tools/galion-status/**"
+      - ".github/workflows/galion-status.yml"
+      - "docs/ARCHITECTURE.md"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: galion-status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Test
+        run: cargo test --manifest-path tools/galion-status/Cargo.toml --locked
+
+      - name: Clippy
+        run: cargo clippy --manifest-path tools/galion-status/Cargo.toml --locked --all-targets -- -D warnings

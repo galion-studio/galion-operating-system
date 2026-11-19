@@ -25,4 +25,14 @@ sh desktop/validate.sh
 
 The command runs `desktop-file-validate` from `desktop-file-utils` and checks that the icon files are the brand marks above. It exits 2 if it is given an argument. It does not install the entries.
 
+[install.sh](install.sh) copies those entries and icons, or removes the same six files with `--uninstall`. `--user` writes under `XDG_DATA_HOME`, or `$HOME/.local/share` when that variable is unset. `--system` writes under `/usr/local/share`. Raspberry Pi OS Bookworm and Ubuntu already search both places. `--dry-run` prints the paths and writes nothing. The script does not start the apps.
+
+```sh
+sh desktop/install.sh --user
+sh desktop/install.sh --system --dry-run
+sh desktop/install.sh --user --uninstall
+```
+
+[test-install.sh](test-install.sh) runs that script in a temporary XDG home. A green run is not a Raspberry Pi 5 result.
+
 The workflow is [.github/workflows/desktop-entries.yml](../.github/workflows/desktop-entries.yml). Permissions are `contents: read`. It does not upload an artifact and it does not publish a release.
