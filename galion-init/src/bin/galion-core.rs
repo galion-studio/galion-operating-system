@@ -17,28 +17,74 @@ fn greeting() -> &'static str {
     "Galion OS. I'm here.\n"
 }
 
+/// One sentence the boot greeting can print when a step is refused.
+/// A line break in `reason` becomes a space, so the journal keeps one record.
+fn refusal(reason: &str) -> String {
+    let flat = reason.replace(['\n', '\r'], " ");
+    let flat = flat.trim();
+    if flat.is_empty() {
+        return "Galion OS. This step did not finish.\n".to_string();
+    }
+    format!("Galion OS. {flat}\n")
+}
+
 fn main() {
     use std::io::Write;
     let mut stdout = std::io::stdout().lock();
     if stdout.write_all(greeting().as_bytes()).is_err() {
-        let _ = std::io::stderr().write_all(b"galion-core: could not write the greeting\n");
+        let line = refusal("The greeting could not be written.");
+        let _ = std::io::stderr().write_all(line.as_bytes());
         std::process::exit(1);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::greeting;
+    use super::{greeting, refusal};
+    use galion_init::{AdmitError, BootError};
+
+    fn plain_record(line: &str) {
+        assert_eq!(line.lines().count(), 1, "{line}");
+        assert!(line.starts_with("Galion OS. "), "{line}");
+        assert!(line.ends_with('\n'), "{line}");
+        let lower = line.to_ascii_lowercase();
+        assert!(!lower.contains("unwrap"), "{line}");
+        assert!(!lower.contains("panic"), "{line}");
+        assert!(!line.contains("http"), "{line}");
+        assert!(!line.contains("://"), "{line}");
+        assert!(!line.contains('@'), "{line}");
+    }
 
     #[test]
     fn one_calm_line() {
         let line = greeting();
         assert_eq!(line, "Galion OS. I'm here.\n");
-        assert_eq!(line.lines().count(), 1);
-        assert!(line.starts_with("Galion OS. "));
+        plain_record(line);
         assert!(line.contains("I'm here."));
-        assert!(!line.contains("http"));
-        assert!(!line.contains("://"));
-        assert!(!line.contains('@'));
+    }
+
+    #[test]
+    fn a_boot_or_service_refusal_is_one_plain_sentence() {
+        let boot = refusal(&BootError::OutOfOrder.to_string());
+        plain_record(&boot);
+        assert!(boot.contains("before the step"));
+
+        let service = refusal(
+            &AdmitError::EmptyArgv {
+                name: "openmind-desktop".into(),
+            }
+            .to_string(),
+        );
+        plain_record(&service);
+        assert!(service.contains("empty argument list"));
+        assert!(service.contains("openmind-desktop"));
+
+        let broken = refusal("the clock\nstep did not run");
+        plain_record(&broken);
+        assert_eq!(broken, "Galion OS. the clock step did not run\n");
+
+        let empty = refusal(" \n\r ");
+        plain_record(&empty);
+        assert_eq!(empty, "Galion OS. This step did not finish.\n");
     }
 }

@@ -26,7 +26,7 @@ pub use boot::{
     desktop_plan, handoff_ready, voice_plan, walk_desktop, walk_down, DesktopWalk, DownWalk, Phase,
     Plan, Profile, WalkError,
 };
-pub use cli::{invocation, Invocation};
+pub use cli::{decode_args, invocation, Invocation, ARGUMENT_NOT_TEXT};
 pub use early::{BootError, EarlyBoot, MountSpec, DESKTOP_MOUNTS};
 pub use handoff::{
     check_desktop_bind, describe, desktop_handoff, one_target, BindError, Endpoint, Host,

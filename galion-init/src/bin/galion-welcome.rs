@@ -19,36 +19,56 @@ use galion_init::{answer, rows_from_snapshot, running_as_host_init, UnitSnapshot
 
 fn main() {
     if running_as_host_init() {
-        eprintln!("galion-welcome: refusing to run as PID 1.");
+        note(PID1_REFUSAL);
         std::process::exit(2);
     }
     let Some(port) = welcome_port() else {
-        let _ = writeln!(
-            io::stderr(),
-            "galion-welcome: GALION_WELCOME_PORT is not a port"
-        );
+        note(PORT_REFUSAL);
         std::process::exit(2);
     };
     let v4 = match TcpListener::bind((Ipv4Addr::LOCALHOST, port)) {
         Ok(listener) => listener,
         Err(err) => {
-            eprintln!("galion-welcome: the IPv4 loopback port is not available ({err})");
+            note(&ipv4_refusal(&err));
             std::process::exit(1);
         }
     };
     if !v4.local_addr().is_ok_and(|addr| addr.ip().is_loopback()) {
-        eprintln!("galion-welcome: refusing a socket that is not loopback");
+        note(NOT_LOOPBACK);
         std::process::exit(1);
     }
     let bound = v4.local_addr().map_or(port, |addr| addr.port());
     match TcpListener::bind((Ipv6Addr::LOCALHOST, bound)) {
         Ok(v6) if v6.local_addr().is_ok_and(|addr| addr.ip().is_loopback()) => {
-            thread::spawn(move || accept_loop(v6));
+            if thread::Builder::new()
+                .spawn(move || accept_loop(v6))
+                .is_err()
+            {
+                note(IPV6_UNAVAILABLE);
+            }
         }
-        _ => eprintln!("galion-welcome: IPv6 loopback is not available"),
+        _ => note(IPV6_UNAVAILABLE),
     }
-    eprintln!("galion-welcome: listening on the loopback interface, port {bound}");
+    note(&listen_line(bound));
     accept_loop(v4);
+}
+
+const PID1_REFUSAL: &str = "galion-welcome: refusing to run as PID 1.";
+const PORT_REFUSAL: &str = "galion-welcome: GALION_WELCOME_PORT is not a port";
+const NOT_LOOPBACK: &str = "galion-welcome: refusing a socket that is not loopback";
+const IPV6_UNAVAILABLE: &str = "galion-welcome: IPv6 loopback is not available";
+
+fn ipv4_refusal(err: &std::io::Error) -> String {
+    format!("galion-welcome: the IPv4 loopback port is not available ({err})")
+}
+
+fn listen_line(port: u16) -> String {
+    format!("galion-welcome: listening on the loopback interface, port {port}")
+}
+
+/// Write one line. A closed stderr is reported as a failed write and does not panic.
+fn note(line: &str) {
+    let _ = writeln!(io::stderr(), "{line}");
 }
 
 fn welcome_port() -> Option<u16> {
@@ -148,11 +168,18 @@ fn capture(program: &str, args: &[&str]) -> Option<String> {
         .ok()?;
     let mut stdout = child.stdout.take()?;
     let (tx, rx) = std::sync::mpsc::channel();
-    thread::spawn(move || {
-        let mut text = String::new();
-        let _ = stdout.read_to_string(&mut text);
-        let _ = tx.send(text);
-    });
+    if thread::Builder::new()
+        .spawn(move || {
+            let mut text = String::new();
+            let _ = stdout.read_to_string(&mut text);
+            let _ = tx.send(text);
+        })
+        .is_err()
+    {
+        let _ = child.kill();
+        let _ = child.wait();
+        return None;
+    }
     let deadline = Instant::now() + Duration::from_secs(2);
     loop {
         match child.try_wait() {
@@ -171,5 +198,44 @@ fn capture(program: &str, args: &[&str]) -> Option<String> {
             Ok(None) => thread::sleep(Duration::from_millis(20)),
             Err(_) => return None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        ipv4_refusal, listen_line, IPV6_UNAVAILABLE, NOT_LOOPBACK, PID1_REFUSAL, PORT_REFUSAL,
+    };
+
+    fn plain(line: &str) {
+        assert_eq!(line.lines().count(), 1, "{line}");
+        assert!(line.starts_with("galion-welcome: "), "{line}");
+        let lower = line.to_ascii_lowercase();
+        assert!(!lower.contains("unwrap"), "{line}");
+        assert!(!lower.contains("panic"), "{line}");
+    }
+
+    #[test]
+    fn refusals_are_one_plain_sentence() {
+        plain(PID1_REFUSAL);
+        plain(PORT_REFUSAL);
+        plain(NOT_LOOPBACK);
+        plain(IPV6_UNAVAILABLE);
+        assert!(PID1_REFUSAL.contains("PID 1"));
+        assert!(PORT_REFUSAL.contains("not a port"));
+        assert!(NOT_LOOPBACK.contains("not loopback"));
+        assert!(IPV6_UNAVAILABLE.contains("not available"));
+
+        let busy = ipv4_refusal(&std::io::Error::new(
+            std::io::ErrorKind::AddrInUse,
+            "the port is in use",
+        ));
+        plain(&busy);
+        assert!(busy.contains("the port is in use"));
+
+        let listening = listen_line(18711);
+        plain(&listening);
+        assert!(listening.contains("18711"));
+        assert!(listening.contains("loopback"));
     }
 }

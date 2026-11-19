@@ -13,7 +13,9 @@
 
 use std::io::{self, Write};
 
-use galion_init::{desktop_plan, invocation, voice_plan, walk_down, Invocation, Machine, Plan};
+use galion_init::{
+    decode_args, desktop_plan, invocation, voice_plan, walk_down, Invocation, Machine, Plan,
+};
 
 /// Absolute path used only so the voice row can be admitted. The binary is
 /// not in this repository, and the rendered line says it is absent.
@@ -23,7 +25,10 @@ fn main() {
     if galion_init::running_as_host_init() {
         refuse("refusing to run as PID 1. This prototype does not replace the host init.");
     }
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    let args = match decode_args(std::env::args_os().skip(1)) {
+        Ok(args) => args,
+        Err(reason) => refuse(reason),
+    };
     let refs: Vec<&str> = args.iter().map(String::as_str).collect();
     match invocation(refs) {
         Invocation::Refuse(message) => refuse_line(message),
