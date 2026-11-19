@@ -1,11 +1,13 @@
 #!/bin/sh
 # Host-side checks for the board report. No Pi, no QEMU, no seed build.
-# A pass here is not a Raspberry Pi 5 result.
+# Hardware reads come from stubbed files. A pass here is not a Raspberry Pi 5 result.
 
 set -eu
 
 ROOT=$(CDPATH='' cd -- "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
+
+printf '%s\n' 'offline dry-run: stubbed hardware reads. This is not a Raspberry Pi 5 result.'
 
 fail() {
   printf 'not ok %s\n' "$1" >&2
@@ -92,6 +94,17 @@ plant_disk() {
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
+rootfs=$tmp/rootfs
+mkdir -p "$rootfs"
+
+run_report() {
+  proc_dir=$1
+  sys_dir=$2
+  shift 2
+  GALION_PROC=$proc_dir GALION_SYS=$sys_dir GALION_VIRT='' GALION_ROOT=$rootfs \
+    SYSTEMCTL=$fix/systemctl \
+    sh scripts/pi5/board-report.sh "$@"
+}
 
 fix=$tmp/active
 mkdir -p "$fix"
@@ -115,9 +128,8 @@ printf '%s\n' 'Iface Destination Gateway Flags' >"$proc/net/route"
 plant_disk "$sys" sda usb 2048
 
 out=$tmp/usb.out
-if GALION_PROC=$proc GALION_SYS=$sys SYSTEMCTL=$fix/systemctl \
-  sh scripts/pi5/board-report.sh >"$out"; then
-  grep -q '^model: Fixture Board$' "$out" || fail 'model'
+if run_report "$proc" "$sys" >"$out"; then
+  [ "$(grep -c '^model: Fixture Board$' "$out")" -eq 2 ] || fail 'model count'
   grep -q '^root: /dev/sda2$' "$out" || fail 'root'
   grep -q '^root-cmdline: /dev/sda2$' "$out" || fail 'cmdline'
   grep -q '^boot-medium: usb$' "$out" || fail 'usb medium'
@@ -126,15 +138,45 @@ if GALION_PROC=$proc GALION_SYS=$sys SYSTEMCTL=$fix/systemctl \
   grep -q '^start galion-os.target: ok$' "$out" || fail 'target start'
   grep -q '^start galion-research-pi5.service: not-installed$' "$out" || fail 'research missing'
   grep -q '^start openmind-desktop.service: not-installed$' "$out" || fail 'desktop missing'
+  grep -q '^GALION UNIT CHECK$' "$out" || fail 'unit title'
   grep -q 'unit check (scripts/pi5-flash-check.sh)' "$out" || fail 'unit heading'
+  grep -q '^summary: 2 PASS, 0 FAIL$' "$out" || fail 'unit summary'
+  [ "$(grep -c '^environment: other$' "$out")" -eq 2 ] || fail 'fixture environment'
+  [ "$(grep -c '^hardware-claim: none$' "$out")" -eq 2 ] || fail 'fixture claim'
   grep -q 'loopback check (scripts/symphony/health-table.sh)' "$out" || fail 'loopback heading'
   grep -q 'not a Raspberry Pi 5 result' "$out" || fail 'honesty'
+  grep -q 'This table is not a Raspberry Pi 5 result.' "$out" || fail 'health note'
   grep -q 'contract: failed' "$out" || fail 'contract stays failed off the emulator'
   grep -q 'not a failed flash' "$out" || fail 'contract note'
   ok 'usb report'
 else
   cat "$out" >&2
   fail 'usb report'
+fi
+
+proc=$tmp/pi-proc
+sys=$tmp/pi-sys
+mkdir -p "$proc/device-tree" "$proc/net"
+printf 'Raspberry Pi fixture\0' >"$proc/device-tree/model"
+printf '%s\n' 'root=/dev/sda2 rootwait' >"$proc/cmdline"
+printf '%s\n' '/dev/sda2 / ext4 rw 0 0' >"$proc/mounts"
+printf '%s\n' 'Iface Destination Gateway Flags' >"$proc/net/route"
+plant_disk "$sys" sda usb 2048
+out=$tmp/pi.out
+if run_report "$proc" "$sys" >"$out"; then
+  [ "$(grep -c '^model: Raspberry Pi fixture$' "$out")" -eq 2 ] || fail 'stub pi model'
+  [ "$(grep -c '^environment: raspberry-pi$' "$out")" -eq 2 ] || fail 'stub pi environment'
+  [ "$(grep -c '^hardware-claim: device-tree$' "$out")" -eq 2 ] || fail 'stub pi claim'
+  grep -q '^boot-medium: usb$' "$out" || fail 'stub pi medium'
+  grep -q '^block: sda$' "$out" || fail 'stub pi block'
+  grep -q '^block-sectors: 2048$' "$out" || fail 'stub pi sectors'
+  grep -q 'not a Raspberry Pi 5 result' "$out" || fail 'stub pi honesty'
+  grep -q 'This table is not a Raspberry Pi 5 result.' "$out" || fail 'stub pi table note'
+  grep -q '^contract: failed$' "$out" || fail 'stub pi contract'
+  ok 'stubbed raspberry pi model (not a Raspberry Pi 5 result)'
+else
+  cat "$out" >&2
+  fail 'stubbed raspberry pi model'
 fi
 
 proc=$tmp/mmc-proc
@@ -145,8 +187,7 @@ printf '%s\n' 'root=/dev/mmcblk0p2' >"$proc/cmdline"
 printf '%s\n' '/dev/mmcblk0p2 / ext4 rw 0 0' >"$proc/mounts"
 plant_disk "$sys" mmcblk0 mmc 4096
 out=$tmp/mmc.out
-GALION_PROC=$proc GALION_SYS=$sys SYSTEMCTL=$fix/systemctl \
-  sh scripts/pi5/board-report.sh >"$out"
+run_report "$proc" "$sys" >"$out"
 grep -q '^boot-medium: mmc$' "$out" || fail 'mmc medium'
 grep -q '^block: mmcblk0$' "$out" || fail 'mmc block'
 grep -q '^block-sectors: 4096$' "$out" || fail 'mmc sectors'
@@ -160,15 +201,15 @@ printf '%s\n' 'root=/dev/nvme0n1p2' >"$proc/cmdline"
 printf '%s\n' '/dev/nvme0n1p2 / ext4 rw 0 0' >"$proc/mounts"
 plant_disk "$sys" nvme0n1 nvme 8192
 out=$tmp/nvme.out
-GALION_PROC=$proc GALION_SYS=$sys SYSTEMCTL=$fix/systemctl \
-  sh scripts/pi5/board-report.sh >"$out"
+run_report "$proc" "$sys" >"$out"
 grep -q '^boot-medium: nvme$' "$out" || fail 'nvme medium'
 grep -q '^block: nvme0n1$' "$out" || fail 'nvme block'
 ok 'nvme report'
 
 out=$tmp/nosys.out
 set +e
-GALION_PROC=$proc GALION_SYS=$sys SYSTEMCTL=$tmp/no-such-systemctl \
+GALION_PROC=$proc GALION_SYS=$sys GALION_VIRT='' GALION_ROOT=$rootfs \
+  SYSTEMCTL=$tmp/no-such-systemctl \
   sh scripts/pi5/board-report.sh >"$out"
 rc=$?
 set -e
@@ -186,7 +227,8 @@ grep -q 'usage:' "$tmp/usage.err" || fail 'usage text'
 ok 'usage'
 
 file=$tmp/saved.txt
-GALION_PROC=$proc GALION_SYS=$sys SYSTEMCTL=$fix/systemctl \
-  sh scripts/pi5/board-report.sh "$file" >/dev/null
+run_report "$proc" "$sys" "$file" >/dev/null
 grep -q '^GALION BOARD REPORT$' "$file" || fail 'saved report'
+grep -q 'not a Raspberry Pi 5 result' "$file" || fail 'saved honesty'
 ok 'report file'
+printf '%s\n' 'offline dry-run finished. This is not a Raspberry Pi 5 result.'

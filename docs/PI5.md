@@ -24,6 +24,8 @@ What has been run:
 
 A green GitHub job is not a pass on the board. The board command is `scripts/pi5-flash-check.sh`. That command has not been run on a Pi 5.
 
+[`.github/workflows/pi5-board-dry-run.yml`](../.github/workflows/pi5-board-dry-run.yml) shellchecks the Pi 5 scripts and runs [`scripts/pi5/test-board-report.sh`](../scripts/pi5/test-board-report.sh). That test writes the board report from stubbed files. A green run of that job is not a Raspberry Pi 5 result.
+
 ## Flash the card or the SSD
 
 Follow [Flash Raspberry Pi OS Bookworm 64-bit](PI5-SEED.md#flash-raspberry-pi-os-bookworm-64-bit).
