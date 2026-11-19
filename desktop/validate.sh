@@ -69,6 +69,8 @@ expect_files "desktop file" "$(printf '%s\n' \
   applications/galion-research.desktop \
   applications/galion-voice.desktop \
   applications/openmind-desktop.desktop \
+  gtk/gtk.css \
+  gtk/settings.ini \
   icons/hicolor/scalable/apps/galion-os.svg \
   icons/hicolor/scalable/apps/galion-research.svg \
   icons/hicolor/scalable/apps/galion-voice.svg \
@@ -82,7 +84,9 @@ expect_files "desktop file" "$(printf '%s\n' \
 # those bytes.
 if grep -n -E -e '://' -e 'localhost' -e '0\.0\.0\.0' -e '::1' -e '([0-9]{1,3}\.){3}[0-9]{1,3}' \
   desktop/README.md \
-  desktop/applications/*.desktop; then
+  desktop/applications/*.desktop \
+  desktop/gtk/gtk.css \
+  desktop/gtk/settings.ini; then
   say "error: desktop files must not contain a server address"
   fail=1
 fi
