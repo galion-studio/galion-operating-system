@@ -37,7 +37,7 @@ Galion OS is the direction we're building towards, starting with Open Mind and H
 
 ## Raspberry Pi 5
 
-The short path onto a Pi 5 is [Galion on a Raspberry Pi 5](docs/PI5.md).
+The short path onto a Pi 5 is [Galion on a Raspberry Pi 5](docs/PI5.md). The commands for the first boot on the board are [First real boot on the Pi 5](docs/PI5-FIRST-REAL-BOOT.md).
 
 ## How the pieces fit
 

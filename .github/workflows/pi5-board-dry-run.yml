@@ -41,11 +41,17 @@ jobs:
           echo "Stubbed hardware and systemd. This is not a Raspberry Pi 5 result."
           sh scripts/pi5/test-first-boot.sh
 
+      - name: Offline report pack
+        run: |
+          set -eu
+          echo "Fixture reports only. This is not a Raspberry Pi 5 result."
+          sh scripts/pi5/test-pack-reports.sh
+
       - name: Label the result
         if: always()
         run: |
           {
             echo '## Pi 5 offline dry run'
             echo
-            echo 'Not a Raspberry Pi 5 result. No Pi 5, no Raspberry Pi OS image, no SSD, and no QEMU guest were used. Shellcheck ran on the runner. The board report and the first-boot report were written from stubbed files and a stubbed systemctl.'
+            echo 'Not a Raspberry Pi 5 result. No Pi 5, no Raspberry Pi OS image, no SSD, and no QEMU guest were used. Shellcheck ran on the runner. The board report, the first-boot report, and the packed tarball were written from stubbed files.'
           } >> "$GITHUB_STEP_SUMMARY"
