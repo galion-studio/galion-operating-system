@@ -189,7 +189,56 @@ def check_svg(path: Path, errors: list[str]) -> None:
         fail(errors, f"{path.relative_to(ROOT)}: SVG has no xmlns")
 
 
-def check_html(path: Path, errors: list[str], cache: dict[str, str]) -> None:
+def check_structure(path: Path, text: str, errors: list[str]) -> None:
+    rel = path.relative_to(ROOT)
+    for needle in (
+        'class="skip" href="#content"',
+        '<header',
+        '<main id="content"',
+        'tabindex="-1"',
+        "<footer",
+        'aria-label="Primary"',
+        'aria-label="Footer"',
+        'role="region" aria-label="Status"',
+        "<h1",
+    ):
+        if needle not in text:
+            fail(errors, f"{rel}: missing {needle}")
+    if text.count("<h1") != 1:
+        fail(errors, f"{rel}: expected one h1, found {text.count('<h1')}")
+
+
+def check_site_css(errors: list[str]) -> None:
+    path = SITE / "assets" / "site.css"
+    text = path.read_text(encoding="utf-8")
+    rel = path.relative_to(ROOT)
+    for needle in (
+        ":focus-visible",
+        "prefers-reduced-motion",
+        "scroll-margin-top",
+        "max-width: 400px",
+        "forced-colors",
+    ):
+        if needle not in text:
+            fail(errors, f"{rel}: missing {needle}")
+    # New colour values belong in the brand guide or tokens.css, not here.
+    colours = set(re.findall(r"#[0-9A-Fa-f]{3,8}", text))
+    allowed = {
+        "#0a0a0c",
+        "#141418",
+        "#2c2c33",
+        "#f5f5f7",
+        "#a7b6c4",
+        "#f5a524",
+        "#7c3aed",
+        "#b695cf",
+    }
+    extra = {colour.lower() for colour in colours} - allowed
+    if extra:
+        fail(errors, f"{rel}: colour outside the landing palette: {', '.join(sorted(extra))}")
+
+
+def check_html(path: Path, errors: list[str], cache: dict[str, str], offline: bool) -> None:
     text = path.read_text(encoding="utf-8")
     rel = path.relative_to(ROOT)
     if not text.lstrip().startswith("<!DOCTYPE html>"):
@@ -220,28 +269,31 @@ def check_html(path: Path, errors: list[str], cache: dict[str, str]) -> None:
         fail(errors, f"{rel}: checkout or a payment form is not allowed")
     if not re.search(r"""data-price="ultra"[^>]*>€220</span><span class="period"> / month</span>""", text):
         fail(errors, f"{rel}: Ultra amount must show the configured monthly price")
+    check_structure(path, text, errors)
     for href in NAV_HREFS:
         if f'href="{href}"' not in text:
             fail(errors, f"{rel}: nav is missing {href}")
     for match in LINK_ATTR.finditer(text):
         url = match.group("url").strip()
-        check_url(path, url, errors, cache)
+        check_url(path, url, errors, cache, offline)
     for match in CSS_URL.finditer(text):
         url = match.group("url").strip()
-        check_url(path, url, errors, cache)
+        check_url(path, url, errors, cache, offline)
 
 
-def check_css(path: Path, errors: list[str], cache: dict[str, str]) -> None:
+def check_css(path: Path, errors: list[str], cache: dict[str, str], offline: bool) -> None:
     text = path.read_text(encoding="utf-8")
     for match in CSS_URL.finditer(text):
-        check_url(path, match.group("url").strip(), errors, cache)
+        check_url(path, match.group("url").strip(), errors, cache, offline)
 
 
-def check_url(page: Path, url: str, errors: list[str], cache: dict[str, str]) -> None:
+def check_url(page: Path, url: str, errors: list[str], cache: dict[str, str], offline: bool) -> None:
     if url.startswith(("mailto:", "tel:", "data:")):
         return
     rel = page.relative_to(ROOT)
     if url.startswith(("http://", "https://")):
+        if offline:
+            return
         problem = check_external(url, cache)
         if problem:
             fail(errors, f"{rel}: broken link {url} ({problem})")
@@ -259,15 +311,22 @@ def check_url(page: Path, url: str, errors: list[str], cache: dict[str, str]) ->
 
 
 def main() -> int:
+    args = set(sys.argv[1:])
+    unknown = args - {"--offline"}
+    if unknown:
+        print("unknown arguments: " + ", ".join(sorted(unknown)), file=sys.stderr)
+        return 2
+    offline = "--offline" in args
     errors: list[str] = []
     cache: dict[str, str] = {}
     html_files = iter_files(SITE, ".html")
     if len(html_files) < 6:
         fail(errors, f"expected at least 6 HTML pages, found {len(html_files)}")
     for path in html_files:
-        check_html(path, errors, cache)
+        check_html(path, errors, cache, offline)
+    check_site_css(errors)
     for path in iter_files(SITE, ".css"):
-        check_css(path, errors, cache)
+        check_css(path, errors, cache, offline)
     seen_svg: set[Path] = set()
     for folder in SVG_DIRS:
         for path in iter_files(folder, ".svg"):
@@ -281,7 +340,8 @@ def main() -> int:
         print("\n".join(errors))
         print(f"\n{len(errors)} problem(s)")
         return 1
-    print(f"Checked {len(html_files)} HTML pages and {len(seen_svg)} SVG files. No broken links.")
+    note = " External links were not requested." if offline else ""
+    print(f"Checked {len(html_files)} HTML pages and {len(seen_svg)} SVG files. No broken links.{note}")
     return 0
 
 
