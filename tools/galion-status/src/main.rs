@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Duration;
 
-use galion_status::{check, render, services};
+use galion_status::{check, render, render_json, services};
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -14,17 +14,24 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     }
     if args.iter().any(|arg| arg == "--help" || arg == "-h") {
-        println!("galion-status [--root DIR] [--port NAME=PORT]");
-        println!("Prints up, down, or not installed for each port in docs/ARCHITECTURE.md.");
+        println!("galion-status [--json] [--root DIR] [--port NAME=PORT]");
+        println!("Prints up, down, or not installed for each service in docs/ARCHITECTURE.md.");
+        println!("--json prints a JSON array of name, port, and state.");
         println!("Dials 127.0.0.1 only.");
         return ExitCode::from(0);
     }
 
     let mut root = PathBuf::from("/");
     let mut rows = services();
+    let mut json = false;
     let mut index = 0;
     while index < args.len() {
         let arg = &args[index];
+        if arg == "--json" {
+            json = true;
+            index += 1;
+            continue;
+        }
         if arg == "--root" {
             let Some(value) = args.get(index + 1) else {
                 eprintln!("galion-status: --root needs a directory");
@@ -51,7 +58,11 @@ fn main() -> ExitCode {
     }
 
     let lines = check(&rows, &root, Duration::from_millis(200));
-    print!("{}", render(&lines));
+    if json {
+        print!("{}", render_json(&lines));
+    } else {
+        print!("{}", render(&lines));
+    }
     ExitCode::from(0)
 }
 

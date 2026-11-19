@@ -34,3 +34,6 @@ jobs:
 
       - name: Clippy
         run: cargo clippy --manifest-path tools/galion-status/Cargo.toml --locked --all-targets -- -D warnings
+
+      - name: Architecture table matches the status command
+        run: python3 tools/galion-status/check_architecture.py
