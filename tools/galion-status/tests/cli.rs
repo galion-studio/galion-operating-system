@@ -70,3 +70,32 @@ fn stub_listener_and_a_marker_print_the_three_states() {
     assert!(!text.contains("10."));
     std::fs::remove_dir_all(&root).unwrap();
 }
+
+#[test]
+fn json_is_the_same_rows_for_scripts() {
+    let closed = closed_port();
+    let root = std::env::temp_dir().join(format!("galion-status-json-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(&root).unwrap();
+    let mut command = bin();
+    command.arg("--json").arg("--root").arg(&root);
+    for row in galion_status::services() {
+        command.arg("--port").arg(format!("{}={closed}", row.name));
+    }
+    let output = command.output().unwrap();
+    let text = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(output.status.code(), Some(0), "{text}{:?}", output.stderr);
+    assert!(text.starts_with("[\n"), "{text}");
+    assert!(!text.contains("Galion local status"));
+    for row in galion_status::services() {
+        let entry = format!(
+            "{{\"name\":\"{}\",\"port\":{closed},\"state\":\"not installed\"}}",
+            row.name
+        );
+        assert!(text.contains(&entry), "{text}");
+    }
+    let refused = bin().args(["--execute", "--json"]).output().unwrap();
+    assert_eq!(refused.status.code(), Some(2));
+    assert!(refused.stdout.is_empty());
+    std::fs::remove_dir_all(&root).unwrap();
+}
