@@ -108,6 +108,16 @@ a {
   outline-offset: 3px;
 }
 
+main :focus-visible {
+  scroll-margin-top: 5.5rem;
+  scroll-margin-bottom: 1.5rem;
+}
+
+main[tabindex="-1"]:focus,
+main[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
 ::selection {
   background: var(--amber);
   color: var(--obsidian);
@@ -145,6 +155,10 @@ a {
   letter-spacing: 0.01em;
   line-height: 1.5;
   text-align: center;
+}
+
+.banner p {
+  margin: 0;
 }
 
 .site-header {
@@ -803,8 +817,8 @@ code {
     display: none;
     position: absolute;
     top: 100%;
-    left: 0;
-    right: 0;
+    left: -16px;
+    right: -16px;
     padding: 8px 16px 16px;
     background: var(--obsidian);
     border-bottom: 1px solid var(--line);
@@ -891,6 +905,13 @@ code {
   }
 }
 
+@media (max-width: 400px) {
+  .table-scroll th,
+  .table-scroll td {
+    padding-inline: 6px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -906,5 +927,15 @@ code {
   .presence {
     transform: none;
     opacity: 1;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid CanvasText;
+  }
+
+  .nav-toggle:focus-visible + .nav-button {
+    outline: 2px solid CanvasText;
   }
 }
