@@ -1,0 +1,15 @@
+# Local launch of galion-voiced.
+# docs/voice-profile/PACKAGING.md places that binary on the PATH of
+# user galion and names no install path. This entry does not invent one
+# and does not name a listen address.
+[Desktop Entry]
+Type=Application
+Name=Galion Voice
+GenericName=Voice model
+Comment=Voice model inside Galion One
+Exec=galion-voiced
+TryExec=galion-voiced
+Icon=galion-voice
+Terminal=false
+Categories=AudioVideo;Audio;
+StartupNotify=false
