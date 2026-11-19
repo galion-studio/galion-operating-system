@@ -1,0 +1,59 @@
+/* Colours are the tokens in site/assets/tokens.css.
+   Dark is the default. Light follows prefers-color-scheme.
+   The 3.2s ease-in-out is the breath on the landing pages.
+   prefers-reduced-motion removes animation and transition, as site.css does.
+   The sans family is the token stack. The WOFF2 files stay on the web pages. */
+
+window,
+.background {
+  background-color: #0B0F14;
+  color: #E6EDF3;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+headerbar,
+.toolbar {
+  background-color: #131A22;
+  color: #E6EDF3;
+}
+
+selection,
+:selected {
+  background-color: #58C4FF;
+  color: #0B0F14;
+}
+
+window,
+headerbar,
+button,
+entry,
+label {
+  transition: background-color 3.2s ease-in-out, color 3.2s ease-in-out;
+}
+
+@media (prefers-color-scheme: light) {
+  window,
+  .background {
+    background-color: #F7F9FB;
+    color: #0B0F14;
+  }
+
+  headerbar,
+  .toolbar {
+    background-color: #EEF2F6;
+    color: #0B0F14;
+  }
+
+  selection,
+  :selected {
+    background-color: #0B5FA5;
+    color: #FFFFFF;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none;
+    transition: none;
+  }
+}
