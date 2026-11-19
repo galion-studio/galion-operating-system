@@ -86,5 +86,13 @@ mod tests {
         let empty = refusal(" \n\r ");
         plain_record(&empty);
         assert_eq!(empty, "Galion OS. This step did not finish.\n");
+
+        let resting = refusal(&galion_init::failing_status(
+            "openmind-desktop",
+            galion_init::START_LIMIT_WINDOW_SEC,
+        ));
+        plain_record(&resting);
+        assert!(resting.contains("keeps failing"));
+        assert!(resting.contains("openmind-desktop"));
     }
 }
