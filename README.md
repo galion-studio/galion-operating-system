@@ -39,6 +39,10 @@ Galion OS is the direction we're building towards, starting with Open Mind and H
 
 The short path onto a Pi 5 is [Galion on a Raspberry Pi 5](docs/PI5.md).
 
+## How the pieces fit
+
+Galion OS, Galion Research, the Obsidian desktop, and Galion Voice on one Linux machine, and on a Pi 5, are mapped in [Architecture](docs/ARCHITECTURE.md). That page links the notes in the other three repositories.
+
 ## Brand, site, and Galion Labs
 
 Branding V2, the static landing pages, and the Galion Labs community kit:
