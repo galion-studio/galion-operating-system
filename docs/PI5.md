@@ -9,6 +9,7 @@ The detail is already written. This page is the order, and the limit every one o
 | Flash, then the OS seed | [PI5-SEED.md](PI5-SEED.md) |
 | The boot check, and the greeting | [PI5-SEED-BOOT.md](PI5-SEED-BOOT.md) |
 | Research and the Obsidian desktop | [PI5-SYMPHONY.md](PI5-SYMPHONY.md) |
+| Commands on the first real boot | [PI5-FIRST-REAL-BOOT.md](PI5-FIRST-REAL-BOOT.md) |
 
 The OS seed is [pull request 42](https://github.com/galion-studio/galion-operating-system/pull/42). The boot check is [pull request 43](https://github.com/galion-studio/galion-operating-system/pull/43). Research and the desktop, in one virtual machine, are [pull request 44](https://github.com/galion-studio/galion-operating-system/pull/44). The greeting is [pull request 46](https://github.com/galion-studio/galion-operating-system/pull/46). The welcome page the OS seed now starts is [pull request 45](https://github.com/galion-studio/galion-operating-system/pull/45), and the OS seed note is where that page is described.
 
