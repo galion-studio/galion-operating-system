@@ -37,4 +37,6 @@ sh desktop/install.sh --user --uninstall
 
 [test-install.sh](test-install.sh) runs that script in a temporary XDG home. A green run is not a Raspberry Pi 5 result.
 
+The same install copies [boot/](boot/) into `galion/boot/` under the data directory. Those files are the vendored sounds and animations. The script does not play them.
+
 The workflow is [.github/workflows/desktop-entries.yml](../.github/workflows/desktop-entries.yml). Permissions are `contents: read`. It does not upload an artifact and it does not publish a release.

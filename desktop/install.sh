@@ -166,6 +166,37 @@ for major in 3.0 4.0; do
   session_file "$major" gtk.css
 done
 
+# Boot definitions. Copied into the session data directory. Not played.
+while IFS= read -r rel; do
+  [ -n "$rel" ] || continue
+  src=$ROOT/desktop/boot/$rel
+  dest=$data/galion/boot/$rel
+  if [ "$action" = install ]; then
+    require_file "$src"
+    place "$src" "$dest"
+  else
+    remove_file "$dest"
+  fi
+done <<'EOF'
+README.md
+index.html
+sounds/openmind-desktop-sound.rs
+sounds/console-ui-sound.rs
+sounds/galion-sound.ts
+sounds/os-tones.js
+animations/om-rise.css
+animations/status-pulse.css
+animations/host-splash.html
+animations/one-dot.css
+animations/one-dot-draw.js
+animations/one-dot.html
+animations/dot.rs
+animations/spring.rs
+animations/orb_engine.rs
+animations/palette.rs
+animations/frame.rs
+EOF
+
 if [ "$dry" -eq 1 ]; then
   written=no
 else
