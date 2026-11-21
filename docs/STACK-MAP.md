@@ -10,7 +10,7 @@ Launches for this work stay on the owner's laptop. The target is Rust processes 
 
 Galion OS does not start the other pieces. `galion-init` keeps a boot plan in memory, refuses to run as PID 1, and does not fork or bind. `galion-welcome` is a separate binary. It binds the loopback interface on port 18711 and serves one HTML page. That page lists Galion units and says Open Mind, Research, and Voice are not on the machine until those units exist. Sources: `galion-init/src/welcome.rs` (`WELCOME_PORT`), `docs/PI5-SEED.md`, `docs/ARCHITECTURE.md`, all at `f6bfa929`.
 
-`docs/ARCHITECTURE.md` is the earlier four-piece map (Galion OS, Galion Research, the Obsidian desktop, Galion Voice) and the Pi 5 notes. This file adds Galion App, HORBM, the desktop rows, and the laptop decision. The symphony job still pins older commits (`b26ad02e` for `obsidian-open-mind`, `74f9a707` for `hermes-research`). Those pins are not the heads read here.
+`docs/ARCHITECTURE.md` is the earlier four-piece map (Galion OS, Galion Research, the Obsidian desktop, Galion Voice) and the Pi 5 notes. This file adds Galion App, HORBM, the desktop rows, and the laptop decision. The phase 2 reading of the same commits is [deep-dive/README.md](deep-dive/README.md). The symphony job still pins older commits (`b26ad02e` for `obsidian-open-mind`, `74f9a707` for `hermes-research`). Those pins are not the heads read here.
 
 ## Commits read
 
