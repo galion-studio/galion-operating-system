@@ -8,7 +8,7 @@ use galion_init::{
     running_as_host_init, tone_hook, tone_samples, voice_plan, walk_desktop, walk_down, AdmitError,
     BindError, BootError, EarlyBoot, Host, Invocation, Machine, Phase, Profile, Restart, Service,
     Supervisor, ToneHook, ToneInput, BOOT_TONE_HZ, DESKTOP_MOUNTS, DESKTOP_PORT, ONE_PATH,
-    RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
+    RESEARCH_PORT, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC, WAKE_TONE_PATH,
 };
 
 fn admitted_desktop(silence: bool, playback_present: bool) -> galion_init::Plan {
@@ -109,6 +109,14 @@ fn tone_hook_is_planned_at_432_hz_and_plays_nothing() {
         assert_eq!(BOOT_TONE_HZ, 432);
         assert_eq!(tone_samples(hook), 0);
     }
+    let wake = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join(WAKE_TONE_PATH);
+    let text = std::fs::read_to_string(&wake).expect("vendored wake definition");
+    assert!(text.contains("Copyright (c) 3000 Galion / galion-studio"));
+    assert!(text.contains("id: \"wake\""));
+    assert!(!text.contains("samantha"));
+    assert!(!text.contains("jarvis"));
     let plan = admitted_desktop(false, false);
     assert_eq!(plan.tone, Some(ToneHook::Planned { hz: 432 }));
     assert!(plan.phases.last() == Some(&Phase::HandoffDesktop));

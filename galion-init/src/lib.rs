@@ -36,7 +36,7 @@ pub use supervise::{
     admit, desktop_services, failing_status, voice_service, AdmitError, Machine, Proc, Restart,
     Service, Supervisor, START_LIMIT_BURST, START_LIMIT_WINDOW_SEC,
 };
-pub use tone::{tone_hook, tone_samples, ToneHook, ToneInput, BOOT_TONE_HZ};
+pub use tone::{tone_hook, tone_samples, ToneHook, ToneInput, BOOT_TONE_HZ, WAKE_TONE_PATH};
 pub use welcome::{answer, rows_from_snapshot, ServiceRow, UnitSnapshot, WELCOME_PORT};
 
 /// True only when this process is PID 1. The prototype treats that as the
