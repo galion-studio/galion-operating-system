@@ -101,12 +101,13 @@ require_file() {
 place() {
   src=$1
   dest=$2
+  mode=${3:-0644}
   if [ "$dry" -eq 1 ]; then
     printf 'install %s\n' "$dest"
     return
   fi
   mkdir -p "$(dirname "$dest")"
-  install -m 0644 "$src" "$dest"
+  install -m "$mode" "$src" "$dest"
   if [ -L "$dest" ]; then
     printf 'error: %s is still a symlink\n' "$dest" >&2
     exit 1
@@ -166,7 +167,50 @@ for major in 3.0 4.0; do
   session_file "$major" gtk.css
 done
 
-# Boot definitions. Copied into the session data directory. Not played.
+write_unit() {
+  template=$ROOT/desktop/boot/systemd/galion-boot-sound.service
+  bin=$data/galion/boot/sounds/galion-boot-sound
+  if [ "$scope" = user ]; then
+    dest=$config/systemd/user/galion-boot-sound.service
+    wants=$config/systemd/user/graphical-session.target.wants/galion-boot-sound.service
+  else
+    dest=/usr/local/lib/systemd/user/galion-boot-sound.service
+    wants=/usr/local/lib/systemd/user/graphical-session.target.wants/galion-boot-sound.service
+  fi
+  if [ "$action" = uninstall ]; then
+    remove_file "$dest"
+    remove_file "$wants"
+    return
+  fi
+  require_file "$template"
+  require_file "$ROOT/desktop/boot/sounds/galion-boot-sound"
+  if [ "$dry" -eq 1 ]; then
+    printf 'install %s\n' "$dest"
+    printf 'enable %s\n' "$wants"
+    return
+  fi
+  if printf '%s\n' "$bin" | grep -q -e '@' -e '|' -e '&' -e '\\' -e ' '; then
+    printf 'error: sound path cannot be written into the unit\n' >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$dest")" "$(dirname "$wants")"
+  sed "s|@BIN@|$bin|g" "$template" > "$dest"
+  chmod 0644 "$dest"
+  if grep -q '@BIN@' "$dest"; then
+    printf 'error: unit still has a placeholder\n' >&2
+    exit 1
+  fi
+  ln -sfn ../galion-boot-sound.service "$wants"
+  if [ ! -L "$wants" ]; then
+    printf 'error: %s is not a symlink\n' "$wants" >&2
+    exit 1
+  fi
+  printf 'install %s\n' "$dest"
+  printf 'enable %s\n' "$wants"
+}
+
+# Boot definitions, the Plymouth theme sources, and the session tones.
+# The unit is enabled for the next graphical session. Nothing is played.
 while IFS= read -r rel; do
   [ -n "$rel" ] || continue
   src=$ROOT/desktop/boot/$rel
@@ -195,7 +239,61 @@ animations/spring.rs
 animations/orb_engine.rs
 animations/palette.rs
 animations/frame.rs
+UX.md
+sounds/PROVENANCE.txt
+sounds/boot.ogg
+sounds/boot.wav
+sounds/generate_tones.py
+sounds/shutdown.ogg
+sounds/shutdown.wav
+sounds/wake.ogg
+sounds/wake.wav
+plymouth/galion.plymouth
+plymouth/galion.script
+plymouth/install.sh
+plymouth/preview.py
+plymouth/render_mark.py
+plymouth/uninstall.sh
+plymouth/images/bar.png
+plymouth/images/bullet.png
+plymouth/images/entry.png
+plymouth/images/mark-ring.png
+plymouth/images/dot-00.png
+plymouth/images/dot-01.png
+plymouth/images/dot-02.png
+plymouth/images/dot-03.png
+plymouth/images/dot-04.png
+plymouth/images/dot-05.png
+plymouth/images/dot-06.png
+plymouth/images/dot-07.png
+plymouth/images/dot-08.png
+plymouth/images/dot-09.png
+plymouth/images/dot-10.png
+plymouth/images/dot-11.png
+plymouth/images/dot-12.png
+plymouth/images/dot-13.png
+plymouth/images/dot-14.png
+plymouth/images/dot-15.png
+plymouth/images/dot-16.png
+plymouth/images/dot-17.png
+plymouth/images/dot-18.png
+plymouth/images/dot-19.png
+plymouth/images/dot-20.png
+plymouth/images/dot-21.png
+plymouth/images/dot-22.png
+plymouth/images/dot-23.png
+systemd/galion-boot-sound.service
 EOF
+
+player=$ROOT/desktop/boot/sounds/galion-boot-sound
+player_dest=$data/galion/boot/sounds/galion-boot-sound
+if [ "$action" = install ]; then
+  require_file "$player"
+  place "$player" "$player_dest" 0755
+else
+  remove_file "$player_dest"
+fi
+write_unit
 
 if [ "$dry" -eq 1 ]; then
   written=no
@@ -203,4 +301,15 @@ else
   written=yes
 fi
 
-printf '%s\n' "action: $action" "scope: $scope" "written: $written"
+if [ "$action" = install ]; then
+  enabled=next-graphical-session
+else
+  enabled=no
+fi
+
+printf '%s\n' \
+  "action: $action" \
+  "scope: $scope" \
+  "written: $written" \
+  "enabled: $enabled" \
+  "played: no"

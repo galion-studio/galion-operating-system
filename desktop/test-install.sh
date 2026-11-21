@@ -74,6 +74,10 @@ gtk3_css=$config/gtk-3.0/gtk.css
 gtk4_css=$config/gtk-4.0/gtk.css
 boot_wake=$xdg/galion/boot/sounds/openmind-desktop-sound.rs
 boot_index=$xdg/galion/boot/index.html
+boot_wav=$xdg/galion/boot/sounds/boot.wav
+boot_player=$xdg/galion/boot/sounds/galion-boot-sound
+boot_unit=$config/systemd/user/galion-boot-sound.service
+boot_wants=$config/systemd/user/graphical-session.target.wants/galion-boot-sound.service
 
 out=$(sh "$install_sh" --user --dry-run)
 need_line "$out" "install $desktop_file"
@@ -83,11 +87,17 @@ need_line "$out" "install $gtk3_ini"
 need_line "$out" "install $gtk4_css"
 need_line "$out" "install $boot_wake"
 need_line "$out" "install $boot_index"
+need_line "$out" "install $boot_wav"
+need_line "$out" "install $boot_player"
+need_line "$out" "install $boot_unit"
+need_line "$out" "enable $boot_wants"
 need_line "$out" "action: install"
 need_line "$out" "scope: user"
 need_line "$out" "written: no"
+need_line "$out" "played: no"
+need_line "$out" "enabled: next-graphical-session"
 reject_address "$out"
-if [ -e "$desktop_file" ] || [ -e "$icon_file" ] || [ -e "$gtk3_ini" ] || [ -e "$gtk3_css" ]; then
+if [ -e "$desktop_file" ] || [ -e "$icon_file" ] || [ -e "$gtk3_ini" ] || [ -e "$gtk3_css" ] || [ -e "$boot_unit" ]; then
   fail "dry-run wrote a file"
 fi
 
@@ -134,6 +144,26 @@ cmp -s "$boot_index" "$ROOT/desktop/boot/index.html"
 if ! grep -q 'Copyright (c) 3000 Galion / galion-studio' "$boot_wake"; then
   fail "wake tone lost its copyright header"
 fi
+cmp -s "$boot_wav" "$ROOT/desktop/boot/sounds/boot.wav"
+if [ ! -f "$boot_player" ] || [ -L "$boot_player" ]; then
+  fail "$boot_player is not a regular file"
+fi
+player_mode=$(stat -c %a "$boot_player")
+if [ "$player_mode" != 755 ]; then
+  fail "$boot_player mode is $player_mode"
+fi
+if [ ! -f "$boot_unit" ] || [ -L "$boot_unit" ]; then
+  fail "$boot_unit is not a regular file"
+fi
+if ! grep -q "ExecStart=$boot_player start" "$boot_unit"; then
+  fail "unit does not start the installed player"
+fi
+if grep -q '@BIN@' "$boot_unit"; then
+  fail "unit still has a placeholder"
+fi
+if [ ! -L "$boot_wants" ]; then
+  fail "$boot_wants is not a symlink"
+fi
 if ! grep -q 'prefers-color-scheme: light' "$ROOT/desktop/gtk/gtk.css"; then
   fail "gtk.css does not follow a light scheme"
 fi
@@ -154,15 +184,18 @@ out=$(sh "$install_sh" --user --uninstall --dry-run)
 need_line "$out" "remove $desktop_file"
 need_line "$out" "remove $icon_file"
 need_line "$out" "remove $gtk3_ini"
+need_line "$out" "remove $boot_unit"
 need_line "$out" "action: uninstall"
 need_line "$out" "written: no"
+need_line "$out" "played: no"
+need_line "$out" "enabled: no"
 reject_address "$out"
 if [ ! -f "$desktop_file" ] || [ ! -f "$gtk3_ini" ]; then
   fail "uninstall dry-run removed a file"
 fi
 
 sh "$install_sh" --user --uninstall >/dev/null
-for dest in "$desktop_file" "$console_file" "$voice_file" "$icon_file" "$voice_icon" "$os_icon" "$gtk3_ini" "$gtk4_ini" "$gtk3_css" "$gtk4_css" "$boot_wake" "$boot_index"; do
+for dest in "$desktop_file" "$console_file" "$voice_file" "$icon_file" "$voice_icon" "$os_icon" "$gtk3_ini" "$gtk4_ini" "$gtk3_css" "$gtk4_css" "$boot_wake" "$boot_index" "$boot_wav" "$boot_player" "$boot_unit" "$boot_wants"; do
   if [ -e "$dest" ]; then
     fail "$dest is still installed"
   fi
@@ -174,6 +207,7 @@ unset XDG_CONFIG_HOME
 fallback=$home/.local/share/applications/galion-voice.desktop
 fallback_ini=$home/.config/gtk-3.0/settings.ini
 fallback_boot=$home/.local/share/galion/boot/index.html
+fallback_unit=$home/.config/systemd/user/galion-boot-sound.service
 sh "$install_sh" --user >/dev/null
 if [ ! -f "$fallback" ]; then
   fail "HOME fallback did not install $fallback"
@@ -185,7 +219,7 @@ if [ ! -f "$fallback_boot" ]; then
   fail "HOME fallback did not install $fallback_boot"
 fi
 sh "$install_sh" --user --uninstall >/dev/null
-if [ -e "$fallback" ] || [ -e "$fallback_ini" ] || [ -e "$fallback_boot" ]; then
+if [ -e "$fallback" ] || [ -e "$fallback_ini" ] || [ -e "$fallback_boot" ] || [ -e "$fallback_unit" ]; then
   fail "HOME fallback uninstall left a file"
 fi
 export XDG_DATA_HOME=$xdg
@@ -211,6 +245,9 @@ need_line "$out" "install $system_icon"
 need_line "$out" "install $system_ini"
 need_line "$out" "install $system_css"
 need_line "$out" "install /usr/local/share/galion/boot/README.md"
+need_line "$out" "install /usr/local/share/galion/boot/sounds/boot.wav"
+need_line "$out" "install /usr/local/lib/systemd/user/galion-boot-sound.service"
+need_line "$out" "played: no"
 need_line "$out" "scope: system"
 need_line "$out" "written: no"
 reject_address "$out"

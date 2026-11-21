@@ -1,2 +1,5 @@
 packaging/windows/wsl-on-g/*.ps1 text eol=lf
 packaging/windows/wsl-on-g/*.md text eol=lf
+desktop/boot/sounds/*.wav binary
+desktop/boot/sounds/*.ogg binary
+desktop/boot/plymouth/images/*.png binary

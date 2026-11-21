@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Galion
+Description=Galion OS boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/galion
+ScriptFile=/usr/share/plymouth/themes/galion/galion.script

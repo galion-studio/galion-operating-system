@@ -25,7 +25,10 @@ jobs:
         run: sh desktop/validate.sh
 
       - name: Shellcheck the install script
-        run: shellcheck --severity=warning -s sh desktop/install.sh desktop/test-install.sh
+        run: shellcheck --severity=warning -s sh desktop/install.sh desktop/test-install.sh desktop/boot/test-boot.sh desktop/boot/sounds/galion-boot-sound desktop/boot/plymouth/install.sh desktop/boot/plymouth/uninstall.sh
 
       - name: Install into a temporary XDG home
         run: sh desktop/test-install.sh
+
+      - name: Check the boot theme and tones
+        run: sh desktop/boot/test-boot.sh

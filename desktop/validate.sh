@@ -70,6 +70,7 @@ expect_files "desktop file" "$(printf '%s\n' \
   applications/galion-voice.desktop \
   applications/openmind-desktop.desktop \
   boot/README.md \
+  boot/UX.md \
   boot/animations/dot.rs \
   boot/animations/frame.rs \
   boot/animations/host-splash.html \
@@ -82,10 +83,55 @@ expect_files "desktop file" "$(printf '%s\n' \
   boot/animations/spring.rs \
   boot/animations/status-pulse.css \
   boot/index.html \
+  boot/plymouth/galion.plymouth \
+  boot/plymouth/galion.script \
+  boot/plymouth/images/bar.png \
+  boot/plymouth/images/bullet.png \
+  boot/plymouth/images/dot-00.png \
+  boot/plymouth/images/dot-01.png \
+  boot/plymouth/images/dot-02.png \
+  boot/plymouth/images/dot-03.png \
+  boot/plymouth/images/dot-04.png \
+  boot/plymouth/images/dot-05.png \
+  boot/plymouth/images/dot-06.png \
+  boot/plymouth/images/dot-07.png \
+  boot/plymouth/images/dot-08.png \
+  boot/plymouth/images/dot-09.png \
+  boot/plymouth/images/dot-10.png \
+  boot/plymouth/images/dot-11.png \
+  boot/plymouth/images/dot-12.png \
+  boot/plymouth/images/dot-13.png \
+  boot/plymouth/images/dot-14.png \
+  boot/plymouth/images/dot-15.png \
+  boot/plymouth/images/dot-16.png \
+  boot/plymouth/images/dot-17.png \
+  boot/plymouth/images/dot-18.png \
+  boot/plymouth/images/dot-19.png \
+  boot/plymouth/images/dot-20.png \
+  boot/plymouth/images/dot-21.png \
+  boot/plymouth/images/dot-22.png \
+  boot/plymouth/images/dot-23.png \
+  boot/plymouth/images/entry.png \
+  boot/plymouth/images/mark-ring.png \
+  boot/plymouth/install.sh \
+  boot/plymouth/preview.py \
+  boot/plymouth/render_mark.py \
+  boot/plymouth/uninstall.sh \
+  boot/sounds/PROVENANCE.txt \
+  boot/sounds/boot.ogg \
+  boot/sounds/boot.wav \
   boot/sounds/console-ui-sound.rs \
+  boot/sounds/galion-boot-sound \
   boot/sounds/galion-sound.ts \
+  boot/sounds/generate_tones.py \
   boot/sounds/openmind-desktop-sound.rs \
   boot/sounds/os-tones.js \
+  boot/sounds/shutdown.ogg \
+  boot/sounds/shutdown.wav \
+  boot/sounds/wake.ogg \
+  boot/sounds/wake.wav \
+  boot/systemd/galion-boot-sound.service \
+  boot/test-boot.sh \
   gtk/gtk.css \
   gtk/settings.ini \
   icons/hicolor/scalable/apps/galion-os.svg \

@@ -18,7 +18,7 @@ Obsidian files in this directory keep `Copyright (c) 3000 Galion / galion-studio
 
 ## Sounds
 
-Nothing in either source tree is a checked-in boot, wake, or chime recording. The sounds are oscillators. This directory does not render new WAV files.
+Nothing in either source tree is a checked-in boot, wake, or chime recording. The sounds are oscillators. The renders in [Session sound](#session-sound) are synthesised from those oscillators. They are not recordings.
 
 | File here | Source path | What it is | Licence header |
 |---|---|---|---|
@@ -57,8 +57,8 @@ The Rust files are snapshots. They are not a Cargo workspace member and are not 
 - The Samantha one-dot client: `voice-stack/one-dot-ui/assets/samantha.js`, `samantha.css`, `dot-logic.js`, and `index.html`, and the socket, microphone, and PCM playback in `voice-stack/local-server/ui/dot/app.js` after the draw. The draw file’s comment still names that socket. The client is not here, so the disc does not breathe.
 - `crates/openmind-speech/fixtures/galion_voice_tts.wav` and `piper_silence.wav`. Those are speech fixtures.
 - `crates/galion-console/assets/v1-screen.html` as a whole. It is the voice screen. Only the tone block is here.
-- No Plymouth theme, boot-splash theme, Lottie file, or SVG boot animation exists in either source. None was added.
-- No startup or shutdown chime recording exists. The `boot` and `shutdown` ids are note lists. The window bells are open, close, minimise, and settle, not an OS power chime.
+- Neither source had a Plymouth theme, a Lottie file, or an SVG boot animation. The theme added in this repository is [plymouth/](plymouth/).
+- No startup or shutdown chime recording exists. The `boot` and `shutdown` ids are note lists. [generate_tones.py](sounds/generate_tones.py) synthesises them. The window bells are open, close, minimise, and settle, not an OS power chime.
 
 ## Where Galion OS already had a hook
 
@@ -68,6 +68,55 @@ The 432 Hz boot tone in `galion-init` was already planned and already plays noth
 
 [scripts/serve_site.py](../../scripts/serve_site.py) serves this directory at `/boot/` on `127.0.0.1`. The marketing pages stay under `site/`.
 
-The Windows one-click launcher is [Install-GalionUbuntuOnG.cmd](../../packaging/windows/wsl-on-g/Install-GalionUbuntuOnG.cmd). It has no splash hook, so this directory is not wired into it.
+The Windows installer is [Install-GalionWSL.ps1](../../packaging/windows/wsl-on-g/Install-GalionWSL.ps1). It has no splash hook, so this directory is not wired into it.
 
-There is no Plymouth theme in this repository, so there is no Plymouth hook to point at these files.
+[install.sh](../install.sh) enables [galion-boot-sound.service](systemd/galion-boot-sound.service) for the next graphical session and does not play a tone. The Plymouth theme is installed separately. See [UX.md](UX.md) for the timeline.
+
+## Plymouth theme
+
+`galion` is a script theme. The field is black. The mark is [icon-os.svg](../../docs/brand/marks/icon-os.svg), the rounded square and the dot, rasterised by [render_mark.py](plymouth/render_mark.py) into [plymouth/images/](plymouth/images/). The dot breathes on a 3.2 second cycle, the same breath as the landing pages. A hairline under the mark follows boot progress. Shutdown and reboot use the same mark and let the dot settle over 1.6 seconds. Reboot stays a little brighter. The password and question prompts use Plymouth's built-in font, a rounded entry, and dot bullets. Jost is not in the initramfs.
+
+```sh
+sh desktop/boot/plymouth/install.sh --dry-run
+sudo sh desktop/boot/plymouth/install.sh
+sudo sh desktop/boot/plymouth/uninstall.sh
+```
+
+On Ubuntu, after install, rebuild the initramfs so the splash is in the boot image:
+
+```sh
+sudo update-initramfs -u
+```
+
+The install script prints that command and does not run it. WSL does not draw a Plymouth splash. The files can still be installed. Nothing in this repository has shown the theme on hardware or in a virtual machine.
+
+[preview.py](plymouth/preview.py) writes PNG frames and a GIF for a directory you pass. It does not open a socket.
+
+```sh
+python3 desktop/boot/plymouth/preview.py --output /tmp/galion-preview
+```
+
+## Session sound
+
+[generate_tones.py](sounds/generate_tones.py) reads the `boot` and `shutdown` note lists in [os-tones.js](sounds/os-tones.js) and the `wake` clip in [openmind-desktop-sound.rs](sounds/openmind-desktop-sound.rs). It writes 16 kHz 16-bit mono WAV files and a libvorbis OGG of those same samples. [PROVENANCE.txt](sounds/PROVENANCE.txt) records the parsed pitches and the SHA-256 of each file. Re-run the script to refresh them. `python3 desktop/boot/sounds/generate_tones.py --check` fails if the WAV bytes drift.
+
+| File | What it is | Length |
+|---|---|---|
+| [sounds/boot.wav](sounds/boot.wav) | Page chord: 108 Hz, 216 Hz, 432 Hz, plus the hum | 0.74 s |
+| [sounds/shutdown.wav](sounds/shutdown.wav) | The same chord reversed | 0.74 s |
+| [sounds/wake.wav](sounds/wake.wav) | Desktop crate clip: 432 Hz sine, peak 0.32, 8 ms fade | 0.16 s |
+
+No voice recording is in these files.
+
+[galion-boot-sound](sounds/galion-boot-sound) plays `boot.wav` once at `start` and `shutdown.wav` once at `stop`. `GALION_BOOT_SOUND=wake` plays the crate clip at start instead. `wake` on its own plays that clip once. A second start in the same session prints `skipped: already`. The stamp lives under `XDG_RUNTIME_DIR`.
+
+Silence is persistent. `galion-boot-sound silence on` writes `1` to `$XDG_CONFIG_HOME/galion/silence` (or `$HOME/.config/galion/silence`). Later sessions stay silent until `silence off`. Mute is this session only: `mute on` writes `$XDG_RUNTIME_DIR/galion/mute`, and `GALION_MUTE=1` does the same for one process. `GALION_SILENCE=1` silences one process without writing the file. Local hours 22:00–06:59 skip playback, which is the desktop crate's night window. `GALION_NIGHT=off` leaves that window unused. A missing player or a missing device prints `skipped: no-device` and exits 0.
+
+[galion-init](../../galion-init/src/tone.rs) still returns no samples and does not read the Silence file. The session unit is the player.
+
+## What this still does not do
+
+- It does not theme the display-manager login screen. The password view is the Plymouth prompt, used when Plymouth asks for a passphrase.
+- It does not play audio from the initramfs. The splash is silent. The chords play at session start and session stop.
+- It does not read `prefers-reduced-motion`. The desktop GTK theme does, after login.
+- It has not been watched on a booting machine.
