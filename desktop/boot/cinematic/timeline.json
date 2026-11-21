@@ -30,6 +30,17 @@
   "peak": 2.32,
   "release": 2.55,
   "handoff": 4.6,
+  "statusDwell": 0.55,
+  "statusOmega": 20,
+  "clearOmega": 18,
+  "resolve": 7.35,
+  "statuses": [
+    { "at": 4.6, "text": "Initialising…" },
+    { "at": 5.15, "text": "Setting up…" },
+    { "at": 5.7, "text": "Loading Obsidian Desktop…", "probe": "desktop" },
+    { "at": 6.25, "text": "Loading Open Mind stack…" },
+    { "at": 6.8, "text": "Loading apps…", "probe": "apps" }
+  ],
   "appear": 0.08,
   "glowKick": 0.7,
   "glassKick": 0.82,
@@ -51,9 +62,11 @@
     "wordSize": 28,
     "wordGap": 44,
     "wordRise": 4,
-    "choiceSize": 15,
-    "choiceGap": 64,
-    "choiceRise": 4
+    "deskSize": 15,
+    "deskGap": 42,
+    "stateSize": 12,
+    "lineWidth": 144,
+    "lineGap": 22
   },
   "plymouth": {
     "fps": 20,
