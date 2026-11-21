@@ -1226,7 +1226,7 @@ Fonts that are freely licensed are included with their licence text where the re
 
 ### Preview pass
 
-The offline player is `docs/brand/archive/preview/`. On Windows, double-click `START-PREVIEW.cmd` in that folder. It serves the folder it is in, on `127.0.0.1` only, default port 8790. The same server is `python3 serve-preview.py` from that folder. No install step. Open `http://127.0.0.1:8790/`.
+The offline player is `docs/brand/archive/preview/`. On Windows, double-click `START-PREVIEW.cmd` in that folder. It serves the folder it is in, on `127.0.0.1` only, default port 8790. The same server is `python3 serve-preview.py` from that folder. No install step. Open `http://127.0.0.1:8790/`. Boot sequences are the first section of the gallery. The full list, including sequences that are not playable and why, is `BOOT-INVENTORY.md`.
 
 The gallery is a static port of galion-app `src/app/preview-all/page.tsx` (commit `8b2fa635a9566897efffe557331e1bbc1f34a7c5`, 20 January 2026, branch `master`). That page was a Next.js route, opened as `/preview-all` while `next dev` was running. This copy plays the archived animations without Next, without a CDN, and without the product components that are not in the archive.
 

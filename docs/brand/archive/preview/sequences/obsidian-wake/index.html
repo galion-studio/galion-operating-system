@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Obsidian Open Mind</title>
+<style>:root { --motion-step: 160ms; --motion-window: 320ms; --motion-wake: 640ms; --motion-ease: cubic-bezier(0.23, 1, 0.32, 1); }
+#wake .disc { width: 14vmin; height: 14vmin; }
+@media (prefers-reduced-motion: no-preference) {
+  .app:not([data-awake="1"]) { opacity: 0; pointer-events: none; }
+  .app[data-awake="1"] { opacity: 1; transition: opacity var(--motion-wake) var(--motion-ease); }
+  #wake[data-phase="expand"] .disc { animation: wake-disc var(--motion-wake) var(--motion-ease) forwards; }
+  #wake[data-phase="expand"] { animation: wake-veil var(--motion-wake) var(--motion-ease) forwards; }
+}
+@keyframes wake-disc { 0% { transform: scale(1); opacity: 1; } 70% { transform: scale(6); opacity: 1; } 100% { transform: scale(8); opacity: 0; } }
+@keyframes wake-veil { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #wake { display: none; } .app { opacity: 1; } }
+
+:root {
+  --bg: #0B0F14;
+  --bg-deep: #05070A;
+  --panel: #131A22;
+  --line: #24303C;
+  --fg: #E6EDF3;
+  --muted: #A7B6C4;
+  --accent: #58C4FF;
+  --focus: #58C4FF;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #F7F9FB;
+    --bg-deep: #F7F9FB;
+    --panel: #EEF2F6;
+    --line: #D5DDE5;
+    --fg: #0B0F14;
+    --muted: #3F4C59;
+    --accent: #0B5FA5;
+    --focus: #0B5FA5;
+    color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg-deep);
+  color: var(--fg);
+  font: 16px/1.45 "IBM Plex Sans", system-ui, sans-serif;
+}
+.app {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: 17rem 1fr;
+  grid-template-rows: auto 1fr auto;
+}
+header, footer {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+footer {
+  flex-direction: column;
+  align-items: flex-start;
+  border-bottom: 0;
+  border-top: 1px solid var(--line);
+}
+.tools { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.entries { display: flex; gap: 8px; flex-wrap: wrap; }
+.entries a, .back {
+  color: var(--fg);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 10px 14px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.brand { margin: 0; color: var(--muted); font-size: 13px; }
+.licence {
+  margin: 16px 0 0;
+  white-space: pre-wrap;
+  font: 12px/1.45 "IBM Plex Mono", ui-monospace, monospace;
+  color: var(--muted);
+}
+footer {
+  border-bottom: 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+header p { margin: 0; }
+.kicker {
+  color: var(--muted);
+  font: 12px/1.3 "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 0;
+  font-family: "Jost", "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.stack {
+  padding: 20px 16px;
+  border-right: 1px solid var(--line);
+  background: var(--bg);
+}
+.stack h2, .stage h2 {
+  margin: 0 0 10px;
+  font: 12px/1.3 "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+.stack ol { list-style: none; margin: 0; padding: 0; }
+#look {
+  margin-top: 12px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  padding: 0 16px;
+}
+#look:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.stack li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 4px 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.stack li:first-child { border-top: 0; }
+.stack .name { font-weight: 600; }
+.stack .name a { color: inherit; text-underline-offset: 2px; }
+.stack .name a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.stack .role { grid-column: 1 / -1; color: var(--muted); font-size: 13px; }
+.stack .state, .stack .seen {
+  font: 12px/1.3 "IBM Plex Mono", ui-monospace, monospace;
+}
+.stack .state { color: var(--accent); }
+.stack .seen { color: var(--muted); }
+.stage {
+  display: grid;
+  place-items: center;
+  padding: 32px 24px;
+}
+.presence { width: min(40rem, 100%); }
+.presence > p { margin: 0 0 16px; color: var(--muted); }
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+}
+.plus, .voice, #mute, #silence {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 0;
+}
+.plus input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.plus svg, .voice svg { width: 22px; height: 22px; }
+#command {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  padding: 0 8px;
+}
+#command:focus { outline: none; }
+.prompt:focus-within, .plus:focus-within, .voice:focus-visible, #mute:focus-visible, #silence:focus-visible, .tile:focus-visible, #win-close:focus-visible, #win-open:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.voice[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+#mute, #silence { width: auto; flex: 0 0 auto; padding: 0 12px; font: inherit; }
+#silence[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+#wake {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: #05070A;
+}
+#wake[hidden] { display: none; }
+#wake .disc {
+  border-radius: 999px;
+  background: #F5F5F7;
+}
+.hub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 96px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel);
+  color: var(--fg);
+  text-decoration: none;
+}
+.tile .role { color: var(--muted); font-size: 14px; line-height: 1.45; }
+.tile .url {
+  font: 12px/1.3 "IBM Plex Mono", ui-monospace, monospace;
+  color: var(--fg);
+}
+.win {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: rgba(5, 7, 10, 0.72);
+}
+.win[hidden] { display: none; }
+.win .sheet {
+  width: min(28rem, 100%);
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel);
+  color: var(--fg);
+}
+.win h2 { margin: 0 0 8px; font-size: 1.5rem; }
+.win p { margin: 0 0 12px; }
+#win-copy, #win-url { color: var(--muted); }
+#win-url { font: 13px/1.4 "IBM Plex Mono", ui-monospace, monospace; overflow-wrap: anywhere; }
+#win-close {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+}
+#look-empty[hidden] { display: none; }
+.app[data-window="open"] .panel { opacity: 0.45; }
+.notes { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+#quiet:empty, #printed:empty, #here:empty { display: none; }
+.notes ul { margin: 8px 0 0; padding-left: 1.1rem; }
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.chips:empty { display: none; }
+.chip {
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: var(--panel);
+  color: var(--fg);
+  font-size: 13px;
+}
+.opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.opt input { width: 20px; height: 20px; margin-top: 2px; flex: 0 0 auto; }
+audio { display: none; }
+@media (max-width: 720px) {
+  .app { grid-template-columns: 1fr; }
+  .stack { border-right: 0; border-bottom: 1px solid var(--line); }
+  .stage { min-height: 50vh; padding: 24px 16px; }
+  header { flex-wrap: wrap; }
+  .tools, .entries { width: 100%; }
+  .hub { grid-template-columns: 1fr; }
+}
+</style>
+<noscript><style>.app{opacity:1}#wake{display:none}</style></noscript>
+</head><body>
+<div id="wake" aria-hidden="true"><div class="disc"></div></div>
+<div class="app" data-desktop="control-console">
+<header><div><p class="kicker">Obsidian Open Mind</p><h1>Control console</h1></div>
+<div class="tools"><nav class="entries" aria-label="Products">
+<a href="/one">Galion One</a><a href="/research">Galion Research</a></nav>
+<button type="button" id="mute" aria-pressed="false">Mute</button>
+<button type="button" id="silence" aria-pressed="false">Silence</button></div></header>
+<section class="stack panel" aria-label="Stack"><h2>Stack</h2><ol>
+<li data-layer="galion-one"><span class="name">Galion One</span><span class="state">staged</span><span class="seen"></span><span class="role">Voice</span></li>
+<li data-layer="research"><span class="name">Galion Research</span><span class="state">staged</span><span class="seen"></span><span class="role">Research</span></li>
+</ol>
+<p class="notes" id="look-state">The stack list is not a health check.</p>
+<p class="notes" id="look-empty">No probe yet.</p>
+<button type="button" id="look">Look at the local stack</button>
+<ul class="chips" id="look-rows"></ul></section>
+<main class="stage panel" id="main"><div class="presence">
+<h2>Open Mind</h2>
+<p>Ask from here. The command stays on this page.</p>
+<nav class="hub" aria-label="Launch">
+<a class="tile" data-launch="one" href="http://127.0.0.1:8091/"><span class="kicker">Galion One</span><span class="role">Voice companion on this machine.</span><span class="url">127.0.0.1:8091</span></a>
+<a class="tile" data-launch="research" href="http://127.0.0.1:18080/research"><span class="kicker">Galion Research</span><span class="role">Research room on this machine.</span><span class="url">127.0.0.1:18080/research</span></a>
+</nav>
+<p class="notes" id="words"></p><p class="notes" id="quiet"></p><p class="notes" id="printed"></p><p class="notes" id="here"></p>
+<div class="prompt"><label class="plus"><input id="files" type="file" multiple aria-label="Add files"></label>
+<input id="command" type="text" autocomplete="off" aria-label="Command">
+<button type="button" id="voice" aria-pressed="false" aria-label="Voice">Voice</button></div>
+<ul class="chips" id="picked"></ul>
+<label class="opt"><input id="mic-opt" type="checkbox"> Allow the microphone on this machine.</label>
+<p class="notes" id="voice-state">Microphone closed.</p>
+<p class="notes" id="mic-level"></p>
+<div class="notes"><p>Kept on this page</p><ul id="kept"></ul></div>
+</div></main>
+<div id="win" class="win" hidden><div class="sheet"><p class="kicker" id="win-kicker"></p><h2 id="win-title"></h2>
+<p id="win-copy"></p><p><a class="back" id="win-open" href="http://127.0.0.1:8091/">Open</a></p>
+<p class="notes" id="win-url"></p><button type="button" id="win-close">Close</button></div></div>
+<audio data-tone="wake" src="wake.wav" preload="auto"></audio>
+<audio data-tone="notice" src="wake.wav" preload="none"></audio>
+<audio data-tone="deny" src="wake.wav" preload="none"></audio>
+<audio data-tone="done" src="wake.wav" preload="none"></audio>
+<script>(function () {
+  var files = document.getElementById("files");
+  var command = document.getElementById("command");
+  var voice = document.getElementById("voice");
+  var voiceState = document.getElementById("voice-state");
+  var level = document.getElementById("mic-level");
+  var opt = document.getElementById("mic-opt");
+  var picked = document.getElementById("picked");
+  var kept = document.getElementById("kept");
+  var mute = document.getElementById("mute");
+  var look = document.getElementById("look");
+  var lookRows = document.getElementById("look-rows");
+  var lookState = document.getElementById("look-state");
+  var live = null;
+  var ctx = null;
+  var raf = 0;
+  function night() {
+    var h = new Date().getHours();
+    return h >= 22 || h < 7;
+  }
+  function storeSilence(on) {
+    try { localStorage.setItem("galion-silence", on ? "1" : "0"); } catch (e) {}
+  }
+  function silenceStored() {
+    var query = false;
+    try { query = new URLSearchParams(location.search).get("silence") === "1"; } catch (e) {}
+    if (query) storeSilence(true);
+    try { return localStorage.getItem("galion-silence") === "1"; } catch (e2) { return query; }
+  }
+  function quiet() {
+    return mute.getAttribute("aria-pressed") === "true" || night() || silenceStored();
+  }
+  function play(id) {
+    if (quiet()) return;
+    var el = document.querySelector("audio[data-tone='" + id + "']");
+    if (!el) return;
+    try { el.currentTime = 0; } catch (e) {}
+    var pending = el.play();
+    if (pending && pending.catch) pending.catch(function () {});
+  }
+  function reduced() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+  function strike(context, frequency, when, dur, gain) {
+    var osc = context.createOscillator();
+    var amp = context.createGain();
+    osc.frequency.value = frequency;
+    osc.type = "sine";
+    amp.gain.setValueAtTime(0.0001, when);
+    amp.gain.exponentialRampToValueAtTime(Math.max(0.001, gain), when + 0.003);
+    amp.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(amp);
+    amp.connect(context.destination);
+    osc.start(when);
+    osc.stop(when + dur + 0.02);
+  }
+  function bell(name) {
+    if (quiet()) return;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      if (!window.__galionEar) window.__galionEar = new AC();
+    } catch (e) { return; }
+    var context = window.__galionEar;
+    if (context.resume) {
+      var pending = context.resume();
+      if (pending && pending.catch) pending.catch(function () {});
+    }
+    var fund = name === "close" ? 216 : 432;
+    var partials = [[1, 1], [3, 2], [2, 1], [5, 2], [3, 1], [4, 1]];
+    var gains = [0.16, 0.09, 0.055, 0.03, 0.02, 0.012];
+    var now = context.currentTime;
+    var i;
+    for (i = 0; i < partials.length; i = i + 1) {
+      strike(context, fund * (partials[i][0] / partials[i][1]), now, 0.7, gains[i]);
+    }
+  }
+  var LAUNCH = {
+    one: {
+      title: "Galion One",
+      copy: "Opens the voice surface on this machine. This desktop does not start it.",
+      href: "http://127.0.0.1:8091/"
+    },
+    research: {
+      title: "Galion Research",
+      copy: "Opens the research room on this machine. This desktop does not start it.",
+      href: "http://127.0.0.1:18080/research"
+    }
+  };
+  var returnFocus = null;
+  function openWin(id) {
+    var spec = LAUNCH[id];
+    var win = document.getElementById("win");
+    var app = document.querySelector(".app");
+    if (!spec || !win) return;
+    document.getElementById("win-kicker").textContent = "On this machine";
+    document.getElementById("win-title").textContent = spec.title;
+    document.getElementById("win-copy").textContent = spec.copy;
+    var link = document.getElementById("win-open");
+    link.href = spec.href;
+    link.textContent = "Open " + spec.title;
+    document.getElementById("win-url").textContent = spec.href;
+    returnFocus = document.activeElement;
+    win.hidden = false;
+    win.setAttribute("data-state", "open");
+    if (app) app.setAttribute("data-window", "open");
+    link.focus();
+    bell("open");
+  }
+  function finishClose() {
+    var win = document.getElementById("win");
+    var app = document.querySelector(".app");
+    if (win) {
+      win.hidden = true;
+      win.setAttribute("data-state", "open");
+    }
+    if (app) app.removeAttribute("data-window");
+    if (returnFocus && returnFocus.focus) returnFocus.focus();
+  }
+  function closeWin() {
+    var win = document.getElementById("win");
+    if (!win || win.hidden) return;
+    bell("close");
+    if (reduced()) { finishClose(); return; }
+    win.setAttribute("data-state", "close");
+    window.setTimeout(finishClose, 320);
+  }
+  function beginWake() {
+    var veil = document.getElementById("wake");
+    var app = document.querySelector(".app");
+    var live = location.protocol !== "file:" && loopbackPage();
+    if (!live || reduced()) {
+      if (app) app.setAttribute("data-awake", "1");
+      if (veil) veil.hidden = true;
+      return;
+    }
+    if (!veil) {
+      if (app) app.setAttribute("data-awake", "1");
+      return;
+    }
+    veil.hidden = false;
+    window.requestAnimationFrame(function () {
+      veil.setAttribute("data-phase", "expand");
+      if (app) app.setAttribute("data-awake", "1");
+    });
+    window.setTimeout(function () { veil.hidden = true; }, 640);
+  }
+  function paintSilence() {
+    var button = document.getElementById("silence");
+    if (!button) return;
+    var on = silenceStored();
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+    button.textContent = on ? "Sound" : "Silence";
+    if (!on || night()) return;
+    var line = document.getElementById("quiet");
+    if (line && !line.textContent) line.textContent = "Silence is on. Tones stay quiet.";
+  }
+  function toggleSilence() {
+    var button = document.getElementById("silence");
+    if (!button) return;
+    var on = button.getAttribute("aria-pressed") === "true";
+    storeSilence(!on);
+    if (on) {
+      var line = document.getElementById("quiet");
+      if (line && line.textContent === "Silence is on. Tones stay quiet.") line.textContent = "";
+    }
+    paintSilence();
+  }
+  function bindLaunch() {
+    var tiles = document.querySelectorAll(".hub .tile");
+    var i;
+    for (i = 0; i < tiles.length; i = i + 1) {
+      tiles[i].addEventListener("click", function (ev) {
+        if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button) return;
+        ev.preventDefault();
+        openWin(ev.currentTarget.getAttribute("data-launch"));
+      });
+    }
+    var close = document.getElementById("win-close");
+    if (close) close.addEventListener("click", closeWin);
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key !== "Escape") return;
+      var win = document.getElementById("win");
+      if (!win || win.hidden) return;
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      closeWin();
+    });
+  }
+  function loopbackPage() {
+    var host = location.hostname;
+    if (location.protocol === "file:") return true;
+    return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "[::1]";
+  }
+  function stopMic() {
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    if (live) {
+      var tracks = live.getTracks();
+      var i;
+      for (i = 0; i < tracks.length; i = i + 1) tracks[i].stop();
+      live = null;
+    }
+    if (ctx) { ctx.close(); ctx = null; }
+    voice.setAttribute("aria-pressed", "false");
+    level.textContent = "";
+    voiceState.textContent = "Microphone closed. Nothing was saved.";
+    clearSeenWord("voice", "open");
+    if (mute.getAttribute("aria-pressed") === "true") markSeen("voice", "muted");
+  }
+  function pump(analyser) {
+    var buf = new Float32Array(analyser.fftSize);
+    function tick() {
+      if (!live) return;
+      analyser.getFloatTimeDomainData(buf);
+      var sum = 0;
+      var i;
+      for (i = 0; i < buf.length; i = i + 1) sum = sum + buf[i] * buf[i];
+      level.textContent = "Level " + String(Math.round(Math.sqrt(sum / buf.length) * 100));
+      raf = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+  function startMic() {
+    if (!opt.checked) {
+      voiceState.textContent = "Tick the box before the microphone opens.";
+      play("deny");
+      return;
+    }
+    if (!loopbackPage()) {
+      voiceState.textContent = "Microphone stays closed away from loopback.";
+      play("deny");
+      return;
+    }
+    var devices = navigator.mediaDevices;
+    if (!devices || !devices.getUserMedia) {
+      voiceState.textContent = "This browser has no microphone API.";
+      play("deny");
+      return;
+    }
+    devices.getUserMedia({ audio: true, video: false }).then(function (stream) {
+      live = stream;
+      ctx = new AudioContext();
+      var source = ctx.createMediaStreamSource(stream);
+      var analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      voice.setAttribute("aria-pressed", "true");
+      voiceState.textContent = "Microphone open on this machine. Audio is not saved or sent.";
+      markSeen("voice", "open");
+      play("ask");
+      pump(analyser);
+    }).catch(function () {
+      stopMic();
+      voiceState.textContent = "Microphone permission was refused. Nothing was saved.";
+      play("deny");
+    });
+  }
+  function fault(text) {
+    var key = "\"error\":\"";
+    var at = text.indexOf(key);
+    if (at < 0) return "refused";
+    var rest = text.slice(at + key.length);
+    var end = rest.indexOf("\"");
+    if (end < 0) return "refused";
+    return rest.slice(0, end);
+  }
+  function sendFile(file, done) {
+    var row = document.createElement("li");
+    row.className = "chip";
+    row.textContent = file.name;
+    picked.appendChild(row);
+    if (!file.size || file.size > 8388608) {
+      row.textContent = file.name + " — " + (file.size ? "too large" : "empty");
+      play("deny");
+      done();
+      return;
+    }
+    var pending;
+    try {
+      pending = fetch("/files", {
+        method: "POST",
+        credentials: "omit",
+        headers: { "X-File-Name": file.name },
+        body: file
+      });
+    } catch (e) {
+      row.textContent = file.name + " — not sent";
+      play("deny");
+      done();
+      return;
+    }
+    pending.then(function (res) {
+      return res.text().then(function (text) {
+        if (res.ok) {
+          row.textContent = file.name + " — sent";
+          markSeen("galion-one", "sent");
+        } else {
+          row.textContent = file.name + " — " + fault(text);
+          play("deny");
+        }
+        done();
+      });
+    }).catch(function () {
+      row.textContent = file.name + " — not sent";
+      play("deny");
+      done();
+    });
+  }
+  function sendAt(list, i) {
+    if (i >= list.length) return;
+    sendFile(list[i], function () { sendAt(list, i + 1); });
+  }
+  files.addEventListener("click", function () {
+    markSeen("files", "open");
+  });
+  files.addEventListener("change", function () {
+    picked.textContent = "";
+    var list = files.files;
+    if (list.length) play("hear");
+    sendAt(list, 0);
+  });
+  function toggleVoice() {
+    if (voice.getAttribute("aria-pressed") === "true") {
+      stopMic();
+      play("close");
+    } else {
+      startMic();
+    }
+  }
+  voice.addEventListener("click", toggleVoice);
+  opt.addEventListener("change", function () {
+    if (!opt.checked) stopMic();
+  });
+  command.addEventListener("keydown", function (ev) {
+    if (ev.key !== "Enter") return;
+    ev.preventDefault();
+    var text = command.value.replace(/^\s+|\s+$/g, "");
+    if (!text) { play("deny"); return; }
+    var row = document.createElement("li");
+    row.textContent = text;
+    kept.appendChild(row);
+    command.value = "";
+    var word = text.toLowerCase();
+    if (word === "look") { runLook(); return; }
+    if (word === "files") { files.click(); return; }
+    if (word === "voice") { toggleVoice(); return; }
+    if (word === "mute") { toggleMute(); return; }
+    markSeen("command", "kept");
+    play("done");
+  });
+  function probeWord(item) {
+    if (!item || !item.enabled) return "off";
+    var state = String(item.state || "unknown");
+    if (state !== "up" && state !== "down" && state !== "unknown") return "unknown";
+    return state;
+  }
+  function setLookEmpty(on) {
+    var empty = document.getElementById("look-empty");
+    if (empty) empty.hidden = !on;
+  }
+  function clearSeen() {
+    var rows = document.querySelectorAll("li[data-layer]");
+    var n;
+    for (n = 0; n < rows.length; n = n + 1) {
+      var mark = rows[n].querySelector(".seen");
+      if (mark) mark.textContent = "";
+    }
+  }
+  function markSeen(service, word) {
+    var rows = document.querySelectorAll("li[data-layer]");
+    var n;
+    for (n = 0; n < rows.length; n = n + 1) {
+      if (rows[n].getAttribute("data-layer") !== service) continue;
+      var mark = rows[n].querySelector(".seen");
+      if (mark) mark.textContent = word;
+    }
+  }
+  function clearSeenWord(service, word) {
+    var rows = document.querySelectorAll("li[data-layer]");
+    var n;
+    for (n = 0; n < rows.length; n = n + 1) {
+      if (rows[n].getAttribute("data-layer") !== service) continue;
+      var mark = rows[n].querySelector(".seen");
+      if (mark && mark.textContent === word) mark.textContent = "";
+    }
+  }
+  function markHere() {
+    if (location.protocol === "file:" || !loopbackPage()) return;
+    markSeen("open-mind", "here");
+  }
+  function runLook() {
+    lookRows.textContent = "";
+    clearSeen();
+    setLookEmpty(true);
+    if (location.protocol === "file:" || !loopbackPage()) {
+      lookState.textContent = "Look only runs on the loopback listener.";
+      play("deny");
+      return;
+    }
+    markHere();
+    var pending;
+    try {
+      pending = fetch("/probes", { method: "GET", credentials: "omit" });
+    } catch (e) {
+      lookState.textContent = "The local stack did not answer.";
+      play("deny");
+      return;
+    }
+    pending.then(function (res) {
+      return res.text().then(function (text) {
+        var data;
+        if (!res.ok) {
+          lookState.textContent = "The local stack did not answer.";
+          play("deny");
+          return;
+        }
+        try { data = JSON.parse(text); } catch (err) {
+          lookState.textContent = "The probe report was not readable.";
+          play("deny");
+          return;
+        }
+        var probes = data && data.probes;
+        if (!probes || !probes.length) {
+          lookState.textContent = "No probes were enabled. Rows stay staged or planned.";
+          play("notice");
+          return;
+        }
+        var wants = false;
+        var i;
+        for (i = 0; i < probes.length; i = i + 1) {
+          var item = probes[i];
+          var row = document.createElement("li");
+          row.className = "chip";
+          var word = probeWord(item);
+          row.textContent = String(item.service || "service") + " — " + word;
+          lookRows.appendChild(row);
+          markSeen(String(item.service || ""), word);
+          if (item.enabled && word !== "up") wants = true;
+        }
+        setLookEmpty(false);
+        lookState.textContent = wants
+          ? "The local stack wants a look. Rows stay staged or planned."
+          : "The local stack answered. Rows stay staged or planned.";
+        if (wants) play("notice");
+      });
+    }).catch(function () {
+      lookState.textContent = "The local stack did not answer.";
+      play("deny");
+    });
+  }
+  look.addEventListener("click", runLook);
+  function markMuted() {
+    if (voice.getAttribute("aria-pressed") === "true") return;
+    markSeen("voice", "muted");
+  }
+  function toggleMute() {
+    var on = mute.getAttribute("aria-pressed") === "true";
+    mute.setAttribute("aria-pressed", on ? "false" : "true");
+    mute.textContent = on ? "Mute" : "Muted";
+    if (on) clearSeenWord("voice", "muted");
+    else markMuted();
+  }
+  var woke = false;
+  mute.addEventListener("click", toggleMute);
+  var silence = document.getElementById("silence");
+  if (silence) silence.addEventListener("click", toggleSilence);
+  if (night()) {
+    var quiet = document.getElementById("quiet");
+    if (quiet) quiet.textContent = "Tones are quiet until 07:00.";
+  }
+  paintSilence();
+  if (location.protocol === "file:") {
+    var printed = document.getElementById("printed");
+    if (printed) printed.textContent = "This is a printed page. Look and uploads need the loopback listener.";
+  }
+  beginWake();
+  if (!woke && location.protocol !== "file:" && loopbackPage()) {
+    var here = document.getElementById("here");
+    if (here) here.textContent = "Listening on " + location.host + ".";
+    markHere();
+    woke = true;
+    play("wake");
+  }
+  bindLaunch();
+  var openTo = "";
+  try { openTo = new URLSearchParams(location.search).get("open") || ""; } catch (e) {}
+  if (openTo === "one" || openTo === "research") openWin(openTo);
+})();
+</script>
+</div></body></html>

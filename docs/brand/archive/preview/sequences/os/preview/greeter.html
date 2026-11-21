@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Galion</title>
+  <link rel="stylesheet" href="../tokens/tokens.css">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="../session/wake.css">
+  <link rel="stylesheet" href="greeter.css">
+</head>
+<body>
+  <main>
+    <div class="mark rise">
+      <img src="../marks/icon-os.svg" alt="" width="96" height="96">
+    </div>
+    <h1 class="rise">Galion</h1>
+    <form class="rise" action="#">
+      <label class="field">
+        <span>Password</span>
+        <input type="password" name="password" autocomplete="off" spellcheck="false">
+      </label>
+      <button type="submit">Enter</button>
+    </form>
+  </main>
+  <script>
+    document.querySelector("form").addEventListener("submit", function (event) {
+      event.preventDefault();
+    });
+  </script>
+</body>
+</html>
