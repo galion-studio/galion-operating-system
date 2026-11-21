@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Galion boot assets</title>
+  <link rel="stylesheet" href="animations/om-rise.css">
+  <link rel="stylesheet" href="animations/status-pulse.css">
+  <style>
+    body { margin: 0; background: #0B0F14; color: #E6EDF3; font: 16px/1.45 system-ui, sans-serif; }
+    main { max-width: 40rem; margin: 0 auto; padding: 24px 16px 48px; }
+    a { color: #E6EDF3; }
+    h1 { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.03em; }
+    .chip { display: inline-block; margin: 12px 0; padding: 8px 12px; border: 1px solid #2a3340; border-radius: 11px; background: #131A22; }
+    .dot { display: inline-block; width: 0.375rem; height: 0.375rem; border-radius: 999px; background: #3DDC97; vertical-align: middle; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Boot assets</h1>
+  <p>These are the definitions vendored under <code>desktop/boot</code>. This page does not play a tone. The init hook still records zero samples.</p>
+  <p class="chip">Console chip. The rise is <code>om-rise</code>.</p>
+  <p><span class="dot online"></span> Console online pulse.</p>
+  <p><a href="animations/one-dot.html">One-dot canvas</a>. The disc stays at rest. In the source page the radius follows a socket level, and that socket is not in this tree.</p>
+  <p><a href="animations/host-splash.html">Host splash</a>. A static page from the host crate. The Plymouth theme is separate, under plymouth/.</p>
+  <p>The session player is separate. This page still does not play a tone.</p>
+  <h2>Galion OS tones</h2>
+  <ul id="tones"></ul>
+</main>
+<script src="sounds/os-tones.js"></script>
+<script>
+  var list = document.getElementById("tones");
+  var sounds = window.GALION_OS || [];
+  var i;
+  for (i = 0; i < sounds.length; i = i + 1) {
+    var item = document.createElement("li");
+    item.textContent = sounds[i].id;
+    list.appendChild(item);
+  }
+</script>
+</body>
+</html>

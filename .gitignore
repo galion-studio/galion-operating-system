@@ -18,6 +18,15 @@
 # Supplied startup sound. Not a voice recording.
 !desktop/boot/sounds/galion-os-startup.mp3
 !desktop/boot/sounds/galion-os-startup.ogg
+# Same tones, copied into the brand archive. Not voice.
+!docs/brand/archive/galion-operating-system/desktop/boot/sounds/boot.wav
+!docs/brand/archive/galion-operating-system/desktop/boot/sounds/boot.ogg
+!docs/brand/archive/galion-operating-system/desktop/boot/sounds/shutdown.wav
+!docs/brand/archive/galion-operating-system/desktop/boot/sounds/shutdown.ogg
+!docs/brand/archive/galion-operating-system/desktop/boot/sounds/wake.wav
+!docs/brand/archive/galion-operating-system/desktop/boot/sounds/wake.ogg
+!docs/brand/archive/galion-operating-system/desktop/boot/sounds/galion-os-startup.mp3
+!docs/brand/archive/galion-operating-system/desktop/boot/sounds/galion-os-startup.ogg
 *.m4a
 *.onnx
 *.safetensors
