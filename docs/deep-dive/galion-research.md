@@ -1,6 +1,6 @@
 # Galion Research
 
-Repository `galion-studio/hermes-research` at `13ff29389c7d7528d7c3d3a667a7abb9e7153081`. The README calls it a PhD-level research workspace for `research.galion.app`, separate from Galion One, with its own memory, and not a copy of the One page.
+Repository `galion-studio/hermes-research` at `13ff29389c7d7528d7c3d3a667a7abb9e7153081`. The README calls it a PhD-level research workspace for `research.galion.app`, separate from Galion One, with its own memory, and not a copy of the One page. The owner says Galion Research and Galion One are the two apps currently in use. Galion App is an older secondary tree.
 
 Laptop decision, restated: the target is Rust on `127.0.0.1` with files under `G:\galion\`. This desk is Node. That is a gap. The Titanaxe VPS, also called Titan X by the owner, is out.
 

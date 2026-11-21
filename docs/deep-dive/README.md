@@ -10,6 +10,8 @@ Processes for this work run in Rust on `127.0.0.1` on the owner's laptop. Laptop
 
 Galion OS does not start the other processes. `galion-init` keeps a boot plan in memory. Several pieces are still Node, Python, or an unlinked seam. Those gaps are in the files below and in the stack map.
 
+The owner says the two apps currently in use are Galion Research and Galion One. Galion App is an older secondary tree. The static `site/` pages and the private `galion-app` repository stay documented in the stack map. They are not those two apps.
+
 ## Commits read
 
 | Repository | Commit |
