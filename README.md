@@ -41,7 +41,7 @@ The short path onto a Pi 5 is [Galion on a Raspberry Pi 5](docs/PI5.md). The com
 
 ## Windows laptop
 
-An Ubuntu 24.04 WSL2 guest whose disk, swap, and installer temp files stay on `G:\galion` is [the Windows-side installer](packaging/windows/wsl-on-g/README.md). It is the place for the Obsidian desktop and Galion One Voice checkouts. It does not build the Galion OS image. That image remains the Ubuntu 26.04 plan in [the packaging note](docs/PACKAGING.md), and it still waits on `galion-init`.
+From an elevated PowerShell, in a checkout of this repository, the owner command is `.\packaging\windows\wsl-on-g\Install-GalionUbuntuOnG.cmd`. It imports an Ubuntu 24.04 WSL2 guest named `Galion-Ubuntu` onto `G:\galion`. It does not delete the existing `Ubuntu` distro or `docker-desktop`. The note is [the Windows-side installer](packaging/windows/wsl-on-g/README.md). It does not build the Galion OS image. That image remains the Ubuntu 26.04 plan in [the packaging note](docs/PACKAGING.md), and it still waits on `galion-init`.
 
 ## How the pieces fit
 

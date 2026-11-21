@@ -359,7 +359,9 @@ Describe 'repository locks' {
         $note | Should -Match ([regex]::Escape($pin.Sha256))
         $note | Should -Match ([regex]::Escape($pin.Url))
         $note | Should -Match ([regex]::Escape([string]$pin.Bytes))
-        $note | Should -Not -Match '\d{1,3}(\.\d{1,3}){3}'
+        foreach ($addr in @([regex]::Matches($note, '\d{1,3}(\.\d{1,3}){3}') | ForEach-Object { $_.Value })) {
+            $addr | Should -Be '127.0.0.1'
+        }
     }
 
     It 'keeps the canonical LICENSE byte-identical' {

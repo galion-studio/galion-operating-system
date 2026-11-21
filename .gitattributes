@@ -1,2 +1,7 @@
+packaging/wsl/** text eol=lf
 packaging/windows/wsl-on-g/*.ps1 text eol=lf
+packaging/windows/wsl-on-g/**/*.ps1 text eol=lf
 packaging/windows/wsl-on-g/*.md text eol=lf
+packaging/windows/wsl-on-g/**/*.sh text eol=lf
+packaging/windows/wsl-on-g/**/*.env text eol=lf
+packaging/windows/wsl-on-g/**/*.cmd text eol=crlf

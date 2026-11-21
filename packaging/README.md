@@ -30,7 +30,11 @@ The first command exits 0 and writes nothing. `--execute`, `--build`, `--flash`,
 
 ## Windows laptop
 
-`packaging/windows/wsl-on-g/Install-GalionWSL.ps1` is a different artifact from the image dry run above. It imports the official Ubuntu 24.04 WSL rootfs with `wsl --import` so the distro disk lives on `G:\galion`. `-DryRun` writes nothing. The Pester check is `.github/workflows/wsl-on-g.yml`. A green run of that check is not a Windows install. The note is [packaging/windows/wsl-on-g/README.md](windows/wsl-on-g/README.md). The existing `Ubuntu` 26.04.1 disk at `G:\galion\wsl\ubuntu` and `docker-desktop` are not this distro.
+The owner entry point is [packaging/windows/wsl-on-g/Install-GalionUbuntuOnG.cmd](windows/wsl-on-g/Install-GalionUbuntuOnG.cmd). It imports `Galion-Ubuntu` onto `G:\galion`, merges the existing `.wslconfig`, then runs the provisioner below, the Open Mind desktop installer, and the voice installer. `-DryRun` writes nothing. It does not delete the existing `Ubuntu` disk at `G:\galion\wsl\ubuntu` or `docker-desktop`.
+
+On this laptop the Node research desk is recorded at port 8797, so it does not share 8787 with the owner's HORBM preview. The Pi 5 desktop entry in the image story above stays on 8787. This installer does not start either process. `docs/deep-dive/horbm.md` records no listen port for `horbm-memory`.
+
+`packaging/windows/wsl-on-g/Install-GalionWSL.ps1` is the Windows-side sector script. It is not the owner entry point. Its note is the same [README](windows/wsl-on-g/README.md). The Pester check is `.github/workflows/wsl-on-g.yml`. A green run of that check is not a Windows install.
 
 ## WSL2 Galion-Ubuntu
 
@@ -54,6 +58,6 @@ wsl -d Galion-Ubuntu -u root -- bash /path/to/packaging/wsl/provision-galion-ubu
 
 The real run creates the login user `galion`, installs `build-essential`, `git`, `curl`, a stable Rust toolchain via rustup, the current Node.js LTS, and `python3-venv`, then WSLg font and audio clients. IBM Plex, the face named by the GTK session file, is Ubuntu's `fonts-ibm-plex` package from multiverse, and the ALSA Pulse plugin is in universe. The script enables those two archive components when the Ubuntu source list does not already have them. Desktop entries, icons, and the GTK session files come from `desktop/install.sh --system`. XDG directories stay under `/home/galion`. `/etc/wsl.conf` sets `systemd=true` and `default=galion`.
 
-Apt, rustup, Cargo, npm, pip, and font caches stay on the distro filesystem (`/var`, `/opt/galion`, `/home/galion`). Temp files use `/var/cache/galion/tmp`. Cargo build output uses `/opt/galion/cargo/target`. That filesystem is the distro disk on `G:`. `systemd=true` takes effect after the distro is restarted from Windows.
+Apt, rustup, Cargo, npm, pip, and font caches stay on the distro filesystem (`/var`, `/opt/galion`, `/home/galion`). Temp files use `/var/cache/galion/tmp`. Cargo build output uses `/opt/galion/cargo/target`. That filesystem is the distro disk on `G:`. `systemd=true` takes effect after this distro is started again. The owner entry terminates only `Galion-Ubuntu`. It does not run `wsl --shutdown`, because that stops every other WSL distro on the machine. The provisioner prints a restart line that names `wsl --shutdown`. The owner entry does not follow that line.
 
 The workflow is `.github/workflows/wsl-provision.yml`. It runs shellcheck and this script in an `ubuntu:24.04` container, in `--dry-run` and in real mode. A green run is not a Windows install. The script does not build an image and does not publish a release. `--publish`, `--flash`, `--deploy`, `--execute`, and `--build` exit 2.
