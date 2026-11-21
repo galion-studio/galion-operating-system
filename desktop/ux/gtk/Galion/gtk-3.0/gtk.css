@@ -1,0 +1,104 @@
+/* Generated from tokens.json by export.py. Do not edit.
+   GTK export of the Open Mind console colours.
+   Focus on dark is sky. Focus on light is ocean.
+   Violet is a wash on the OS surface and is not an error colour.
+   The 3200ms breath stays on the presence dot.
+   Controls use the 160ms console rise. */
+
+@define-color theme_bg_color #0B0F14;
+@define-color theme_fg_color #E6EDF3;
+@define-color theme_base_color #131A22;
+@define-color theme_text_color #E6EDF3;
+@define-color theme_selected_bg_color #58C4FF;
+@define-color theme_selected_fg_color #0B0F14;
+@define-color theme_unfocused_fg_color #A7B6C4;
+@define-color borders #24303C;
+@define-color warning_color #F5A524;
+@define-color error_color #E6EDF3;
+@define-color galion_dot #F5F5F7;
+@define-color galion_obsidian #0A0A0C;
+
+* {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+window,
+.background {
+  background-color: @theme_bg_color;
+  color: @theme_fg_color;
+}
+
+headerbar,
+.titlebar,
+.toolbar {
+  background-color: @theme_base_color;
+  color: @theme_fg_color;
+  border-bottom: 1px solid @borders;
+}
+
+button,
+entry,
+.entry {
+  border-radius: 11px;
+  border: 1px solid @borders;
+  background-color: @theme_base_color;
+  color: @theme_fg_color;
+  padding: 8px 16px;
+  transition: background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+button:hover {
+  border-color: @theme_selected_bg_color;
+}
+
+entry:focus,
+button:focus {
+  border-color: @theme_selected_bg_color;
+  outline: none;
+}
+
+selection,
+:selected {
+  background-color: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+}
+
+menu,
+popover,
+tooltip {
+  background-color: @theme_base_color;
+  color: @theme_fg_color;
+  border: 1px solid @borders;
+  border-radius: 6px;
+}
+
+scrollbar trough {
+  background-color: #05070A;
+}
+
+scrollbar slider {
+  background-color: #1B2633;
+  border-radius: 999px;
+  min-width: 6px;
+  min-height: 6px;
+}
+
+@media (prefers-color-scheme: light) {
+  @define-color theme_bg_color #F7F9FB;
+  @define-color theme_fg_color #0B0F14;
+  @define-color theme_base_color #EEF2F6;
+  @define-color theme_text_color #0B0F14;
+  @define-color theme_selected_bg_color #0B5FA5;
+  @define-color theme_selected_fg_color #FFFFFF;
+  @define-color theme_unfocused_fg_color #3F4C59;
+  @define-color borders #D5DDE5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none;
+    transition: none;
+  }
+}

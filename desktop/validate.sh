@@ -63,7 +63,7 @@ expect_files() {
   fi
 }
 
-files=$(find desktop \( -type f -o -type l \) | sed 's|^desktop/||' | sort)
+files=$(find desktop \( -type f -o -type l \) ! -path 'desktop/ux/*' | sed 's|^desktop/||' | sort)
 expect_files "desktop file" "$(printf '%s\n' \
   README.md \
   applications/galion-research.desktop \

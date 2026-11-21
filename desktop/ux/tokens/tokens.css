@@ -1,0 +1,96 @@
+/* Generated from tokens.json by export.py. Do not edit.
+   Voice ground and the Open Mind console share one family.
+   The OS surface keeps #0A0A0C. The console keeps #0B0F14.
+   This file does not fetch a font. */
+
+:root {
+  /* Galion OS, the voice ground */
+  --galion-obsidian: #0A0A0C;
+  --galion-panel: #141418;
+  --galion-hairline: #2C2C33;
+  --galion-dot: #F5F5F7;
+  --galion-amber: #F5A524;
+  --galion-violet: #7C3AED;
+  --galion-heather: #B695CF;
+  --galion-mist: #A7B6C4;
+  --galion-text: #F5F5F7;
+
+  /* Obsidian Open Mind, the same names as brand/tokens.css */
+  --om-obsidian: #05070A;
+  --om-ink: #0B0F14;
+  --om-surface: #131A22;
+  --om-glass: #1B2633;
+  --om-line: #24303C;
+  --om-slate: #4A7C99;
+  --om-mist: #A7B6C4;
+  --om-text: #E6EDF3;
+  --om-sky: #58C4FF;
+  --om-ice: #B8E8FF;
+  --om-ocean: #0B5FA5;
+  --om-paper: #F7F9FB;
+  --om-muted-paper: #3F4C59;
+
+  --om-bg: var(--om-ink);
+  --om-bg-deep: var(--om-obsidian);
+  --om-panel: var(--om-surface);
+  --om-fg: var(--om-text);
+  --om-fg-muted: var(--om-mist);
+  --om-accent: var(--om-sky);
+  --om-accent-fg: var(--om-ink);
+  --om-border: var(--om-line);
+  --om-focus: var(--om-sky);
+  color-scheme: dark;
+
+  /* type */
+  --galion-font-display: "Jost", "IBM Plex Sans", system-ui, sans-serif;
+  --galion-font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --galion-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --galion-size-label: 12px;
+  --galion-size-meta: 13px;
+  --galion-size-body: 16px;
+  --galion-size-title: 18px;
+  --galion-size-heading: 21.6px;
+  --galion-size-display: 40px;
+  --galion-leading: 1.45;
+  --galion-tracking-display: -0.02em;
+  --galion-tracking-byline: 0.16em;
+
+  /* space, the console steps */
+  --galion-space-2: 8px;
+  --galion-space-3: 12px;
+  --galion-space-4: 16px;
+  --galion-space-5: 24px;
+  --galion-space-6: 32px;
+
+  /* shape. icon is the Galion OS mark: rx 10 on a 44px square */
+  --galion-radius-sm: 6px;
+  --galion-radius-md: 11px;
+  --galion-radius-card: 18px;
+  --galion-radius-pill: 999px;
+  --galion-radius-icon: 22.727%;
+
+  /* motion */
+  --galion-wake-duration: 160ms;
+  --galion-wake-easing: ease;
+  --galion-color-duration: 160ms;
+  --galion-color-easing: ease;
+  --galion-breath-duration: 3200ms;
+  --galion-breath-easing: ease-in-out;
+  --galion-pulse-duration: 1.618s;
+  --galion-pulse-easing: cubic-bezier(.23,1,.32,1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --om-bg: var(--om-paper);
+    --om-bg-deep: var(--om-paper);
+    --om-panel: #EEF2F6;
+    --om-fg: var(--om-ink);
+    --om-fg-muted: var(--om-muted-paper);
+    --om-accent: var(--om-ocean);
+    --om-accent-fg: #FFFFFF;
+    --om-border: #D5DDE5;
+    --om-focus: var(--om-ocean);
+    color-scheme: light;
+  }
+}

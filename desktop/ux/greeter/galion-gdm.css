@@ -1,0 +1,76 @@
+/* Galion GDM theme. The desktop image is Ubuntu 26.04, whose greeter is GDM.
+   Dark, one mark, no extra chrome. Colours are desktop/ux/tokens/tokens.json.
+   The logo is the Galion OS mark, set by the dconf snippet beside this file.
+   Violet and amber are the background wash. They do not tint the mark. */
+
+#lockDialogGroup {
+  background-color: #0a0a0c;
+  background-image:
+    radial-gradient(ellipse 72% 48% at 12% -8%, rgba(245, 165, 36, 0.16), transparent 58%),
+    radial-gradient(ellipse 56% 42% at 100% 0%, rgba(124, 58, 237, 0.2), transparent 52%);
+}
+
+.login-dialog,
+.login-dialog .modal-dialog {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.login-dialog-banner,
+.login-dialog-message,
+.login-dialog-prompt-layout {
+  color: #a7b6c4;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 16px;
+}
+
+.login-dialog-logo-bin {
+  padding-bottom: 24px;
+}
+
+#lockDialogGroup StEntry {
+  background-color: #141418;
+  color: #f5f5f7;
+  border: 1px solid #2c2c33;
+  border-radius: 11px;
+  caret-color: #f5a524;
+  font-family: "IBM Plex Sans", sans-serif;
+}
+
+#lockDialogGroup StEntry:focus {
+  border-color: #f5a524;
+}
+
+.login-dialog-button,
+.login-dialog .modal-dialog-button {
+  background-color: transparent;
+  color: #f5f5f7;
+  border: 1px solid #2c2c33;
+  border-radius: 999px;
+  font-family: "Jost", "IBM Plex Sans", sans-serif;
+  font-weight: 500;
+}
+
+.login-dialog-button:hover,
+.login-dialog .modal-dialog-button:hover {
+  background-color: #141418;
+}
+
+.login-dialog-user-list-item {
+  color: #f5f5f7;
+}
+
+.login-dialog-user-list-item:focus,
+.login-dialog-user-list-item:hover {
+  background-color: #141418;
+}
+
+.login-dialog-user-list-item .user-icon {
+  border-radius: 22.727%;
+}
+
+.login-dialog-not-listed-label,
+.login-dialog-session-list-button {
+  color: #a7b6c4;
+}

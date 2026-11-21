@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated from tokens.json by export.py. Do not edit. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-labelledby="title">
+  <title id="title">Galion</title>
+  <rect width="1920" height="1080" fill="#0A0A0C"/>
+  <defs>
+    <radialGradient id="amber" cx="12%" cy="0%" r="42%">
+      <stop offset="0%" stop-color="#F5A524" stop-opacity="0.16"/>
+      <stop offset="58%" stop-color="#F5A524" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="violet" cx="100%" cy="0%" r="36%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.20"/>
+      <stop offset="52%" stop-color="#7C3AED" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#amber)"/>
+  <rect width="1920" height="1080" fill="url(#violet)"/>
+  <circle cx="960" cy="540" r="18" fill="#F5F5F7"/>
+</svg>
