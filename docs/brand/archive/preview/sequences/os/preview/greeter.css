@@ -1,0 +1,54 @@
+/* Greeter preview. The session theme is greeter/galion-gdm.css.
+   This page uses the same ground, mark, and field colours. */
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--galion-space-4);
+  width: min(320px, 100%);
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--galion-space-2);
+  width: 100%;
+}
+
+.field span {
+  color: var(--galion-mist);
+  font-size: var(--galion-size-meta);
+}
+
+input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  padding: 0 var(--galion-space-4);
+  border: 1px solid var(--galion-hairline);
+  border-radius: var(--galion-radius-md);
+  background: var(--galion-panel);
+  color: var(--galion-dot);
+  font: 400 var(--galion-size-body)/var(--galion-leading) var(--galion-font-sans);
+}
+
+button {
+  height: 44px;
+  margin: 0;
+  padding: 0 var(--galion-space-5);
+  border: 1px solid var(--galion-hairline);
+  border-radius: var(--galion-radius-pill);
+  background: transparent;
+  color: var(--galion-dot);
+  font: 500 var(--galion-size-body)/1 var(--galion-font-display);
+  letter-spacing: var(--galion-tracking-display);
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--galion-panel);
+}

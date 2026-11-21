@@ -27,6 +27,17 @@
 !docs/brand/archive/galion-operating-system/desktop/boot/sounds/wake.ogg
 !docs/brand/archive/galion-operating-system/desktop/boot/sounds/galion-os-startup.mp3
 !docs/brand/archive/galion-operating-system/desktop/boot/sounds/galion-os-startup.ogg
+# Same tones, copied next to the offline preview so it plays with no install.
+!docs/brand/archive/preview/sequences/os/boot/sounds/boot.wav
+!docs/brand/archive/preview/sequences/os/boot/sounds/boot.ogg
+!docs/brand/archive/preview/sequences/os/boot/sounds/shutdown.wav
+!docs/brand/archive/preview/sequences/os/boot/sounds/shutdown.ogg
+!docs/brand/archive/preview/sequences/os/boot/sounds/wake.wav
+!docs/brand/archive/preview/sequences/os/boot/sounds/wake.ogg
+!docs/brand/archive/preview/sequences/os/boot/sounds/galion-os-startup.mp3
+!docs/brand/archive/preview/sequences/os/boot/sounds/galion-os-startup.ogg
+# 432 Hz sine for the obsidian wake disc. Synthesised, not a recording.
+!docs/brand/archive/preview/sequences/obsidian-wake/wake.wav
 *.m4a
 *.onnx
 *.safetensors

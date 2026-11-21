@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Galion</title>
+  <link rel="stylesheet" href="../tokens/tokens.css">
+  <link rel="stylesheet" href="../boot/animations/om-rise.css">
+  <link rel="stylesheet" href="wake.css">
+  <script src="../tokens/tokens.js"></script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      if (params.get("mode") !== "desktop") {
+        document.documentElement.classList.add("welcome");
+      }
+      if (params.get("frame") === "mid") {
+        document.documentElement.classList.add("frame-mid");
+      }
+      if (params.has("preview")) {
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "../preview/fonts.css";
+        document.head.appendChild(link);
+      }
+    }());
+  </script>
+</head>
+<body>
+  <main>
+    <div class="mark rise">
+      <img src="../marks/icon-os.svg" alt="" width="96" height="96">
+    </div>
+    <h1 class="rise">Galion</h1>
+    <nav id="choices" aria-label="Start">
+      <a class="choice rise" id="choice-one" href="#one">
+        <img src="../marks/icon-one.svg" alt="" width="64" height="64">
+        <span>Galion One</span>
+      </a>
+      <a class="choice rise" id="choice-research" href="#research">
+        <img src="../marks/icon-research.svg" alt="" width="64" height="64">
+        <span>Galion Research</span>
+      </a>
+      <a class="choice rise" id="choice-desktop" href="#desktop">
+        <img src="../marks/icon-os.svg" alt="" width="64" height="64">
+        <span>Desktop</span>
+      </a>
+    </nav>
+  </main>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var tokens = window.GALION_TOKENS;
+      if (!tokens || !tokens.session) return;
+
+      function allowed(url) {
+        try {
+          var parsed = new URL(url);
+          return parsed.protocol === "http:" && parsed.hostname === "127.0.0.1";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      if (!params.has("preview")) {
+        ["one", "research", "desktop"].forEach(function (key) {
+          var node = document.getElementById("choice-" + key);
+          var url = tokens.session[key];
+          if (node && allowed(url)) node.setAttribute("href", url);
+        });
+      }
+
+      if (params.get("tone") === "page" && tokens.sound) {
+        var wake = null;
+        tokens.sound.tones.forEach(function (tone) {
+          if (tone.id === "wake") wake = tone;
+        });
+        if (wake && window.AudioContext) {
+          var context = new AudioContext();
+          var oscillator = context.createOscillator();
+          var gain = context.createGain();
+          var hz = tokens.sound.referenceHz * wake.num / wake.den;
+          var seconds = wake.ms / 1000;
+          var fade = tokens.sound.fadeMs / 1000;
+          oscillator.type = "sine";
+          oscillator.frequency.value = hz;
+          gain.gain.setValueAtTime(0.0001, context.currentTime);
+          gain.gain.linearRampToValueAtTime(tokens.sound.amplitude, context.currentTime + fade);
+          gain.gain.setValueAtTime(tokens.sound.amplitude, context.currentTime + Math.max(fade, seconds - fade));
+          gain.gain.linearRampToValueAtTime(0.0001, context.currentTime + seconds);
+          oscillator.connect(gain);
+          gain.connect(context.destination);
+          oscillator.start();
+          oscillator.stop(context.currentTime + seconds);
+        }
+      }
+
+      var hold = params.has("hold") || params.get("frame") === "mid";
+      if (!params.has("preview") && params.get("mode") === "desktop" && !hold && allowed(tokens.session.desktop)) {
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var wait = reduce ? 0 : tokens.motion.wake.ms;
+        window.setTimeout(function () {
+          location.assign(tokens.session.desktop);
+        }, wait);
+      }
+    }());
+  </script>
+</body>
+</html>
