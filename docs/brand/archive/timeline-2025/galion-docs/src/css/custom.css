@@ -1,0 +1,372 @@
+/* Galion Docs - Enterprise Dark Theme */
+
+:root {
+  --ifm-color-primary: #8b5cf6;
+  --ifm-color-primary-dark: #7c3aed;
+  --ifm-color-primary-darker: #6d28d9;
+  --ifm-color-primary-darkest: #5b21b6;
+  --ifm-color-primary-light: #a78bfa;
+  --ifm-color-primary-lighter: #c4b5fd;
+  --ifm-color-primary-lightest: #ddd6fe;
+  --ifm-background-color: #0a0a0f;
+  --ifm-font-family-base: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(139, 92, 246, 0.2);
+}
+
+/* Force dark mode everywhere */
+html, [data-theme="light"], [data-theme="dark"] {
+  --ifm-background-color: #0a0a0f;
+  --ifm-background-surface-color: #111118;
+  --ifm-navbar-background-color: rgba(10, 10, 15, 0.95);
+  --ifm-footer-background-color: #050508;
+  --ifm-color-content: #e4e4e7;
+  --ifm-color-content-secondary: #a1a1aa;
+  --ifm-heading-color: #fafafa;
+  --ifm-link-color: #a78bfa;
+  --ifm-menu-color: #d4d4d8;
+  --ifm-toc-link-color: #a1a1aa;
+  --ifm-code-background: #18181b;
+  --ifm-card-background-color: #111118;
+}
+
+/* Navbar - Enterprise Glass Effect */
+.navbar {
+  background: linear-gradient(180deg, rgba(10, 10, 15, 0.98) 0%, rgba(10, 10, 15, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  padding: 0.5rem 1rem;
+}
+
+.navbar__title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.navbar__logo {
+  height: 32px;
+  width: 32px;
+  margin-right: 0.75rem;
+}
+
+.navbar__logo img {
+  height: 32px;
+  width: 32px;
+}
+
+.navbar__link {
+  font-weight: 500;
+  color: #d4d4d8;
+  transition: color 0.2s ease;
+}
+
+.navbar__link:hover {
+  color: #a78bfa;
+}
+
+.navbar__link--active {
+  color: #a78bfa;
+}
+
+/* Dropdown styling */
+.dropdown__menu {
+  background: #111118;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  padding: 0.5rem;
+}
+
+.dropdown__link {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: #d4d4d8;
+}
+
+.dropdown__link:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: #a78bfa;
+}
+
+/* Launch App Button */
+.navbar-launch-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: white !important;
+  padding: 0.5rem 1.25rem !important;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.navbar-launch-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+  color: white !important;
+}
+
+/* Search */
+.DocSearch-Button {
+  background: rgba(139, 92, 246, 0.1) !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  border-radius: 8px !important;
+  padding: 0 12px !important;
+}
+
+.DocSearch-Button:hover {
+  background: rgba(139, 92, 246, 0.15) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+}
+
+.DocSearch-Button-Placeholder {
+  color: #71717a !important;
+}
+
+.DocSearch-Search-Icon {
+  color: #a78bfa !important;
+}
+
+/* Sidebar */
+.menu {
+  background: transparent;
+  padding: 1rem;
+}
+
+.menu__link {
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: #a1a1aa;
+  font-weight: 500;
+}
+
+.menu__link:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: #e4e4e7;
+}
+
+.menu__link--active {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.menu__list-item-collapsible:hover {
+  background: rgba(139, 92, 246, 0.05);
+}
+
+/* Main Content */
+.main-wrapper {
+  background: #0a0a0f;
+}
+
+article {
+  max-width: 900px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #fafafa;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #fff 0%, #a78bfa 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+p {
+  color: #d4d4d8;
+  line-height: 1.8;
+}
+
+a {
+  color: #a78bfa;
+}
+
+a:hover {
+  color: #c4b5fd;
+  text-decoration: none;
+}
+
+/* Code Blocks */
+pre {
+  background: #18181b !important;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+}
+
+code {
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: #c4b5fd;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}
+
+/* Tables */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #27272a;
+}
+
+th {
+  background: #18181b;
+  color: #fafafa;
+  font-weight: 600;
+  padding: 1rem;
+  border-bottom: 1px solid #27272a;
+}
+
+td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #1f1f23;
+  color: #d4d4d8;
+}
+
+tr:hover td {
+  background: rgba(139, 92, 246, 0.05);
+}
+
+/* Footer */
+.footer {
+  background: linear-gradient(180deg, #0a0a0f 0%, #050508 100%);
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
+  padding: 3rem 0 2rem;
+}
+
+.footer__title {
+  color: #fafafa;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.footer__link-item {
+  color: #a1a1aa;
+  font-size: 0.875rem;
+}
+
+.footer__link-item:hover {
+  color: #a78bfa;
+}
+
+.footer__copyright {
+  color: #52525b;
+  font-size: 0.875rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #1f1f23;
+}
+
+.footer__logo {
+  margin-bottom: 1rem;
+}
+
+/* Breadcrumbs */
+.breadcrumbs__link {
+  color: #71717a;
+}
+
+.breadcrumbs__link:hover {
+  color: #a78bfa;
+}
+
+/* TOC */
+.table-of-contents__link {
+  color: #71717a;
+}
+
+.table-of-contents__link--active {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+/* Admonitions */
+.admonition {
+  border-radius: 12px;
+  border: none;
+  background: #111118;
+}
+
+.admonition-heading h5 {
+  color: #fafafa;
+}
+
+/* Pagination */
+.pagination-nav__link {
+  background: #111118;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.pagination-nav__link:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.pagination-nav__sublabel {
+  color: #71717a;
+}
+
+.pagination-nav__label {
+  color: #fafafa;
+  font-weight: 600;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Hide theme toggle */
+[class*="colorModeToggle"] {
+  display: none !important;
+}
+
+/* Mobile */
+@media (max-width: 996px) {
+  .navbar__toggle {
+    color: #fafafa;
+  }
+  
+  .navbar-sidebar {
+    background: #0a0a0f;
+  }
+  
+  .navbar-sidebar__brand {
+    background: #111118;
+  }
+}

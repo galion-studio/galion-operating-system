@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <style>
+      .logo-shield { fill: #0f172a; }
+    </style>
+  </defs>
+  <!-- Shield outline -->
+  <path class="logo-shield" d="M250 50 L420 100 L420 250 Q420 380 250 450 Q80 380 80 250 L80 100 Z" stroke="#0f172a" stroke-width="8" fill="none"/>
+  
+  <!-- Inner shield -->
+  <path class="logo-shield" d="M250 80 L390 120 L390 250 Q390 360 250 420 Q110 360 110 250 L110 120 Z" opacity="0.3"/>
+  
+  <!-- G letter -->
+  <path class="logo-shield" d="M200 180 Q200 160 220 160 L280 160 Q300 160 300 180 L300 230 L270 230 L270 190 L230 190 L230 310 L280 310 L280 270 L250 270 L250 250 L310 250 L310 320 Q310 340 290 340 L220 340 Q200 340 200 320 Z" fill="#0f172a"/>
+</svg>
+
