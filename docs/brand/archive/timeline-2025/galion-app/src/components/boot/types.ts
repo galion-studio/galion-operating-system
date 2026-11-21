@@ -64,6 +64,10 @@ export const COLORS = {
   // Indigo family
   INDIGO: '#6366f1',
   INDIGO_GLOW: 'rgba(99, 102, 241, 0.3)',
+
+  // Flowing wake lines. The workspace copy already had this; the app copy did not,
+  // so the gradient was invalid and the lines never painted.
+  LINE_COLOR: 'rgba(255, 255, 255, 0.8)',
 } as const;
 
 /**

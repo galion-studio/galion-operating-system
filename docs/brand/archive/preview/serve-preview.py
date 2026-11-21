@@ -20,6 +20,7 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         ".gltf": "model/gltf+json",
         ".glb": "model/gltf-binary",
         ".wasm": "application/wasm",
+        ".lottie": "application/zip",
         ".mjs": "text/javascript",
         ".js": "text/javascript",
         ".html": "text/html",

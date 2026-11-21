@@ -112,6 +112,20 @@
               "mn": "ADBE Gaussian Blur 2-0001",
               "ix": 1,
               "v": { "a": 0, "k": 20, "ix": 1 }
+            },
+            {
+              "ty": 0,
+              "nm": "Blur Dimensions",
+              "mn": "ADBE Gaussian Blur 2-0002",
+              "ix": 2,
+              "v": { "a": 0, "k": 1, "ix": 2 }
+            },
+            {
+              "ty": 7,
+              "nm": "Repeat Edge Pixels",
+              "mn": "ADBE Gaussian Blur 2-0003",
+              "ix": 3,
+              "v": { "a": 0, "k": 0, "ix": 3 }
             }
           ]
         }
@@ -344,6 +358,20 @@
               "mn": "ADBE Gaussian Blur 2-0001",
               "ix": 1,
               "v": { "a": 0, "k": 60, "ix": 1 }
+            },
+            {
+              "ty": 0,
+              "nm": "Blur Dimensions",
+              "mn": "ADBE Gaussian Blur 2-0002",
+              "ix": 2,
+              "v": { "a": 0, "k": 1, "ix": 2 }
+            },
+            {
+              "ty": 7,
+              "nm": "Repeat Edge Pixels",
+              "mn": "ADBE Gaussian Blur 2-0003",
+              "ix": 3,
+              "v": { "a": 0, "k": 0, "ix": 3 }
             }
           ]
         }
@@ -413,6 +441,20 @@
               "mn": "ADBE Gaussian Blur 2-0001",
               "ix": 1,
               "v": { "a": 0, "k": 15, "ix": 1 }
+            },
+            {
+              "ty": 0,
+              "nm": "Blur Dimensions",
+              "mn": "ADBE Gaussian Blur 2-0002",
+              "ix": 2,
+              "v": { "a": 0, "k": 1, "ix": 2 }
+            },
+            {
+              "ty": 7,
+              "nm": "Repeat Edge Pixels",
+              "mn": "ADBE Gaussian Blur 2-0003",
+              "ix": 3,
+              "v": { "a": 0, "k": 0, "ix": 3 }
             }
           ]
         }
