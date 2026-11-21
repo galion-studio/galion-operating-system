@@ -19,8 +19,9 @@ const reduced =
 
 const canvas = document.getElementById("stage");
 const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
-const wake = document.getElementById("wake");
+const desk = document.getElementById("desk");
 const hud = document.getElementById("hud");
+const forceReady = capture && params.get("ready") === "1";
 const timeline = await fetch(new URL("./timeline.json", import.meta.url)).then((res) => {
   if (!res.ok) throw new Error("timeline missing");
   return res.json();
@@ -45,6 +46,16 @@ const draws = [];
 let audioStatus = muted ? "muted" : "loading";
 let clock = null;
 let running = false;
+let stepP = 0;
+let stepV = 0;
+let clearP = 0;
+let clearV = 0;
+let statusTime = 0;
+let held = 0;
+let heldAt = null;
+const signals = { desktop: false, apps: false };
+let sealed = false;
+let handed = false;
 
 function layout() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -220,19 +231,155 @@ function draw(t) {
     ctx.letterSpacing = "0px";
   }
 
-  const choiceY = wordY + design.wordSize * scale + 36 * scale;
-  wake.hidden = wakeP < 0.012 && !reduced;
-  wake.style.opacity = String(reduced ? 1 : wakeP);
-  wake.style.left = `${cx}px`;
-  wake.style.top = `${choiceY}px`;
-  wake.style.gap = `${design.choiceGap * scale}px`;
-  wake.style.setProperty("--choice-size", `${design.choiceSize * scale}px`);
-  wake.style.transform = reduced
-    ? "translate(-50%, 0)"
-    : `translate(-50%, ${(1 - wakeP) * design.choiceRise * scale}px)`;
-  wake.style.pointerEvents = wakeP > 0.9 || reduced ? "auto" : "none";
+  drawDesk(cx, wordY, scale, wakeP);
 
   return state;
+}
+
+const PROBE_URL = {
+  desktop: "http://127.0.0.1:18181/",
+  apps: "http://127.0.0.1:8787/",
+};
+
+function springTo(p, v, target, h, omega) {
+  if (!(h > 0)) return [p, v];
+  const a = -omega * omega * (p - target) - 2 * omega * v;
+  v += a * h;
+  p += v * h;
+  if (!Number.isFinite(p) || !Number.isFinite(v)) return [target, 0];
+  return [p, v];
+}
+
+function timedIndex(t) {
+  const steps = timeline.statuses;
+  let index = 0;
+  for (let i = 0; i < steps.length; i += 1) {
+    if (t >= steps[i].at) index = i;
+  }
+  return index;
+}
+
+function signalReady(step) {
+  if (!step || !step.probe) return true;
+  if (capture) return true;
+  return signals[step.probe] === true;
+}
+
+function liveIndex(t) {
+  const steps = timeline.statuses;
+  if (heldAt === null) heldAt = t;
+  while (held < steps.length - 1) {
+    const dwellOk = t - heldAt >= timeline.statusDwell;
+    const timeOk = t >= steps[held + 1].at;
+    if (dwellOk && timeOk && signalReady(steps[held])) {
+      held += 1;
+      heldAt = t;
+    } else {
+      break;
+    }
+  }
+  return held;
+}
+
+function syncStatus(t) {
+  if (t + 1e-4 < statusTime) {
+    stepP = 0;
+    stepV = 0;
+    clearP = 0;
+    clearV = 0;
+    statusTime = 0;
+    held = 0;
+    heldAt = null;
+  }
+  const h = 1 / 240;
+  while (statusTime + h <= t + 1e-12) {
+    const nextT = statusTime + h;
+    const index = forceReady && nextT >= timeline.handoff
+      ? timeline.statuses.length - 1
+      : capture
+        ? timedIndex(nextT)
+        : liveIndex(nextT);
+    const stepped = springTo(stepP, stepV, index, h, timeline.statusOmega);
+    stepP = stepped[0];
+    stepV = stepped[1];
+    const last = index === timeline.statuses.length - 1 && signalReady(timeline.statuses[index]);
+    const clearing = (nextT >= timeline.resolve && last) || (forceReady && nextT >= timeline.handoff);
+    const cleared = springTo(clearP, clearV, clearing ? 1 : 0, h, timeline.clearOmega);
+    clearP = cleared[0];
+    clearV = cleared[1];
+    statusTime = nextT;
+  }
+}
+
+function drawDesk(cx, wordY, scale, wakeP) {
+  if (wakeP < 0.012 && !reduced) {
+    if (desk.textContent) desk.textContent = "";
+    return;
+  }
+  const steps = timeline.statuses;
+  const count = steps.length;
+  const rise = reduced ? 0 : (1 - wakeP) * design.wordRise * scale;
+  const nameY = wordY + design.wordSize * scale * 0.55 + design.deskGap * scale + rise;
+  const lineY = nameY + design.lineGap * scale;
+  const stateY = lineY + design.lineGap * scale + 2 * scale;
+  const span = design.lineWidth * scale;
+  const x0 = cx - span / 2;
+  const progress = reduced ? 1 : Math.min(1, Math.max(0, (stepP + 1) / count));
+  const gone = reduced ? 1 : clearP;
+
+  ctx.globalAlpha = 1;
+  ctx.lineCap = "round";
+  ctx.lineWidth = Math.max(1, scale);
+  ctx.strokeStyle = `rgba(245, 245, 247, ${0.34 * wakeP})`;
+  ctx.beginPath();
+  ctx.moveTo(x0, lineY);
+  ctx.lineTo(x0 + span, lineY);
+  ctx.stroke();
+  if (progress > 0.004) {
+    ctx.strokeStyle = `rgba(245, 245, 247, ${0.92 * wakeP})`;
+    ctx.beginPath();
+    ctx.moveTo(x0, lineY);
+    ctx.lineTo(x0 + span * progress, lineY);
+    ctx.stroke();
+    if (gone < 0.92) {
+      ctx.fillStyle = `rgba(245, 245, 247, ${wakeP * (1 - gone)})`;
+      ctx.beginPath();
+      ctx.arc(x0 + span * progress, lineY, 2.1 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.fillStyle = "#A7B6C4";
+  ctx.font = `500 ${design.deskSize * scale}px Jost, "IBM Plex Sans", sans-serif`;
+  ctx.textRendering = "geometricPrecision";
+  ctx.letterSpacing = "-0.02em";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.globalAlpha = wakeP;
+  ctx.fillText("Obsidian Desktop", cx, nameY);
+
+  const textAlpha = wakeP * (1 - gone);
+  if (!reduced && textAlpha > 0.02) {
+    const i0 = Math.max(0, Math.min(count - 1, Math.floor(stepP + 1e-6)));
+    const i1 = Math.min(count - 1, i0 + 1);
+    const fade = Math.min(1, Math.max(0, stepP - i0));
+    ctx.font = `400 ${design.stateSize * scale}px "IBM Plex Sans", sans-serif`;
+    ctx.letterSpacing = "-0.02em";
+    if (fade < 0.92) {
+      ctx.globalAlpha = textAlpha * (1 - fade);
+      ctx.fillText(steps[i0].text, cx, stateY);
+    }
+    if (fade > 0.08 && i1 !== i0) {
+      ctx.globalAlpha = textAlpha * fade;
+      ctx.fillText(steps[i1].text, cx, stateY);
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.letterSpacing = "0px";
+
+  const spokenIndex = Math.max(0, Math.min(count - 1, Math.round(stepP)));
+  const spoken = gone > 0.9 ? "Obsidian Desktop." : `Obsidian Desktop. ${steps[spokenIndex].text}`;
+  if (desk.textContent !== spoken) desk.textContent = spoken;
 }
 
 function summarise() {
@@ -275,32 +422,72 @@ function paintHud(t) {
   ].join("\n");
 }
 
-function finish(t) {
-  running = false;
-  window.__galionStats = summarise();
-  window.__galionDone = true;
-  paintHud(t);
-}
-
 function frame(now) {
   if (!running) return;
-  if (frame.last) intervals.push(now - frame.last);
+  if (!sealed && frame.last) intervals.push(now - frame.last);
   frame.last = now;
   const t = Math.max(0, clock ? clock() : 0);
+  if (!reduced) syncStatus(t);
   const started = performance.now();
   draw(t);
-  draws.push(performance.now() - started);
+  if (!sealed) draws.push(performance.now() - started);
   paintHud(t);
-  if (t >= timeline.hold) {
-    finish(t);
-    return;
+  if (!sealed && t >= timeline.hold) {
+    window.__galionStats = summarise();
+    window.__galionDone = true;
+    sealed = true;
   }
+  maybeHandoff(t);
   requestAnimationFrame(frame);
 }
 frame.last = 0;
 
+function maybeHandoff(t) {
+  if (handed || capture || debug) return;
+  if (!signals.desktop || t < timeline.hold) return;
+  if (!reduced && clearP < 0.97) return;
+  if (!loopbackProbe(PROBE_URL.desktop)) return;
+  handed = true;
+  location.assign(PROBE_URL.desktop);
+}
+
+function loopbackProbe(url) {
+  try {
+    const parsed = new URL(url);
+    const known = parsed.href === PROBE_URL.desktop || parsed.href === PROBE_URL.apps;
+    return known && parsed.protocol === "http:" && parsed.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
+function watchSignals() {
+  if (capture) return;
+  for (const key of Object.keys(PROBE_URL)) {
+    pollSignal(key, PROBE_URL[key]);
+  }
+}
+
+async function pollSignal(key, url) {
+  while (!signals[key] && !handed) {
+    const t = clock ? clock() : 0;
+    if (t >= timeline.handoff && loopbackProbe(url)) signals[key] = await probeOnce(url);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+}
+
+async function probeOnce(url) {
+  try {
+    await fetch(url, { mode: "no-cors", cache: "no-store", redirect: "manual" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 window.__galionSeek = (t) => {
   const time = Number(t);
+  syncStatus(time);
   draw(time);
   window.__galionReady = true;
   return time;
@@ -332,6 +519,11 @@ async function bootAudio() {
   }
 }
 
+await Promise.all([
+  document.fonts.load("500 28px Jost"),
+  document.fonts.load("500 15px Jost"),
+  document.fonts.load('400 12px "IBM Plex Sans"'),
+]);
 await document.fonts.ready;
 draw(0);
 
@@ -341,6 +533,7 @@ if (capture) {
   window.__galionReady = true;
 } else {
   await bootAudio();
+  watchSignals();
   running = true;
   requestAnimationFrame(frame);
 }

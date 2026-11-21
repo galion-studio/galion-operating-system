@@ -28,6 +28,31 @@ python3 desktop/boot/plymouth/render_mark.py --check
 python3 desktop/boot/cinematic/motion.py --check
 python3 desktop/boot/cinematic/render_frames.py --check
 
+if grep -F -q 'Galion One' \
+  desktop/boot/cinematic/index.html \
+  desktop/boot/cinematic/cinematic.mjs \
+  desktop/boot/cinematic/render_frames.py
+then
+  fail "the boot film still shows the session choices"
+fi
+if ! grep -F -q 'Obsidian Desktop' desktop/boot/cinematic/index.html; then
+  fail "the boot page does not name Obsidian Desktop"
+fi
+for phrase in \
+  'Initialising…' \
+  'Setting up…' \
+  'Loading Obsidian Desktop…' \
+  'Loading Open Mind stack…' \
+  'Loading apps…'
+do
+  if ! grep -F -q "$phrase" desktop/boot/cinematic/timeline.json; then
+    fail "the status sequence is missing a line"
+  fi
+done
+if ! grep -F -q 'Galion One' desktop/ux/session/wake.html; then
+  fail "the welcome screen lost its choices"
+fi
+
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 

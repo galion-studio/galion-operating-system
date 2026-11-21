@@ -14,6 +14,7 @@ const args = process.argv.slice(2);
 const port = Number(argValue("--port", "8766"));
 const outDir = argValue("--out", "/tmp/galion-boot-capture");
 const mode = args.includes("--measure") ? "measure" : args.includes("--film") ? "film" : "stills";
+const readyQuery = args.includes("--ready") ? "&ready=1" : "";
 
 function argValue(flag, fallback) {
   const index = args.indexOf(flag);
@@ -116,7 +117,7 @@ if (mode === "measure") {
   console.log(JSON.stringify(stats, null, 2));
 } else if (mode === "film") {
   await send("Page.navigate", {
-    url: `http://127.0.0.1:${port}/boot/cinematic/?capture=1&mute=1`,
+    url: `http://127.0.0.1:${port}/boot/cinematic/?capture=1&mute=1${readyQuery}`,
   });
   await waitFor("typeof window.__galionSeek === 'function'", 10000);
   const hold = await evaluate("window.__galionTimeline.hold");
@@ -131,10 +132,10 @@ if (mode === "measure") {
   console.log(`frames ${frames}`);
 } else {
   await send("Page.navigate", {
-    url: `http://127.0.0.1:${port}/boot/cinematic/?capture=1&mute=1`,
+    url: `http://127.0.0.1:${port}/boot/cinematic/?capture=1&mute=1${readyQuery}`,
   });
   await waitFor("typeof window.__galionSeek === 'function'", 10000);
-  const times = [0, 0.21, 0.9, 1.6, 2.32, 2.5, 3.2, 4.2, 4.85, 5];
+  const times = [0, 0.21, 1.6, 2.5, 4.2, 4.85, 5.4, 5.95, 6.5, 7.1, 7.6];
   for (const t of times) {
     await evaluate(`window.__galionSeek(${t})`);
     const shot = await send("Page.captureScreenshot", { format: "png" });

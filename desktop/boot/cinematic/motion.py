@@ -143,6 +143,28 @@ def check_timeline(tl: dict) -> list[str]:
     wake = at(tl, 4.76)
     if wake["wake"][0] < 0.97 or wake["wake"][0] > 1.02:
         errors.append("the wake rise is not the 160 ms spring")
+    steps = tl.get("statuses")
+    expected = (
+        "Initialising…",
+        "Setting up…",
+        "Loading Obsidian Desktop…",
+        "Loading Open Mind stack…",
+        "Loading apps…",
+    )
+    if not isinstance(steps, list) or [item.get("text") for item in steps] != list(expected):
+        errors.append("the status sequence is not the five Obsidian Desktop lines")
+    else:
+        times = [float(item["at"]) for item in steps]
+        if times[0] != float(tl["handoff"]) or times != sorted(times):
+            errors.append("status lines do not start at the handoff")
+        if any(times[i + 1] - times[i] < float(tl["statusDwell"]) - 1e-9 for i in range(len(times) - 1)):
+            errors.append("a status line is shorter than the minimum dwell")
+        if not (times[-1] < float(tl["resolve"]) < float(tl["hold"])):
+            errors.append("the status resolve is not inside the sound")
+        if steps[2].get("probe") != "desktop" or steps[4].get("probe") != "apps":
+            errors.append("desktop and apps are not the probed status lines")
+        if any(item.get("probe") for item in (steps[0], steps[1], steps[3])):
+            errors.append("a timed status line has a probe")
     return errors
 
 

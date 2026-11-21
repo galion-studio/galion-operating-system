@@ -16,7 +16,7 @@ import math
 import sys
 from pathlib import Path
 
-from motion import HERE, at, check_timeline, load_timeline, mix
+from motion import HERE, at, check_timeline, load_timeline, mix, spring
 
 ROOT = HERE.parents[2]
 IMAGES = ROOT / "desktop" / "boot" / "plymouth" / "images"
@@ -50,6 +50,33 @@ def over(dst, rgb, alpha):
 
     a = alpha[..., None]
     dst[:] = rgb * a + dst * (1.0 - a)
+
+
+def status_motion(tl: dict, t: float) -> tuple[float, float]:
+    """Step spring and the resolve fade. Same integrator as the boot page."""
+    if t <= 0:
+        return 0.0, 0.0
+    step = 1.0 / 240
+    count = int(t / step)
+    p = 0.0
+    v = 0.0
+    clear_p = 0.0
+    clear_v = 0.0
+    now = 0.0
+    last = len(tl["statuses"]) - 1
+    for _ in range(count):
+        now += step
+        index = 0
+        for item in tl["statuses"]:
+            if now >= float(item["at"]):
+                index += 1
+            else:
+                break
+        index = min(last, max(0, index - 1))
+        p, v = spring(p, v, float(index), step, float(tl["statusOmega"]), 1.0)
+        clearing = 1.0 if now >= float(tl["resolve"]) and index == last else 0.0
+        clear_p, clear_v = spring(clear_p, clear_v, clearing, step, float(tl["clearOmega"]), 1.0)
+    return p, clear_p
 
 
 def paint(tl: dict, t: float, state: dict, width: int, height: int, fonts: dict):
@@ -140,18 +167,65 @@ def paint(tl: dict, t: float, state: dict, width: int, height: int, fonts: dict)
         rise = (1 - word) * design["wordRise"] * scale
         draw_tracked(draw, "Galion OS", font, cx, word_y + rise, (245, 245, 247, int(round(255 * word))), -0.02)
     if wake > 0.012:
-        size = max(8, int(round(design["choiceSize"] * scale)))
-        font = fonts["sans"](size)
-        labels = ("Galion One", "Galion Research", "Desktop")
-        gap = design["choiceGap"] * scale
-        widths = [font.getlength(label) for label in labels]
-        total = sum(widths) + gap * (len(labels) - 1)
-        x = cx - total / 2
-        y = word_y + design["wordSize"] * scale + 36 * scale + (1 - wake) * design["choiceRise"] * scale
-        alpha = int(round(255 * wake))
-        for label, width_px in zip(labels, widths):
-            draw.text((x, y), label, font=font, fill=(167, 182, 196, alpha), anchor="lm")
-            x += width_px + gap
+        rise = (1 - wake) * design["wordRise"] * scale
+        name_size = max(9, int(round(design["deskSize"] * scale)))
+        state_size = max(8, int(round(design["stateSize"] * scale)))
+        name_y = word_y + max(design["deskGap"] * scale, name_size + 6) + rise
+        line_y = name_y + max(design["lineGap"] * scale, name_size * 0.7 + 8)
+        state_y = line_y + max(design["lineGap"] * scale, state_size * 0.7 + 8)
+        name_alpha = int(round(255 * wake))
+        draw_tracked(
+            draw,
+            "Obsidian Desktop",
+            fonts["jost"](name_size),
+            cx,
+            name_y,
+            (167, 182, 196, name_alpha),
+            -0.02,
+        )
+        step_p, clear_p = status_motion(tl, t)
+        count = len(tl["statuses"])
+        progress = min(1.0, max(0.0, (step_p + 1) / count))
+        span = design["lineWidth"] * scale
+        x0 = cx - span / 2
+        track = int(round(86 * wake))
+        draw.line([(x0, line_y), (x0 + span, line_y)], fill=(245, 245, 247, track), width=1)
+        fill_alpha = int(round(235 * wake))
+        draw.line([(x0, line_y), (x0 + span * progress, line_y)], fill=(245, 245, 247, fill_alpha), width=1)
+        if clear_p < 0.92:
+            radius = max(1.0, 2.1 * scale)
+            head = x0 + span * progress
+            dot_alpha = int(round(255 * wake * (1 - clear_p)))
+            draw.ellipse(
+                (head - radius, line_y - radius, head + radius, line_y + radius),
+                fill=(245, 245, 247, dot_alpha),
+            )
+        text_alpha = int(round(255 * wake * (1 - clear_p)))
+        if text_alpha > 4:
+            i0 = max(0, min(count - 1, math.floor(step_p + 1e-6)))
+            i1 = min(count - 1, i0 + 1)
+            fade = min(1.0, max(0.0, step_p - i0))
+            font = fonts["sans"](state_size)
+            if fade < 0.92:
+                draw_tracked(
+                    draw,
+                    tl["statuses"][i0]["text"],
+                    font,
+                    cx,
+                    state_y,
+                    (167, 182, 196, int(round(text_alpha * (1 - fade)))),
+                    -0.02,
+                )
+            if fade > 0.08 and i1 != i0:
+                draw_tracked(
+                    draw,
+                    tl["statuses"][i1]["text"],
+                    font,
+                    cx,
+                    state_y,
+                    (167, 182, 196, int(round(text_alpha * fade))),
+                    -0.02,
+                )
     flat = Image.new("RGB", plate.size, (0, 0, 0))
     flat.paste(plate, mask=plate.getchannel("A"))
     return flat
