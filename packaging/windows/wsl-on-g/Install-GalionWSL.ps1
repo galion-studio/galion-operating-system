@@ -8,8 +8,10 @@
 # ext4 disk, swap file, download, and installer temp files under G:\galion.
 # -DryRun writes nothing. -Repair refreshes that layout and does not replace
 # an ext4.vhdx that is already present.
-# The existing distros Ubuntu (G:\galion\wsl\ubuntu) and docker-desktop are
-# never unregistered, imported over, or deleted.
+# The existing distros Ubuntu 26.04.1 (G:\galion\wsl\ubuntu) and docker-desktop
+# are never unregistered, imported over, or deleted.
+# An existing .wslconfig is merged. debugConsole=true is kept. The body stays
+# on G:\galion.
 # W0 dot-sources this file and calls Install-GalionWslOnG. That function
 # returns an exit code and does not call exit. Tests set GALION_WSL_DOTSOURCE=1.
 # The owner does not set that variable.
@@ -22,7 +24,8 @@
     Pass -DryRun to print the plan and write nothing. Pass -Repair to refresh
     the G: layout. -Repair does not unregister the distro when ext4.vhdx is present.
     Pass -SkipShutdown to leave wsl --shutdown to the caller. W0 uses that.
-    Ubuntu and docker-desktop are never deleted or overwritten.
+    Ubuntu 26.04.1 and docker-desktop are never deleted or overwritten.
+    An existing .wslconfig is merged. debugConsole=true is kept.
 #>
 [CmdletBinding()]
 param(
@@ -195,6 +198,104 @@ function Get-GalionWslConfigText {
     return ($lines -join "`n")
 }
 
+function Get-GalionIniKeyName {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Line)
+    if ($Line -match '^\s*([A-Za-z0-9_.-]+)\s*=') {
+        return $Matches[1]
+    }
+    return $null
+}
+
+function Merge-GalionWslConfigText {
+    param(
+        [AllowEmptyString()][string]$Existing,
+        [Parameter(Mandatory = $true)][string]$Desired
+    )
+    $desiredOrder = New-Object 'System.Collections.Generic.List[string]'
+    $desiredLines = @{}
+    $inDesired = $false
+    foreach ($line in @($Desired -split '\r?\n')) {
+        if ($line -match '^\s*\[(.+?)\]\s*$') {
+            $inDesired = ($Matches[1].ToLowerInvariant() -eq 'wsl2')
+            continue
+        }
+        if (-not $inDesired) {
+            continue
+        }
+        $key = Get-GalionIniKeyName $line
+        if ([string]::IsNullOrWhiteSpace($key)) {
+            continue
+        }
+        $id = $key.ToLowerInvariant()
+        if (-not $desiredLines.ContainsKey($id)) {
+            $desiredOrder.Add($id) | Out-Null
+        }
+        $desiredLines[$id] = $line.Trim()
+    }
+    if ($desiredLines.Count -eq 0) {
+        throw 'the .wslconfig merge has no [wsl2] keys to apply'
+    }
+    $keptDebug = $Existing -match '(?im)^\s*debugConsole\s*=\s*true\s*$'
+    if ([string]::IsNullOrWhiteSpace($Existing)) {
+        $fresh = $Desired
+        if (-not $fresh.EndsWith("`n")) {
+            $fresh = $fresh + "`n"
+        }
+        return $fresh
+    }
+    $out = New-Object 'System.Collections.Generic.List[string]'
+    $seen = @{}
+    $section = ''
+    $wsl2Seen = $false
+    foreach ($line in @($Existing -split '\r?\n')) {
+        if ($line -match '^\s*\[(.+?)\]\s*$') {
+            $section = $Matches[1].ToLowerInvariant()
+            if ($section -eq 'wsl2') {
+                $wsl2Seen = $true
+            }
+            $out.Add($line) | Out-Null
+            continue
+        }
+        $key = $null
+        if ($section -eq 'wsl2') {
+            $key = Get-GalionIniKeyName $line
+        }
+        if (-not [string]::IsNullOrWhiteSpace($key)) {
+            $id = $key.ToLowerInvariant()
+            if ($desiredLines.ContainsKey($id)) {
+                if (-not $seen.ContainsKey($id)) {
+                    $out.Add([string]$desiredLines[$id]) | Out-Null
+                    $seen[$id] = $true
+                }
+                continue
+            }
+        }
+        $out.Add($line) | Out-Null
+    }
+    if (-not $wsl2Seen) {
+        if ($out.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace([string]$out[$out.Count - 1])) {
+            $out.Add('') | Out-Null
+        }
+        $out.Add('[wsl2]') | Out-Null
+    }
+    foreach ($id in @($desiredOrder)) {
+        if (-not $seen.ContainsKey($id)) {
+            $out.Add([string]$desiredLines[$id]) | Out-Null
+        }
+    }
+    while ($out.Count -gt 0 -and [string]::IsNullOrWhiteSpace([string]$out[$out.Count - 1])) {
+        $out.RemoveAt($out.Count - 1)
+    }
+    $text = ($out.ToArray() -join "`n") + "`n"
+    if ($keptDebug -and ($text -notmatch '(?im)^\s*debugConsole\s*=\s*true\s*$')) {
+        throw 'refused: merging .wslconfig would drop debugConsole=true'
+    }
+    if ($text -notmatch 'swapFile=G:\\\\galion\\\\wsl\\\\swap\.vhdx') {
+        throw 'refused: the merged .wslconfig does not put swap on G:\galion'
+    }
+    return $text
+}
+
 function Get-GalionGuestScript {
     return @'
 #!/bin/bash
@@ -355,7 +456,9 @@ function Add-GalionCommonLines {
     }
     $Lines.Add('protected-path: G:\galion\wsl\ubuntu') | Out-Null
     $Lines.Add('protected: Ubuntu and docker-desktop are never unregistered, imported over, or deleted') | Out-Null
+    $Lines.Add('protected-ubuntu: Ubuntu 26.04.1 at G:\galion\wsl\ubuntu is already installed and is never replaced') | Out-Null
     $Lines.Add('wslconfig-scope: the file applies to every WSL2 distro. It does not replace the Ubuntu or docker-desktop disks.') | Out-Null
+    $Lines.Add('wslconfig-merge: an existing .wslconfig is merged. debugConsole=true stays. The merged body is written only to G:\galion\wsl\.wslconfig.') | Out-Null
 }
 
 function Get-GalionWslPlan {
@@ -403,12 +506,6 @@ function Get-GalionWslPlan {
         $lines.Add('c-drive-data: none') | Out-Null
         return (New-GalionPlan -Action 'refuse' -ExitCode 1 -Lines $lines -EnableFeatures $false -Download $false -WriteConfig $false -Import $false -Unregister $false -RemoveInstallDir $false -PrepareGuest $false -ConfigText '')
     }
-    if ($ProfileConfigIsFile) {
-        $lines.Add('refused: the user profile already has a .wslconfig file. This script will not overwrite it and will not write the config body off G:\galion. Move that file aside and run the script again.') | Out-Null
-        $lines.Add('written: no') | Out-Null
-        $lines.Add('c-drive-data: none') | Out-Null
-        return (New-GalionPlan -Action 'refuse' -ExitCode 1 -Lines $lines -EnableFeatures $false -Download $false -WriteConfig $false -Import $false -Unregister $false -RemoveInstallDir $false -PrepareGuest $false -ConfigText '')
-    }
     if ($DistroRegistered -and -not $VhdxPresent -and -not $Repair) {
         $lines.Add(('refused: Galion-Ubuntu is registered and {0} is absent. Run again with -Repair to unregister it and import again. This script does not do that unless -Repair is set.' -f $paths.Vhdx)) | Out-Null
         $lines.Add('written: no') | Out-Null
@@ -451,6 +548,9 @@ function Get-GalionWslPlan {
     }
 
     Add-GalionCommonLines -Lines $lines -Action $action -Repair $Repair -Preview $Preview -TotalMemoryGb $TotalMemoryGb -LogicalProcessors $LogicalProcessors
+    if ($ProfileConfigIsFile) {
+        $lines.Add('wslconfig-profile: the profile .wslconfig is a real file. Its keys are merged into the G:\galion body, then that profile path becomes a link. The body is not written off G:\galion.') | Out-Null
+    }
 
     if ($action -eq 'skip') {
         $lines.Add('import-command: skipped') | Out-Null
@@ -729,25 +829,41 @@ function Install-GalionProfileLink {
     if ([string]::IsNullOrWhiteSpace($root)) {
         throw 'the user profile has no drive root, so the .wslconfig link was not created.'
     }
+    $destNormal = $dest.Replace('/', '\').TrimEnd('\')
+    $bodyNormal = $BodyPath.Replace('/', '\').TrimEnd('\')
+    if ($destNormal.ToLowerInvariant() -eq $bodyNormal.ToLowerInvariant()) {
+        Write-GalionLine 'profile-link: the profile path is already the G: config body'
+        return
+    }
     if (Test-Path -LiteralPath $dest) {
         $item = Get-Item -LiteralPath $dest -Force
         $reparse = [IO.FileAttributes]::ReparsePoint
         $isLink = (($item.Attributes -band $reparse) -ne 0)
         if (-not $isLink) {
-            throw 'the user profile already has a .wslconfig file. This script will not overwrite it and will not write the config body off G:\galion.'
-        }
-        $target = ''
-        if ($item.Target -is [System.Array]) {
-            $target = [string]$item.Target[0]
+            $prior = [System.IO.File]::ReadAllText($dest)
+            $body = [System.IO.File]::ReadAllText($BodyPath)
+            if ($prior -match '(?im)^\s*debugConsole\s*=\s*true\s*$' -and $body -notmatch '(?im)^\s*debugConsole\s*=\s*true\s*$') {
+                throw 'refused: the profile .wslconfig has debugConsole=true and the merged body does not. The profile file was left in place.'
+            }
+            if ($body -notmatch 'swapFile=G:\\\\galion\\\\wsl\\\\swap\.vhdx') {
+                throw 'refused: the merged .wslconfig does not put swap on G:\galion. The profile file was left in place.'
+            }
+            Remove-Item -LiteralPath $dest -Force
         }
         else {
-            $target = [string]$item.Target
+            $target = ''
+            if ($item.Target -is [System.Array]) {
+                $target = [string]$item.Target[0]
+            }
+            else {
+                $target = [string]$item.Target
+            }
+            if ($target -eq $BodyPath) {
+                Write-GalionLine 'profile-link: already points at the G: config'
+                return
+            }
+            Remove-Item -LiteralPath $dest -Force
         }
-        if ($target -eq $BodyPath) {
-            Write-GalionLine 'profile-link: already points at the G: config'
-            return
-        }
-        Remove-Item -LiteralPath $dest -Force
     }
     New-Item -ItemType SymbolicLink -Path $dest -Target $BodyPath | Out-Null
     Write-GalionLine 'profile-link: created. The file body stayed on G:\galion.'
@@ -806,6 +922,25 @@ function Assert-GalionProtectedDistrosRemain {
             throw ('refused: protected distro {0} is no longer registered. This sector must not remove it.' -f $name)
         }
     }
+}
+
+function Get-GalionExistingWslConfigText {
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        $dest = Join-Path $env:USERPROFILE '.wslconfig'
+        if (Test-Path -LiteralPath $dest) {
+            $item = Get-Item -LiteralPath $dest -Force
+            $reparse = [IO.FileAttributes]::ReparsePoint
+            $isLink = (($item.Attributes -band $reparse) -ne 0)
+            if (-not $isLink) {
+                return [System.IO.File]::ReadAllText($dest)
+            }
+        }
+    }
+    $paths = Get-GalionWslPaths
+    if (Test-Path -LiteralPath $paths.WslConfig) {
+        return [System.IO.File]::ReadAllText($paths.WslConfig)
+    }
+    return ''
 }
 
 function Test-GalionProfileConfigIsFile {
@@ -940,10 +1075,15 @@ function Invoke-GalionWslExecute {
         if ([string]::IsNullOrWhiteSpace($Plan.ConfigText)) {
             throw 'the .wslconfig body was empty'
         }
-        if ($Plan.ConfigText -notmatch 'swapFile=G:\\\\galion\\\\wsl\\\\swap\.vhdx') {
-            throw 'the .wslconfig body does not put swap on G:\galion'
+        $existingConfig = Get-GalionExistingWslConfigText
+        $mergedConfig = Merge-GalionWslConfigText -Existing $existingConfig -Desired $Plan.ConfigText
+        if ($existingConfig -match '(?im)^\s*debugConsole\s*=\s*true\s*$') {
+            Write-GalionLine 'wslconfig-merge: kept debugConsole=true'
         }
-        Set-GalionFile -Path $paths.WslConfig -Content $Plan.ConfigText
+        else {
+            Write-GalionLine 'wslconfig-merge: no debugConsole=true key was present to keep'
+        }
+        Set-GalionFile -Path $paths.WslConfig -Content $mergedConfig
         Install-GalionProfileLink -BodyPath $paths.WslConfig
     }
     $versionCode = Invoke-GalionNative -ArgumentList @('wsl', '--set-default-version', '2')

@@ -122,6 +122,27 @@ Describe 'wslconfig' {
         $text = Get-GalionWslConfigText -MemoryGb 8 -Processors 4
         $text | Should -Be ("[wsl2]`nmemory=8GB`nprocessors=4`nswap=4GB`nswapFile=G:\\galion\\wsl\\swap.vhdx`nlocalhostForwarding=true`nguiApplications=true`n")
     }
+
+    It 'keeps debugConsole=true and other sections when merging' {
+        $desired = Get-GalionWslConfigText -MemoryGb 8 -Processors 4
+        $existing = "[experimental]`nsparseVhd=true`n`n[wsl2]`ndebugConsole=true`nmemory=2GB`n"
+        $merged = Merge-GalionWslConfigText -Existing $existing -Desired $desired
+        $merged | Should -Match '(?m)^\[experimental\]$'
+        $merged | Should -Match '(?m)^sparseVhd=true$'
+        $merged | Should -Match '(?m)^debugConsole=true$'
+        $merged | Should -Match '(?m)^memory=8GB$'
+        $merged | Should -Match 'swapFile=G:\\\\galion\\\\wsl\\\\swap\.vhdx'
+        ([regex]::Matches($merged, 'debugConsole')).Count | Should -Be 1
+        ([regex]::Matches($merged, '(?m)^memory=')).Count | Should -Be 1
+    }
+
+    It 'does not invent debugConsole on a new file' {
+        $text = Get-GalionWslConfigText -MemoryGb 8 -Processors 4
+        $text | Should -Not -Match 'debugConsole'
+        $merged = Merge-GalionWslConfigText -Existing '' -Desired $text
+        $merged | Should -Not -Match 'debugConsole'
+        $merged | Should -Match 'swapFile=G:\\\\galion\\\\wsl\\\\swap\.vhdx'
+    }
 }
 
 Describe 'published checksum line' {
@@ -160,11 +181,14 @@ Describe 'plan' {
         ($plan.Lines -join "`n") | Should -Match 'not amd64'
     }
 
-    It 'refuses to overwrite a profile .wslconfig file' {
+    It 'merges a real profile .wslconfig instead of replacing it' {
         $plan = Get-Plan -ProfileConfigIsFile $true
-        $plan.Action | Should -Be 'refuse'
-        $plan.WriteConfig | Should -BeFalse
-        ($plan.Lines -join "`n") | Should -Match 'will not overwrite'
+        $plan.Action | Should -Be 'install'
+        $plan.ExitCode | Should -Be 0
+        $plan.WriteConfig | Should -BeTrue
+        ($plan.Lines -join "`n") | Should -Match 'debugConsole=true stays'
+        ($plan.Lines -join "`n") | Should -Match 'wslconfig-profile:'
+        ($plan.Lines -join "`n") | Should -Match 'protected-ubuntu: Ubuntu 26.04.1'
     }
 
     It 'skips import when the distro and ext4 disk are present' {

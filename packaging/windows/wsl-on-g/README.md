@@ -9,7 +9,7 @@ The licence text is [LICENSE](../../../LICENSE). This page does not restate it.
 
 Sector W1 is the Windows-side installer. It puts one Ubuntu 24.04 WSL2 guest, named `Galion-Ubuntu`, on the G: drive so the Obsidian desktop and Galion One Voice have one Linux environment on this laptop. The script is [Install-GalionWSL.ps1](Install-GalionWSL.ps1). W0 calls the function `Install-GalionWslOnG` from that file. W0 owns `Install-GalionUbuntuOnG.ps1` and this sector does not.
 
-The laptop already has a WSL2 distro named `Ubuntu` whose disk is `G:\galion\wsl\ubuntu`, and a distro named `docker-desktop`. This sector never unregisters those names, never imports over them, and never deletes that disk. `wsl --shutdown` stops every WSL2 distro, including those two, and does not delete them. `-SkipShutdown` leaves that stop to the caller. The `.wslconfig` body is global for every WSL2 distro. It does not replace the Ubuntu or docker-desktop disks. A real `.wslconfig` file already in the user profile is left in place.
+The laptop already has a WSL2 distro named `Ubuntu`, Ubuntu 26.04.1, whose disk is `G:\galion\wsl\ubuntu`, and a distro named `docker-desktop`. This sector never unregisters those names, never imports over them, and never deletes that disk. `wsl --shutdown` stops every WSL2 distro, including those two, and does not delete them. `-SkipShutdown` leaves that stop to the caller. The `.wslconfig` body is global for every WSL2 distro. It does not replace the Ubuntu or docker-desktop disks. If `.wslconfig` already exists, this sector merges into it and keeps `debugConsole=true`. It does not replace that file with a fresh one. The laptop layout in [docs/STACK-MAP.md](../../../docs/STACK-MAP.md) keeps Galion files under `G:\galion`.
 
 This is not the Galion OS image. The image plan in [docs/PACKAGING.md](../../../docs/PACKAGING.md) is Ubuntu 26.04, and it still waits on `galion-init`. Ubuntu 24.04 is the release Canonical publishes as a WSL rootfs. Its archive Node.js is 18.19.1, which is below the research app's Node.js 22 line. This installer does not install Node.js and does not start the console, the research app, or Galion Voice.
 
@@ -22,7 +22,7 @@ On a clean machine it:
 1. Creates `G:\galion\tmp\win` and points `TEMP` and `TMP` at that directory for this process only. It does not call `setx`, so the Windows account temp directory is unchanged.
 2. Enables the Windows features `Microsoft-Windows-Subsystem-Linux` and `VirtualMachinePlatform` when they are missing. Enabling them stores the WSL platform binaries in the Windows component store. Those binaries are a Windows component. This script does not copy them onto G:, and it does not copy a rootfs, a disk, a swap file, or a temp file onto the C: drive.
 3. Downloads the official Ubuntu 24.04.5 WSL rootfs to `G:\galion\wsl\downloads` and checks the size and the SHA-256 pin below. The file is a gzip tar of the root filesystem. `wsl --import` consumes that tar.
-4. Writes the `.wslconfig` body to `G:\galion\wsl\.wslconfig`. WSL reads `%USERPROFILE%\.wslconfig`, so the script creates a symbolic link from that profile path to the file on G:. The link is a reparse point. The file body stays on G:. If the profile already has a real `.wslconfig` file, the script stops and does not overwrite it.
+4. Merges `.wslconfig` and writes the body to `G:\galion\wsl\.wslconfig`. Keys already present stay, including `debugConsole=true`. The swap, memory, and processor lines are updated. WSL reads `%USERPROFILE%\.wslconfig`, so the script makes that profile path a symbolic link to the file on G:. The link is a reparse point. The file body stays on G:. A real profile file is read first, then replaced by the link only after the merged body on G: still contains `debugConsole=true`.
 5. Imports the distro:
 
 ```text
@@ -62,6 +62,8 @@ swapFile=G:\\galion\\wsl\\swap.vhdx
 localhostForwarding=true
 guiApplications=true
 ```
+
+A laptop that already has `debugConsole=true` keeps that line. Other sections in the same file stay too. A machine with no `.wslconfig` gets the block above and does not gain a `debugConsole` line.
 
 The pinned image is amd64 only. A Windows installation that is not amd64 is refused. The script will not download a different rootfs.
 
@@ -104,7 +106,15 @@ $w1 = Install-GalionWslOnG -DryRun:$DryRun -Repair:$Repair -SkipShutdown
 
 `-SkipShutdown` is the switch W0 should pass. W0 runs `wsl --shutdown` once after W1 through W4. That stop includes `Ubuntu` and `docker-desktop` and does not delete them. Without `-SkipShutdown`, this sector runs `wsl --shutdown` itself before and after the import.
 
-`Install-GalionWslOnG` is the only entry W0 needs. It checks Administrator and `G:`, keeps every Galion write under `G:\galion`, and refuses to unregister or delete `Ubuntu` or `docker-desktop`.
+`Install-GalionWslOnG` is the W1 entry. It checks Administrator and `G:`, keeps every Galion write under `G:\galion`, and refuses to unregister or delete `Ubuntu` or `docker-desktop`.
+
+W2 is a different sector. After W1 returns `0` and `Galion-Ubuntu` exists, W0 runs W2 inside that distro only:
+
+```sh
+wsl -d Galion-Ubuntu -u root -- bash packaging/wsl/provision-galion-ubuntu.sh
+```
+
+Inside the distro the same command is `sudo bash packaging/wsl/provision-galion-ubuntu.sh`. That script is PR 77. It must not be run in the existing `Ubuntu` 26.04.1 distro, and it must not be pointed at `G:\galion\wsl\ubuntu`.
 
 ## What a green test is
 
