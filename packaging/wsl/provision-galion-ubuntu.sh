@@ -10,10 +10,11 @@
 # Windows installer. Run this script inside the distro, from a checkout
 # of this repository. It is safe to run again.
 #
+# W0 entry point, one command, run as root inside the distro:
 #   sudo bash packaging/wsl/provision-galion-ubuntu.sh
 #   sudo bash packaging/wsl/provision-galion-ubuntu.sh --dry-run
 #
-# From Windows, after the distro exists:
+# From Windows, after the distro exists, that same command is:
 #   wsl -d Galion-Ubuntu -u root -- bash /path/to/packaging/wsl/provision-galion-ubuntu.sh
 #
 # The script creates the login user galion, installs the base toolchain,
@@ -22,9 +23,11 @@
 # /etc/wsl.conf with systemd=true and default=galion.
 #
 # Apt, rustup, Cargo, npm, pip, and font caches stay on this distro's
-# Linux filesystem (/var, /opt/galion, /home/galion). That filesystem is
-# the distro disk on G:. /mnt/<drive> is a Windows drive and is not used
-# as a cache. The script does not start Galion services, build an image,
+# Linux filesystem (/var, /opt/galion, /home/galion). Temp files use
+# /var/cache/galion/tmp. Cargo build output uses
+# /opt/galion/cargo/target. That filesystem is the distro disk on G:.
+# /mnt/<drive> is a Windows drive and is not used for caches, temps,
+# or build output. The script does not start Galion services, build an image,
 # or publish a release. systemd=true takes effect after the distro is
 # restarted from Windows. This is not the voice image and not the Pi 5
 # seed: those paths are packaging/dry-run.sh and packaging/pi5/install.sh.
@@ -39,8 +42,9 @@ usage() {
   cat <<'EOF'
 Usage: sudo bash packaging/wsl/provision-galion-ubuntu.sh [--dry-run]
 
-Run inside the Galion-Ubuntu WSL2 distro, from a checkout of this
-repository. --dry-run prints the plan and writes nothing.
+W0 entry point. One command, run as root inside the Galion-Ubuntu
+distro, from a checkout of this repository. --dry-run prints the plan
+and writes nothing.
 
 The real run creates user galion, installs the toolchain and WSLg
 clients, copies the desktop entries and GTK theme, creates XDG
@@ -184,7 +188,10 @@ print_plan() {
   say 'npm-cache: /var/cache/npm'
   say 'pip-cache: /var/cache/pip'
   say 'font-cache: /var/cache/fontconfig'
+  say 'tmpdir: /var/cache/galion/tmp'
+  say 'cargo-target: /opt/galion/cargo/target'
   say 'windows-drive-caches: none'
+  say 'entry: sudo bash packaging/wsl/provision-galion-ubuntu.sh'
   say 'audio-clients: libpulse0 pulseaudio-utils libpipewire-0.3-0t64 pipewire-bin libasound2-plugins'
   say 'audio-servers: none'
   say 'apt-components: universe multiverse'
@@ -255,6 +262,18 @@ ensure_user() {
 }
 
 ensure_user
+
+# Temps and Cargo build output stay on the distro filesystem. Inherited
+# TMPDIR, TEMP, or TMP values that point at /mnt are replaced.
+install -d -m 1777 /var/cache/galion/tmp
+refuse_symlink /var/cache/galion/tmp
+assert_inside /var/cache/galion/tmp
+export TMPDIR=/var/cache/galion/tmp
+export TMP=/var/cache/galion/tmp
+export TEMP=/var/cache/galion/tmp
+export CARGO_TARGET_DIR=/opt/galion/cargo/target
+say 'tmpdir: /var/cache/galion/tmp'
+say 'cargo-target: /opt/galion/cargo/target'
 
 ensure_apt_component() {
   local component=$1
@@ -336,10 +355,10 @@ say 'sudo: galion passwordless, password locked'
 install -d -o root -g root -m 0755 /opt/galion
 refuse_symlink /opt/galion
 assert_inside /opt/galion
-install -d -o galion -g galion -m 0755 /opt/galion/rustup /opt/galion/cargo
+install -d -o galion -g galion -m 0755 /opt/galion/rustup /opt/galion/cargo /opt/galion/cargo/target
 install -d -o root -g galion -m 2775 /var/cache/galion /var/cache/galion/node /var/cache/npm /var/cache/pip
 install -d -m 1777 /var/cache/galion/tmp
-for cache_dir in /var/cache/galion /var/cache/galion/node /var/cache/galion/tmp /var/cache/npm /var/cache/pip /opt/galion/rustup /opt/galion/cargo; do
+for cache_dir in /var/cache/galion /var/cache/galion/node /var/cache/galion/tmp /var/cache/npm /var/cache/pip /opt/galion/rustup /opt/galion/cargo /opt/galion/cargo/target; do
   refuse_symlink "$cache_dir"
   assert_inside "$cache_dir"
 done
@@ -591,6 +610,9 @@ say 'default-user: galion'
 say 'audio-servers: none'
 say 'windows-drive-caches: none'
 say 'caches: /var/cache/apt /var/cache/galion /var/cache/npm /var/cache/pip /opt/galion/rustup /opt/galion/cargo /var/cache/fontconfig'
+say 'tmpdir: /var/cache/galion/tmp'
+say 'cargo-target: /opt/galion/cargo/target'
+say 'entry: sudo bash packaging/wsl/provision-galion-ubuntu.sh'
 say 'desktop: /usr/local/share/applications'
 say 'theme: /etc/xdg/gtk-3.0 /etc/xdg/gtk-4.0'
 say 'restart: from Windows, wsl --shutdown, then open Galion-Ubuntu again'

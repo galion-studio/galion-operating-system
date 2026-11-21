@@ -173,6 +173,9 @@ EOF
   need_line "$text" 'npm-cache: /var/cache/npm'
   need_line "$text" 'pip-cache: /var/cache/pip'
   need_line "$text" 'font-cache: /var/cache/fontconfig'
+  need_line "$text" 'tmpdir: /var/cache/galion/tmp'
+  need_line "$text" 'cargo-target: /opt/galion/cargo/target'
+  need_line "$text" 'entry: sudo bash packaging/wsl/provision-galion-ubuntu.sh'
   need_line "$text" 'windows-drive-caches: none'
   need_line "$text" 'audio-servers: none'
   need_line "$text" 'apt-components: universe multiverse'
@@ -247,6 +250,9 @@ run_real() {
     need_line "$(cat "$log")" 'default-user: galion'
     need_line "$(cat "$log")" 'audio-servers: none'
     need_line "$(cat "$log")" 'windows-drive-caches: none'
+    need_line "$(cat "$log")" 'tmpdir: /var/cache/galion/tmp'
+    need_line "$(cat "$log")" 'cargo-target: /opt/galion/cargo/target'
+    need_line "$(cat "$log")" 'entry: sudo bash packaging/wsl/provision-galion-ubuntu.sh'
     need_line "$(cat "$log")" 'python3-venv: ok'
     if grep -E -q 'cache: /mnt/' "$log"; then
       die 'a cache was placed on a Windows drive'
@@ -328,9 +334,13 @@ run_real() {
   for xdg_name in Desktop Downloads Documents Music Pictures Videos .config .local/share .cache; do
     assert_inside_dir "/home/galion/$xdg_name"
   done
-  for xdg_name in /var/cache/apt /var/cache/galion /var/cache/galion/node /var/cache/npm /var/cache/pip /opt/galion/rustup /opt/galion/cargo /var/cache/fontconfig; do
+  for xdg_name in /var/cache/apt /var/cache/galion /var/cache/galion/node /var/cache/galion/tmp /var/cache/npm /var/cache/pip /opt/galion/rustup /opt/galion/cargo /opt/galion/cargo/target /var/cache/fontconfig; do
     assert_inside_dir "$xdg_name"
   done
+  pinned=$(runuser -u galion -- bash -lc 'printf %s "$TMPDIR $CARGO_TARGET_DIR $CARGO_HOME $NPM_CONFIG_CACHE"')
+  if [[ $pinned != '/var/cache/galion/tmp /opt/galion/cargo/target /opt/galion/cargo /var/cache/npm' ]]; then
+    die "login environment is $pinned"
+  fi
 
   command -v gcc >/dev/null
   command -v git >/dev/null

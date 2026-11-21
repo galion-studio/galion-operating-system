@@ -5,8 +5,12 @@
 
 export RUSTUP_HOME=/opt/galion/rustup
 export CARGO_HOME=/opt/galion/cargo
+export CARGO_TARGET_DIR=/opt/galion/cargo/target
 export NPM_CONFIG_CACHE=/var/cache/npm
 export PIP_CACHE_DIR=/var/cache/pip
+export TMPDIR=/var/cache/galion/tmp
+export TMP=/var/cache/galion/tmp
+export TEMP=/var/cache/galion/tmp
 
 case ${XDG_CACHE_HOME:-} in
   /mnt | /mnt/*) unset XDG_CACHE_HOME ;;

@@ -30,21 +30,26 @@ The first command exits 0 and writes nothing. `--execute`, `--build`, `--flash`,
 
 ## WSL2 Galion-Ubuntu
 
-`bash packaging/wsl/provision-galion-ubuntu.sh` is the Linux side of the `Galion-Ubuntu` WSL2 distro. Importing that distro onto `G:\galion\wsl\Galion-Ubuntu` is a separate Windows installer. Run this script inside the distro, from a checkout of this repository. It is safe to run again.
+`bash packaging/wsl/provision-galion-ubuntu.sh` is the Linux side of the `Galion-Ubuntu` WSL2 distro. Importing that distro onto `G:\galion\wsl\Galion-Ubuntu` is a separate Windows installer. The integrator entry point is one command, run as root inside the distro, from a checkout of this repository. It is safe to run again.
 
 ```sh
 sudo bash packaging/wsl/provision-galion-ubuntu.sh
+```
+
+`--dry-run` prints the plan and writes nothing:
+
+```sh
 sudo bash packaging/wsl/provision-galion-ubuntu.sh --dry-run
 ```
 
-From Windows, after the distro exists:
+From Windows, after the distro exists, that same command is:
 
 ```sh
 wsl -d Galion-Ubuntu -u root -- bash /path/to/packaging/wsl/provision-galion-ubuntu.sh
 ```
 
-`--dry-run` prints the plan and writes nothing. The real run creates the login user `galion`, installs `build-essential`, `git`, `curl`, a stable Rust toolchain via rustup, the current Node.js LTS, and `python3-venv`, then WSLg font and audio clients. IBM Plex, the face named by the GTK session file, is Ubuntu's `fonts-ibm-plex` package from multiverse, and the ALSA Pulse plugin is in universe. The script enables those two archive components when the Ubuntu source list does not already have them. Desktop entries, icons, and the GTK session files come from `desktop/install.sh --system`. XDG directories stay under `/home/galion`. `/etc/wsl.conf` sets `systemd=true` and `default=galion`.
+The real run creates the login user `galion`, installs `build-essential`, `git`, `curl`, a stable Rust toolchain via rustup, the current Node.js LTS, and `python3-venv`, then WSLg font and audio clients. IBM Plex, the face named by the GTK session file, is Ubuntu's `fonts-ibm-plex` package from multiverse, and the ALSA Pulse plugin is in universe. The script enables those two archive components when the Ubuntu source list does not already have them. Desktop entries, icons, and the GTK session files come from `desktop/install.sh --system`. XDG directories stay under `/home/galion`. `/etc/wsl.conf` sets `systemd=true` and `default=galion`.
 
-Apt, rustup, Cargo, npm, pip, and font caches stay on the distro filesystem (`/var`, `/opt/galion`, `/home/galion`). That filesystem is the distro disk on `G:`. `systemd=true` takes effect after the distro is restarted from Windows.
+Apt, rustup, Cargo, npm, pip, and font caches stay on the distro filesystem (`/var`, `/opt/galion`, `/home/galion`). Temp files use `/var/cache/galion/tmp`. Cargo build output uses `/opt/galion/cargo/target`. That filesystem is the distro disk on `G:`. `systemd=true` takes effect after the distro is restarted from Windows.
 
 The workflow is `.github/workflows/wsl-provision.yml`. It runs shellcheck and this script in an `ubuntu:24.04` container, in `--dry-run` and in real mode. A green run is not a Windows install. The script does not build an image and does not publish a release. `--publish`, `--flash`, `--deploy`, `--execute`, and `--build` exit 2.
