@@ -1,0 +1,39 @@
+G.A.L.I.O.N. — General Autonomous Local Intelligence Open Network
+Developed and distributed by Galion Labs
+Perpetual Open MIT License
+Copyright © 2026 Galion Labs. All rights reserved.
+
+The licence text is LICENSE at the repository root. This file does not restate it.
+
+Synthesised tones. Not a recording. No voice is in these files.
+
+Sources:
+- desktop/boot/sounds/os-tones.js boot and shutdown note lists, hum, and scheduleSine
+- desktop/boot/sounds/openmind-desktop-sound.rs wake clip (sine, fade, rate, peak, length)
+
+The page oscillator runs in an AudioContext. These files use the desktop
+crate rate, 16 kHz, 16-bit mono, so the clips stay small. The pitches and
+the scheduleSine envelope are the page's. The wake envelope is the crate's.
+
+fund_hz: 432.0
+boot_hz: 108.0, 216.0, 432.0
+shutdown_hz: 432.0, 216.0, 108.0
+hum_hz: 108.0, 216.0
+step_s: 0.12
+note_peak: 0.05
+hum_peak: 0.016
+wake_hz: 432
+wake_ms: 160
+wake_peak: 0.32
+wake_fade_ms: 8
+sample_rate: 16000
+wav: PCM 16-bit little-endian, 44-byte header
+ogg: libvorbis quality 2 of the same WAV, metadata stripped
+
+sha256:
+  boot.wav 3574646442593b2ce2623cc173ae9b43556d538624c06747f1b490bb77651515
+  boot.ogg b789a319d0f69051adebb03b3c8da9833af23ca9c54558113699c7177ba61f63
+  shutdown.wav aff3b2ca8df3f9fb1a172568fdf96f615e0f263bfeb773b39647c079fbc1303b
+  shutdown.ogg 6483e4da7642cdb721de08ed4d2ebebc2cc7c400670ac0e1f59803a655963e2d
+  wake.wav b9290a1a455576ba906f72f93cb9d02da55f19346cbf8ac071f9ba85fe9d8b63
+  wake.ogg 7bbe1836effe6354b8bd661a56396ee7f071e3cdef17b65ede1f12aafd154b61

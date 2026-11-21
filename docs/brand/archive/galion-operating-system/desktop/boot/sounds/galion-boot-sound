@@ -1,0 +1,241 @@
+#!/bin/sh
+# G.A.L.I.O.N. — General Autonomous Local Intelligence Open Network
+# Developed and distributed by Galion Labs
+# Perpetual Open MIT License
+# Copyright © 2026 Galion Labs. All rights reserved.
+# The licence text is LICENSE. This script does not restate it.
+#
+# Play one session sound at the edge of a graphical session.
+# start plays the supplied startup sound once. GALION_BOOT_SOUND=boot
+# plays the synthesised chord. GALION_BOOT_SOUND=wake plays the 160 ms
+# 432 Hz clip. stop plays the shutdown chord once.
+# A missing device is not fatal. This does not record anything.
+
+set -eu
+
+usage() {
+  printf '%s\n' \
+    "usage: galion-boot-sound start" \
+    "       galion-boot-sound stop" \
+    "       galion-boot-sound wake" \
+    "       galion-boot-sound silence on|off" \
+    "       galion-boot-sound mute on|off" \
+    "       galion-boot-sound status" >&2
+  exit 2
+}
+
+env_on() {
+  case ${1:-} in
+    1|on|true|yes) return 0 ;;
+  esac
+  return 1
+}
+
+flag_on() {
+  file=$1
+  if [ -z "$file" ] || [ ! -f "$file" ]; then
+    return 1
+  fi
+  IFS= read -r value < "$file" || value=
+  case $value in
+    1|on|true|yes) return 0 ;;
+  esac
+  return 1
+}
+
+config_file() {
+  name=$1
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    printf '%s\n' "$XDG_CONFIG_HOME/galion/$name"
+  elif [ -n "${HOME:-}" ]; then
+    printf '%s\n' "$HOME/.config/galion/$name"
+  else
+    printf '\n'
+  fi
+}
+
+runtime_file() {
+  name=$1
+  if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+    printf '%s\n' "$XDG_RUNTIME_DIR/galion/$name"
+  elif [ -n "${HOME:-}" ]; then
+    printf '%s\n' "$HOME/.cache/galion/runtime/$name"
+  else
+    printf '%s\n' "/tmp/galion-boot/$name"
+  fi
+}
+
+night_now() {
+  if [ "${GALION_NIGHT:-}" = off ]; then
+    return 1
+  fi
+  hour=${GALION_LOCAL_HOUR:-$(date +%H)}
+  case $hour in
+    22|23|00|01|02|03|04|05|06|0|1|2|3|4|5|6) return 0 ;;
+  esac
+  return 1
+}
+
+write_flag() {
+  file=$1
+  value=$2
+  if [ -z "$file" ]; then
+    printf 'error: no home directory for the tone setting\n' >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$file")"
+  printf '%s\n' "$value" > "$file"
+  chmod 0644 "$file"
+}
+
+play_wav() {
+  wav=$1
+  if [ -n "${GALION_SOUND_PLAYER:-}" ]; then
+    if "$GALION_SOUND_PLAYER" "$wav"; then
+      return 0
+    fi
+    return 1
+  fi
+  if command -v pw-play >/dev/null 2>&1 && pw-play -- "$wav"; then
+    return 0
+  fi
+  if command -v paplay >/dev/null 2>&1 && paplay -- "$wav"; then
+    return 0
+  fi
+  if command -v aplay >/dev/null 2>&1 && aplay -q -- "$wav"; then
+    return 0
+  fi
+  if command -v ffplay >/dev/null 2>&1 && ffplay -nodisp -autoexit -loglevel error -- "$wav"; then
+    return 0
+  fi
+  return 1
+}
+
+play_once() {
+  id=$1
+  stamp=$(runtime_file "boot-sound-$id")
+  if [ -f "$stamp" ]; then
+    printf 'skipped: already\n'
+    return 0
+  fi
+  if env_on "${GALION_SILENCE:-}" || flag_on "$(config_file silence)"; then
+    printf 'skipped: silence\n'
+    return 0
+  fi
+  if env_on "${GALION_MUTE:-}" || flag_on "$(runtime_file mute)"; then
+    printf 'skipped: mute\n'
+    return 0
+  fi
+  if night_now; then
+    printf 'skipped: night\n'
+    return 0
+  fi
+  script_dir=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
+  case $id in
+    startup) wav=$script_dir/galion-os-startup.ogg ;;
+    boot|wake|shutdown) wav=$script_dir/$id.wav ;;
+    *)
+      printf 'error: unknown sound %s\n' "$id" >&2
+      exit 1
+      ;;
+  esac
+  if [ ! -f "$wav" ]; then
+    printf 'error: missing %s\n' "$wav" >&2
+    exit 1
+  fi
+  attempt=0
+  while [ "$attempt" -lt 15 ]; do
+    if play_wav "$wav"; then
+      mkdir -p "$(dirname "$stamp")"
+      printf '1\n' > "$stamp"
+      printf 'played: %s\n' "$id"
+      return 0
+    fi
+    if [ -n "${GALION_SOUND_PLAYER:-}" ]; then
+      break
+    fi
+    attempt=$((attempt + 1))
+    sleep 0.2
+  done
+  printf 'skipped: no-device\n'
+  return 0
+}
+
+status_line() {
+  name=$1
+  if [ "$2" -eq 0 ]; then
+    printf '%s: on\n' "$name"
+  else
+    printf '%s: off\n' "$name"
+  fi
+}
+
+if [ "$#" -lt 1 ]; then
+  usage
+fi
+
+case $1 in
+  start)
+    [ "$#" -eq 1 ] || usage
+    sound=${GALION_BOOT_SOUND:-startup}
+    case $sound in
+      startup|boot|wake) ;;
+      *)
+        printf 'refused: GALION_BOOT_SOUND must be startup, boot, or wake.\n' >&2
+        exit 2
+        ;;
+    esac
+    play_once "$sound"
+    ;;
+  stop)
+    [ "$#" -eq 1 ] || usage
+    play_once shutdown
+    ;;
+  wake)
+    [ "$#" -eq 1 ] || usage
+    play_once wake
+    ;;
+  silence)
+    [ "$#" -eq 2 ] || usage
+    case $2 in
+      on) write_flag "$(config_file silence)" 1 ;;
+      off) write_flag "$(config_file silence)" 0 ;;
+      *) usage ;;
+    esac
+    printf 'silence: %s\n' "$2"
+    ;;
+  mute)
+    [ "$#" -eq 2 ] || usage
+    case $2 in
+      on) write_flag "$(runtime_file mute)" 1 ;;
+      off) write_flag "$(runtime_file mute)" 0 ;;
+      *) usage ;;
+    esac
+    printf 'mute: %s\n' "$2"
+    ;;
+  status)
+    [ "$#" -eq 1 ] || usage
+    if env_on "${GALION_SILENCE:-}" || flag_on "$(config_file silence)"; then
+      silence_on=0
+    else
+      silence_on=1
+    fi
+    if env_on "${GALION_MUTE:-}" || flag_on "$(runtime_file mute)"; then
+      mute_on=0
+    else
+      mute_on=1
+    fi
+    if night_now; then
+      night_on=0
+    else
+      night_on=1
+    fi
+    status_line silence "$silence_on"
+    status_line mute "$mute_on"
+    status_line night "$night_on"
+    printf 'sound: %s\n' "${GALION_BOOT_SOUND:-startup}"
+    ;;
+  *)
+    usage
+    ;;
+esac
