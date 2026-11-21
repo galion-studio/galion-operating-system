@@ -13,3 +13,7 @@ packaging/windows/one-click/**/*.md text eol=lf
 packaging/windows/one-click/**/*.cmd text eol=crlf
 docs/brand/icons/**/*.py text eol=lf
 docs/brand/icons/**/*.svg text eol=lf
+desktop/boot/sounds/*.wav binary
+desktop/boot/sounds/*.ogg binary
+desktop/boot/sounds/*.mp3 binary
+desktop/boot/plymouth/images/*.png binary

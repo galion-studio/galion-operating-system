@@ -29,6 +29,12 @@ BOOT_TYPES = {
     ".rs": "text/plain; charset=utf-8",
     ".ts": "text/plain; charset=utf-8",
     ".md": "text/plain; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".mp3": "audio/mpeg",
+    ".ogg": "audio/ogg",
+    ".svg": "image/svg+xml",
+    ".woff2": "font/woff2",
+    ".png": "image/png",
 }
 
 
