@@ -109,6 +109,8 @@ Service launchers that are not visual sequences: `obsidian-open-mind` `crates/ga
 
 Duplicate copies are one card. The 2D `GalionOSBoot`, wake-up, wake phase, greeting, and orbing phase are byte-identical in `galion-app` and `galion-workspace3d`. The 3D `GalionOSBoot` matches across those trees. Lottie JSON also exists under the platform archive copies; the player uses the `galion-app` `public/animations` files. `LottieBootAnimation` asks for `/animations/galion-boot.json`; the repo file is `galion-os-boot.json`, and the preview serves both names.
 
+The preview copies of the Lottie files that name the font `Inter` also carry a `fonts.list` entry. Without it, lottie-web looks up the font, throws on the missing `fStyle`, and swallows that throw, so the SVG stays empty and the console stays clean. The app wake phase uses `COLORS.LINE_COLOR`; that key was missing from the app palette, so the five wake lines had an invalid gradient and never painted. The workspace palette already had the color.
+
 ## Repos with no Galion boot sequence
 
 Public trees checked at HEAD, including history for filenames: Corpus-Nova, Galion-Deep-Mr-Fake-v2, SentiaLink, Teglenica-TSO-36, cargen, coming-soon, community, forge, galion-agi-web, galion-initiative-web, galion-knowledge, galion-marine, galion-studio, helium, hermes-research, merlin, merlin-element-showcase, mmee, nexuslang-v2. Hits in those trees were generic spinners, textbook pages, marketing video loops, or the word boot in docs.
@@ -121,6 +123,6 @@ Voice recordings, secrets, `.env` files, and machine addresses are not in the pr
 
 ## Servers
 
-`serve-preview.py` and `serve-preview.ps1` bind `127.0.0.1` only. Both map `.mp3`, `.wav`, `.ogg`, `.mp4`, `.webm`, `.gif`, `.gltf`, `.glb`, and `.wasm`.
+`serve-preview.py` and `serve-preview.ps1` bind `127.0.0.1` only. Both map `.js`, `.mjs`, `.json`, `.mp3`, `.wav`, `.ogg`, `.mp4`, `.webm`, `.gif`, `.gltf`, `.glb`, `.wasm`, and `.lottie` (a dotLottie file is a zip). Playback is checked by comparing pixels, not by an empty console: `scripts/check-preview-boots`.
 
 

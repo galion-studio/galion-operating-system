@@ -28,6 +28,7 @@ $types = @{
   ".gltf" = "model/gltf+json"
   ".glb" = "model/gltf-binary"
   ".wasm" = "application/wasm"
+  ".lottie" = "application/zip"
 }
 
 $rootFull = [IO.Path]::GetFullPath($root).TrimEnd('\', '/')

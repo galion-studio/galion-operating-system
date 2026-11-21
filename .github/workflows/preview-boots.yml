@@ -1,0 +1,32 @@
+name: Preview boots
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  pixels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Chrome
+        run: |
+          wget -q -O "$RUNNER_TEMP/chrome.deb" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get update
+          sudo apt-get install -y "$RUNNER_TEMP/chrome.deb"
+          echo "CHROME_PATH=$(command -v google-chrome-stable || command -v google-chrome)" >> "$GITHUB_ENV"
+
+      - name: Install the pixel checker
+        working-directory: scripts/check-preview-boots
+        run: npm ci
+
+      - name: Compare painted frames
+        run: node scripts/check-preview-boots/check.mjs
