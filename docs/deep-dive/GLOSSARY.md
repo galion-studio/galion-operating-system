@@ -10,10 +10,10 @@ Names in this set. The product name of the operating system is Galion OS. Laptop
 | Obsidian Open Mind | The repository `galion-studio/obsidian-open-mind`. |
 | `openmind-desktop` | Desktop binary in that repo. `--listen` binds `127.0.0.1:18181`. |
 | OpenMind stack | The workspace packages plus the ten desktop rows in `crates/openmind-desktop/src/stack.rs`. The directory `stack/` is a VPS file copy, not this list. |
-| Galion One | The voice app in `galion-one-voice` at `c7179d1b`, as the owner uses the name. Also the name of a different binary, crate `galion-one`, inside Open Mind, on ports 8091 and 8002. Also the marketing page `site/one/` in Galion OS. |
+| Galion One | One of the two apps the owner says are in use, with Galion Research. The voice app is `galion-one-voice` at `c7179d1b`. The same name is also the Open Mind crate `galion-one` on ports 8091 and 8002, and the marketing page `site/one/` in Galion OS. |
 | Galion Voice | The program name in `galion-one-voice` `LOCKS.toml` (`program = "Galion Voice"`). The root README title is "Galion Voice V2". The symphony index says product voices on a normal call are Galion One and Galion Research, and that Samantha and Jarvis are internal test voices. |
-| Galion Research | The Node desk in `hermes-research` at `13ff2938`. Bind `127.0.0.1:8787`. |
-| Galion App | Two trees for `galion.app`: static pages in this repo's `site/`, and the private Next.js repo `galion-app`. See the stack map. This deep dive does not re-run that app. |
+| Galion Research | One of the two apps the owner says are in use, with Galion One. The Node desk in `hermes-research` at `13ff2938`. Bind `127.0.0.1:8787`. |
+| Galion App | Older secondary tree. Two code trees still use `galion.app`: static pages in this repo's `site/`, and the private Next.js repo `galion-app`. See the stack map. This deep dive does not re-run that app. |
 | symphony | Three different things. See [symphony.md](symphony.md). |
 | Hermes | A loopback chat gateway the research desk can attach to, Rust crates in Open Mind, and a side band in Galion One. Default dial `http://127.0.0.1:8642/v1/chat/completions`. |
 | HORBM | Written name. Expansions in git are "Heuristic Open Retrieval Brain Models" and "Heuristic Open Retrieval Brain Model". |
