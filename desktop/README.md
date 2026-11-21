@@ -27,7 +27,7 @@ The command runs `desktop-file-validate` from `desktop-file-utils` and checks th
 
 [install.sh](install.sh) copies those entries, the icon set, and the opt-in GTK session defaults, or removes them with `--uninstall`. `--user` writes entries and icons under `XDG_DATA_HOME`, or `$HOME/.local/share` when that variable is unset, and GTK files under `XDG_CONFIG_HOME`, or `$HOME/.config`. `--system` writes entries and icons under `/usr/local/share` and GTK files under `/etc/xdg`. Raspberry Pi OS Bookworm and Ubuntu already search those places. `--dry-run` prints the paths and writes nothing. The script does not start the apps.
 
-The session defaults are [gtk/settings.ini](gtk/settings.ini) and [gtk/gtk.css](gtk/gtk.css), copied for GTK 3 and GTK 4. Dark is the token default. Light follows `prefers-color-scheme`. The font name is IBM Plex Sans at the 16px body size. The bundled faces are WOFF2 web subsets, so they are not copied into a font directory. The 3.2s ease is the breath on the landing pages, and `prefers-reduced-motion` removes animation and transition. `gtk-application-prefer-dark-theme` and `gtk-enable-animations` are left unset so the desktop's own dark, light, and reduced-motion choices stay in charge.
+The session defaults are [gtk/settings.ini](gtk/settings.ini) and [gtk/gtk.css](gtk/gtk.css), copied for GTK 3 and GTK 4. Dark is the token default. Light follows `prefers-color-scheme`. The font name is IBM Plex Sans at the 16px body size. The bundled faces are WOFF2 web subsets, so they are not copied into a font directory. Controls use the 160ms console rise. The 3.2s breath stays on the presence dot, and `prefers-reduced-motion` removes animation and transition. `gtk-application-prefer-dark-theme` and `gtk-enable-animations` are left unset so the desktop's own dark, light, and reduced-motion choices stay in charge. The theme, icon, and cursor name are Galion. [ux/](ux/README.md) is that theme, the greeter, and the wake hook.
 
 ```sh
 sh desktop/install.sh --user
@@ -38,5 +38,7 @@ sh desktop/install.sh --user --uninstall
 [test-install.sh](test-install.sh) runs that script in a temporary XDG home. A green run is not a Raspberry Pi 5 result.
 
 The same install copies [boot/](boot/) into `galion/boot/` under the data directory. Those files are the vendored sounds and animations. The script does not play them.
+
+The same install runs [ux/install.sh](ux/install.sh). That script copies the session look. It does not start a display manager and it does not play a tone.
 
 The workflow is [.github/workflows/desktop-entries.yml](../.github/workflows/desktop-entries.yml). Permissions are `contents: read`. It does not upload an artifact and it does not publish a release.

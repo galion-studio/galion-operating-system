@@ -25,7 +25,13 @@ jobs:
         run: sh desktop/validate.sh
 
       - name: Shellcheck the install script
-        run: shellcheck --severity=warning -s sh desktop/install.sh desktop/test-install.sh
+        run: shellcheck --severity=warning -s sh desktop/install.sh desktop/test-install.sh desktop/ux/install.sh desktop/ux/test-install.sh desktop/ux/validate.sh desktop/ux/session/wake.sh
 
       - name: Install into a temporary XDG home
         run: sh desktop/test-install.sh
+
+      - name: Validate the session look
+        run: sh desktop/ux/validate.sh
+
+      - name: Install the session look
+        run: sh desktop/ux/test-install.sh

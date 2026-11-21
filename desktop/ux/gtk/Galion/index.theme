@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Galion
+Comment=Galion OS
+Type=X-GNOME-Metatheme
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=Galion
+IconTheme=Galion
+CursorTheme=Galion

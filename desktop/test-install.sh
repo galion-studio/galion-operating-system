@@ -83,6 +83,8 @@ need_line "$out" "install $gtk3_ini"
 need_line "$out" "install $gtk4_css"
 need_line "$out" "install $boot_wake"
 need_line "$out" "install $boot_index"
+need_line "$out" "install $xdg/galion/ux/session/wake.sh"
+need_line "$out" "install $xdg/themes/Galion/index.theme"
 need_line "$out" "action: install"
 need_line "$out" "scope: user"
 need_line "$out" "written: no"
@@ -122,6 +124,9 @@ for ini in "$gtk3_ini" "$gtk4_ini"; do
   if ! grep -q 'IBM Plex Sans 16px' "$ini"; then
     fail "$ini does not name the token font"
   fi
+  if ! grep -q 'gtk-theme-name=Galion' "$ini"; then
+    fail "$ini does not name the Galion theme"
+  fi
 done
 for css in "$gtk3_css" "$gtk4_css"; do
   cmp -s "$css" "$ROOT/desktop/gtk/gtk.css"
@@ -140,8 +145,8 @@ fi
 if ! grep -q 'prefers-reduced-motion: reduce' "$ROOT/desktop/gtk/gtk.css"; then
   fail "gtk.css does not respect reduced motion"
 fi
-if ! grep -q '3.2s ease-in-out' "$ROOT/desktop/gtk/gtk.css"; then
-  fail "gtk.css does not use the breath timing"
+if ! grep -q '160ms ease' "$ROOT/desktop/gtk/gtk.css"; then
+  fail "gtk.css does not use the console rise"
 fi
 if find "$tmp" -name '*.woff2' | grep -q .; then
   fail "a WOFF2 web font was copied"
@@ -211,6 +216,8 @@ need_line "$out" "install $system_icon"
 need_line "$out" "install $system_ini"
 need_line "$out" "install $system_css"
 need_line "$out" "install /usr/local/share/galion/boot/README.md"
+need_line "$out" "install /etc/dconf/db/gdm.d/10-galion"
+need_line "$out" "install /usr/local/share/themes/Galion/gtk-3.0/gtk.css"
 need_line "$out" "scope: system"
 need_line "$out" "written: no"
 reject_address "$out"

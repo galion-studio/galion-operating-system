@@ -1,0 +1,151 @@
+/* Galion OS wake. Tokens: ../tokens/tokens.css.
+   The rise is om-rise, 160ms ease, from desktop/boot/animations/om-rise.css.
+   The ground stays obsidian. The dot stays flat. */
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  background-color: var(--galion-obsidian);
+  background-image:
+    radial-gradient(ellipse 72% 48% at 12% -8%, rgba(245, 165, 36, 0.16), transparent 58%),
+    radial-gradient(ellipse 56% 42% at 100% 0%, rgba(124, 58, 237, 0.2), transparent 52%);
+  color: var(--galion-text);
+  font-family: var(--galion-font-sans);
+  font-size: var(--galion-size-body);
+  line-height: var(--galion-leading);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--galion-space-5);
+  width: min(880px, calc(100% - 48px));
+  padding: var(--galion-space-6) 0;
+  text-align: center;
+}
+
+.mark img,
+.choice img {
+  display: block;
+}
+
+.mark img {
+  width: 96px;
+  height: 96px;
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--galion-font-display);
+  font-size: var(--galion-size-display);
+  font-weight: 500;
+  letter-spacing: var(--galion-tracking-display);
+  line-height: 1;
+}
+
+#choices {
+  display: flex;
+  gap: var(--galion-space-5);
+  margin: var(--galion-space-3) 0 0;
+  padding: 0;
+}
+
+html:not(.welcome) #choices {
+  display: none;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--galion-space-3);
+  width: 160px;
+  padding: var(--galion-space-4) var(--galion-space-3) 18px;
+  border: 1px solid transparent;
+  border-radius: var(--galion-radius-card);
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--galion-font-display);
+  font-size: var(--galion-size-body);
+  font-weight: 500;
+  letter-spacing: var(--galion-tracking-display);
+}
+
+.choice img {
+  width: 64px;
+  height: 64px;
+}
+
+.choice:hover {
+  background: var(--galion-panel);
+  border-color: var(--galion-hairline);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--galion-amber);
+  outline-offset: 3px;
+}
+
+.rise {
+  animation: om-rise var(--galion-wake-duration) var(--galion-wake-easing) both;
+}
+
+.choice.rise {
+  animation-delay: var(--galion-wake-duration);
+}
+
+@keyframes om-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+html.frame-mid .rise {
+  animation: none;
+  opacity: 0.5;
+  transform: translateY(2px);
+}
+
+html.frame-mid .choice {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+@media (max-width: 720px) {
+  #choices {
+    flex-direction: column;
+    width: min(320px, 100%);
+  }
+
+  .choice {
+    width: auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+}

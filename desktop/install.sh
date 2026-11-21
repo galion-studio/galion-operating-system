@@ -204,3 +204,14 @@ else
 fi
 
 printf '%s\n' "action: $action" "scope: $scope" "written: $written"
+
+# Greeter, wake, and the Galion theme. desktop/ux/install.sh owns those files.
+if [ "$action" = uninstall ] && [ "$dry" -eq 1 ]; then
+  sh "$ROOT/desktop/ux/install.sh" "--$scope" --uninstall --dry-run
+elif [ "$action" = uninstall ]; then
+  sh "$ROOT/desktop/ux/install.sh" "--$scope" --uninstall
+elif [ "$dry" -eq 1 ]; then
+  sh "$ROOT/desktop/ux/install.sh" "--$scope" --dry-run
+else
+  sh "$ROOT/desktop/ux/install.sh" "--$scope"
+fi

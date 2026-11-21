@@ -1,0 +1,3 @@
+[org/gnome/login-screen]
+logo='/usr/local/share/galion/ux/marks/icon-os.svg'
+banner-message-enable=false
