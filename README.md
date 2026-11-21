@@ -45,7 +45,7 @@ An Ubuntu 24.04 WSL2 guest whose disk, swap, and installer temp files stay on `G
 
 ## How the pieces fit
 
-Galion OS, Galion Research, the Obsidian desktop, and Galion Voice on one Linux machine, and on a Pi 5, are mapped in [Architecture](docs/ARCHITECTURE.md). That page links the notes in the other three repositories.
+Galion OS, Galion Research, the Obsidian desktop, and Galion Voice on one Linux machine, and on a Pi 5, are mapped in [Architecture](docs/ARCHITECTURE.md). That page links the notes in the other three repositories. The commit-cited piece map is [docs/STACK-MAP.md](docs/STACK-MAP.md).
 
 ## Brand, site, and Galion Labs
 

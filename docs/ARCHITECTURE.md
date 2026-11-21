@@ -2,7 +2,7 @@
 
 How Galion OS, Galion Research, the Obsidian desktop, and Galion Voice sit on one Linux machine, and what a Raspberry Pi 5 adds.
 
-This page is the map. The notes it links already hold the detail. A line here is only as strong as the file it cites. Links into the other three repositories are their default branch. The Pi 5 symphony job pins two of its own commits, named below.
+This page is the four-piece map. The commit-cited piece map, including the older Galion App tree and HORBM, is [STACK-MAP.md](STACK-MAP.md). The two apps the owner says are in use are Galion Research and Galion One. The notes this page links already hold the detail. A line here is only as strong as the file it cites. Links into the other three repositories are their default branch. The Pi 5 symphony job pins two of its own commits, named below.
 
 A virtual machine or qemu pass is an emulator reading. It is a Raspberry Pi 5 result only when [docs/PI5.md](PI5.md) says a board produced it. That page's board fields are empty.
 

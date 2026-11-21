@@ -1,0 +1,60 @@
+# Shellcheck the Galion-Ubuntu provisioner and run it in ubuntu:24.04.
+# Dry-run writes nothing. Real mode installs packages inside the
+# container. This job does not import a WSL distro and does not publish.
+
+name: WSL provisioner
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Mode inside ubuntu:24.04
+        type: choice
+        options:
+          - both
+          - dry-run
+          - real
+        default: both
+
+permissions:
+  contents: read
+
+jobs:
+  provision:
+    name: shellcheck and ubuntu:24.04
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Provision inside ubuntu:24.04
+        env:
+          PROVISION_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'both' }}
+        run: |
+          set -euo pipefail
+          case "$PROVISION_MODE" in
+            both|dry-run|real) ;;
+            *)
+              printf 'refused: bad mode\n' >&2
+              exit 2
+              ;;
+          esac
+          docker run --rm \
+            -e PROVISION_MODE \
+            -v "$PWD:/work" \
+            -w /work \
+            ubuntu:24.04 \
+            bash packaging/wsl/container-ci.sh
+
+      - name: Label the result
+        if: always()
+        run: |
+          {
+            echo '## WSL provisioner'
+            echo
+            echo 'Shellcheck and the Galion-Ubuntu provisioner ran in an ubuntu:24.04 container. This is not a Windows install and not a published image.'
+          } >> "$GITHUB_STEP_SUMMARY"
