@@ -165,6 +165,34 @@ def check_timeline(tl: dict) -> list[str]:
             errors.append("desktop and apps are not the probed status lines")
         if any(item.get("probe") for item in (steps[0], steps[1], steps[3])):
             errors.append("a timed status line has a probe")
+    light = tl.get("light")
+    if not isinstance(light, dict):
+        errors.append("the light field is missing")
+    else:
+        for key in (
+            "curtains",
+            "hueLo",
+            "hueHi",
+            "thickness",
+            "brightness",
+            "speed",
+            "blur",
+            "tilt",
+            "saturate",
+            "brighten",
+            "maxEdge",
+            "cpuEdge",
+            "shimmerFloor",
+            "shimmerGain",
+            "shimmerScale",
+            "shimmerTime",
+            "shimmerShift",
+        ):
+            if key not in light:
+                errors.append(f"light.{key} is missing")
+        wash = light.get("wash")
+        if not isinstance(wash, dict) or any(key not in wash for key in ("bloom", "glow", "glass", "mark")):
+            errors.append("light wash is missing")
     return errors
 
 

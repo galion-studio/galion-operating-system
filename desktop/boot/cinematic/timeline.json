@@ -75,6 +75,32 @@
     "height": 360,
     "refreshHz": 50
   },
+  "light": {
+    "curtains": 10,
+    "hueLo": 206,
+    "hueHi": 214,
+    "thickness": 1.2,
+    "brightness": 1.25,
+    "speed": 0.7,
+    "blur": 1.35,
+    "dither": true,
+    "tilt": 9,
+    "saturate": 0.22,
+    "brighten": 2.15,
+    "maxEdge": 128,
+    "cpuEdge": 40,
+    "shimmerFloor": 0.78,
+    "shimmerGain": 0.22,
+    "shimmerScale": 2.15,
+    "shimmerTime": 0.32,
+    "shimmerShift": 0.15,
+    "wash": {
+      "bloom": 0.42,
+      "glow": 0.7,
+      "glass": 0.26,
+      "mark": 0.38
+    }
+  },
   "particles": 36,
   "colors": {
     "black": "#000000",

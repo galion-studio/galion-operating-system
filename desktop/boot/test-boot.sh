@@ -28,6 +28,31 @@ python3 desktop/boot/plymouth/render_mark.py --check
 python3 desktop/boot/cinematic/motion.py --check
 python3 desktop/boot/cinematic/render_frames.py --check
 
+py_noise=$(python3 -c 'import sys; sys.path.insert(0, "desktop/boot/cinematic"); from field import snoise
+pts = [(0.0, 0.0), (0.2, -0.4), (1.5, 2.3), (-3.0, 0.7), (12.25, -8.5)]
+print("\n".join(f"{snoise(x, y):.8f}" for x, y in pts))')
+js_noise=$(node --input-type=module -e 'import { snoise } from "./desktop/boot/cinematic/snoise.mjs";
+const pts = [[0, 0], [0.2, -0.4], [1.5, 2.3], [-3, 0.7], [12.25, -8.5]];
+for (const [x, y] of pts) console.log(snoise(x, y).toFixed(8));')
+if [ "$py_noise" != "$js_noise" ]; then
+  fail "simplex noise ports disagree"
+fi
+if ! grep -q 'Arseniy Seroka' desktop/boot/cinematic/THIRD_PARTY_NOTICES.md; then
+  fail "coaurora notice is missing"
+fi
+if ! grep -q 'Arseniy Seroka' desktop/boot/cinematic/vendor/coaurora/LICENSE; then
+  fail "coaurora licence is missing"
+fi
+if ! grep -q 'Ashima Arts' desktop/boot/cinematic/THIRD_PARTY_NOTICES.md; then
+  fail "webgl-noise notice is missing"
+fi
+if ! grep -q 'Ashima Arts' desktop/boot/cinematic/vendor/webgl-noise/LICENSE; then
+  fail "webgl-noise licence is missing"
+fi
+if ! grep -q 'Ashima Arts' desktop/boot/cinematic/vendor/webgl-noise/noise2D.glsl; then
+  fail "webgl-noise shader header is missing"
+fi
+
 if grep -F -q 'Galion One' \
   desktop/boot/cinematic/index.html \
   desktop/boot/cinematic/cinematic.mjs \

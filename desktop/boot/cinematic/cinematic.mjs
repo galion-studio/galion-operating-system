@@ -8,6 +8,8 @@
 // Motion is the critically damped spring in motion.mjs.
 
 import { createSim, mix } from "./motion.mjs";
+import { snoise } from "./snoise.mjs";
+import { coverScale, createField, fieldTime, washAmount } from "./field.mjs";
 
 const params = new URLSearchParams(location.search);
 const capture = params.get("capture") === "1";
@@ -99,6 +101,18 @@ function draw(t) {
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, cssW, cssH);
 
+  const wash = washAmount(t, state, reduced, timeline);
+  if (wash > 0.004 && light) {
+    light.render(fieldTime(t, timeline.light), cssW, cssH);
+    const cover = coverScale(cssW, cssH, timeline.light.tilt);
+    ctx.save();
+    ctx.translate(cssW / 2, cssH / 2);
+    ctx.rotate((timeline.light.tilt * Math.PI) / 180);
+    ctx.globalAlpha = wash;
+    ctx.drawImage(light.canvas, (-cssW * cover) / 2, (-cssH * cover) / 2, cssW * cover, cssH * cover);
+    ctx.restore();
+  }
+
   if (glow > 0.004 && radius > 0.2) {
     const halo = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, Math.max(radius * 8.5, 24 * scale));
     halo.addColorStop(0, `rgba(245, 245, 247, ${0.22 * glow})`);
@@ -112,8 +126,9 @@ function draw(t) {
     ctx.fillStyle = `rgba(245, 245, 247, ${field})`;
     const reach = design.bloomRadius * scale * Math.max(bloom, 0.2);
     for (let i = 0; i < particles; i += 1) {
-      const ang = mix(i) * Math.PI * 2 + t * 0.11;
-      const dist = reach * (1.28 + mix(i + 80) * 0.9);
+      const n = snoise(mix(i) * 3, t * 0.23);
+      const ang = mix(i) * Math.PI * 2 + t * 0.11 + n * 0.4;
+      const dist = reach * (1.22 + mix(i + 80) * 0.8 + n * 0.16);
       const px = cx + Math.cos(ang) * dist;
       const py = cy + Math.sin(ang) * dist * 0.9;
       ctx.globalAlpha = 0.05 + mix(i + 160) * 0.16;
@@ -124,13 +139,7 @@ function draw(t) {
     ctx.globalAlpha = 1;
   }
 
-  if (ring > 0.01) {
-    ctx.beginPath();
-    ctx.arc(cx, cy, design.bloomRadius * scale * 2.15, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(245, 245, 247, ${0.28 * ring})`;
-    ctx.lineWidth = Math.max(1, 1.15 * scale);
-    ctx.stroke();
-  }
+  if (ring > 0.01) strokeNoiseRing(cx, cy, design.bloomRadius * scale * 2.15, ring, t, scale);
 
   if (radius > 0.3) {
     ctx.beginPath();
@@ -234,6 +243,25 @@ function draw(t) {
   drawDesk(cx, wordY, scale, wakeP);
 
   return state;
+}
+
+function strokeNoiseRing(cx, cy, radius, amp, t, scale) {
+  if (amp < 0.02 || radius < 1) return;
+  ctx.beginPath();
+  const steps = 96;
+  for (let i = 0; i <= steps; i += 1) {
+    const a = (i / steps) * Math.PI * 2;
+    const n = snoise(Math.cos(a) * 1.6 + t * 0.17, Math.sin(a) * 1.6);
+    const r = radius * (1 + n * 0.012);
+    const x = cx + Math.cos(a) * r;
+    const y = cy + Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = `rgba(214, 226, 232, ${0.34 * amp})`;
+  ctx.lineWidth = Math.max(1, 1.15 * scale);
+  ctx.stroke();
 }
 
 const PROBE_URL = {
@@ -402,6 +430,7 @@ function summarise() {
     drawMaxMs: drawSorted.length ? drawSorted[drawSorted.length - 1] : 0,
     audio: audioStatus,
     reduced,
+    field: window.__galionField || "off",
   };
 }
 
@@ -419,6 +448,7 @@ function paintHud(t) {
     `fps ${stats.fps.toFixed(2)}   n ${stats.frames}   over 24 ms ${stats.over24Ms}`,
     `draw p95 ${stats.drawP95Ms.toFixed(2)} ms`,
     `audio ${audioStatus}`,
+    `field ${stats.field}`,
   ].join("\n");
 }
 
@@ -518,6 +548,9 @@ async function bootAudio() {
     clock = () => (performance.now() - origin) / 1000;
   }
 }
+
+const light = await createField(timeline.light, { reduced, cpu: params.get("cpu") === "1" });
+window.__galionField = light.mode;
 
 await Promise.all([
   document.fonts.load("500 28px Jost"),

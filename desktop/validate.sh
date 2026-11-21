@@ -82,16 +82,29 @@ expect_files "desktop file" "$(printf '%s\n' \
   boot/animations/palette.rs \
   boot/animations/spring.rs \
   boot/animations/status-pulse.css \
+  boot/cinematic/THIRD_PARTY_NOTICES.md \
   boot/cinematic/capture.mjs \
   boot/cinematic/check_motion.mjs \
   boot/cinematic/cinematic.css \
   boot/cinematic/cinematic.mjs \
+  boot/cinematic/field.mjs \
+  boot/cinematic/field.py \
   boot/cinematic/index.html \
   boot/cinematic/motion.mjs \
   boot/cinematic/motion.py \
   boot/cinematic/render_frames.py \
   boot/cinematic/serve.py \
+  boot/cinematic/snoise.mjs \
   boot/cinematic/timeline.json \
+  boot/cinematic/vendor/coaurora/LICENSE \
+  boot/cinematic/vendor/coaurora/src/cpu.js \
+  boot/cinematic/vendor/coaurora/src/curtains.js \
+  boot/cinematic/vendor/coaurora/src/gl.js \
+  boot/cinematic/vendor/coaurora/src/index.js \
+  boot/cinematic/vendor/coaurora/src/shaders.js \
+  boot/cinematic/vendor/coaurora/src/store.js \
+  boot/cinematic/vendor/webgl-noise/LICENSE \
+  boot/cinematic/vendor/webgl-noise/noise2D.glsl \
   boot/index.html \
   boot/plymouth/galion.plymouth \
   boot/plymouth/galion.script \

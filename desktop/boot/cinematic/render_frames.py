@@ -16,6 +16,7 @@ import math
 import sys
 from pathlib import Path
 
+from field import field_time, paint_field, snoise, wash_amount
 from motion import HERE, at, check_timeline, load_timeline, mix, spring
 
 ROOT = HERE.parents[2]
@@ -50,6 +51,28 @@ def over(dst, rgb, alpha):
 
     a = alpha[..., None]
     dst[:] = rgb * a + dst * (1.0 - a)
+
+
+def add_noise_ring(img, xx, yy, cx, cy, radius, amp, t, scale):
+    import numpy as np
+
+    if amp < 0.02 or radius < 1:
+        return
+    steps = 96
+    radii = np.empty(steps, dtype=np.float64)
+    for i in range(steps):
+        ang = (i / steps) * math.tau
+        n = snoise(math.cos(ang) * 1.6 + t * 0.17, math.sin(ang) * 1.6)
+        radii[i] = radius * (1.0 + n * 0.012)
+    ang = np.arctan2(yy - cy, xx - cx)
+    idx = np.mod((ang + math.pi) / math.tau * steps, steps)
+    i0 = np.floor(idx).astype(np.int32)
+    frac = idx - i0
+    ring_r = radii[i0] * (1.0 - frac) + radii[(i0 + 1) % steps] * frac
+    dist = np.hypot(xx - cx, yy - cy)
+    band = max(1.15, 0.85 * scale)
+    alpha = np.exp(-0.5 * ((dist - ring_r) / band) ** 2) * (0.30 * amp)
+    over(img, np.array((214 / 255, 226 / 255, 232 / 255)), alpha)
 
 
 def status_motion(tl: dict, t: float) -> tuple[float, float]:
@@ -98,6 +121,9 @@ def paint(tl: dict, t: float, state: dict, width: int, height: int, fonts: dict)
     icon_r = (design["mark"] * 6 / 64) * scale
     radius = design["bloomRadius"] * scale * bloom * (1 - mark) + icon_r * mark
     img = np.zeros((height, width, 3), dtype=np.float64)
+    wash = wash_amount(t, state, tl)
+    if wash > 0.004:
+        img = paint_field(width, height, field_time(t, tl["light"]), tl["light"]) * wash
     yy, xx = np.ogrid[:height, :width]
     dist = np.hypot(xx - cx, yy - cy)
 
@@ -109,8 +135,9 @@ def paint(tl: dict, t: float, state: dict, width: int, height: int, fonts: dict)
     if field > 0.01 and bloom > 0.02:
         reach = design["bloomRadius"] * scale * max(bloom, 0.2)
         for i in range(int(tl["particles"])):
-            ang = mix(i) * math.tau + t * 0.11
-            span = reach * (1.28 + mix(i + 80) * 0.9)
+            n = snoise(mix(i) * 3, t * 0.23)
+            ang = mix(i) * math.tau + t * 0.11 + n * 0.4
+            span = reach * (1.22 + mix(i + 80) * 0.8 + n * 0.16)
             px = cx + math.cos(ang) * span
             py = cy + math.sin(ang) * span * 0.9
             pr = (0.7 + mix(i + 240) * 0.7) * scale
@@ -119,10 +146,7 @@ def paint(tl: dict, t: float, state: dict, width: int, height: int, fonts: dict)
             img[speck] = np.array(DOT) * alpha + img[speck] * (1 - alpha)
 
     if ring > 0.01:
-        ring_r = design["bloomRadius"] * scale * 2.15
-        width = max(0.8, 0.55 * scale)
-        alpha = np.exp(-0.5 * ((dist - ring_r) / width) ** 2) * (0.22 * ring)
-        over(img, np.array(DOT), alpha)
+        add_noise_ring(img, xx, yy, cx, cy, design["bloomRadius"] * scale * 2.15, ring, t, scale)
 
     if radius > 0.3:
         edge_aa = 0.75

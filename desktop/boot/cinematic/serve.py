@@ -42,6 +42,7 @@ TYPES = {
     ".woff2": "font/woff2",
     ".txt": "text/plain; charset=utf-8",
     ".md": "text/plain; charset=utf-8",
+    ".glsl": "text/plain; charset=utf-8",
 }
 
 
