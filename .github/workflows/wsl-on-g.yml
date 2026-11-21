@@ -1,0 +1,47 @@
+# Pester runs the WSL installer in -DryRun. This job does not enable WSL,
+# download Ubuntu, or write a virtual disk. A green run is not a Windows install.
+
+name: WSL on G dry run
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  wsl-dry-run:
+    name: Pester dry run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
+
+      - name: Dry run
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module Pester
+          $config = New-PesterConfiguration
+          $config.Run.Path = 'packaging/windows/wsl-on-g/Install-GalionWSL.Tests.ps1'
+          $config.Run.Exit = $true
+          $config.Output.Verbosity = 'Detailed'
+          Invoke-Pester -Configuration $config
+
+      - name: Label the result
+        if: always()
+        run: |
+          {
+            echo '## WSL on G dry run'
+            echo
+            echo 'Not a Windows install. The job did not enable WSL, download Ubuntu, or write a virtual disk. Pester ran the installer with -DryRun.'
+          } >> "$GITHUB_STEP_SUMMARY"
