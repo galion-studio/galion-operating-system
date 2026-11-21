@@ -39,6 +39,10 @@ Galion OS is the direction we're building towards, starting with Open Mind and H
 
 The short path onto a Pi 5 is [Galion on a Raspberry Pi 5](docs/PI5.md). The commands for the first boot on the board are [First real boot on the Pi 5](docs/PI5-FIRST-REAL-BOOT.md).
 
+## Windows laptop
+
+From an elevated PowerShell, in a checkout of this repository, the owner command is `.\packaging\windows\wsl-on-g\Install-GalionUbuntuOnG.cmd`. It imports an Ubuntu 24.04 WSL2 guest named `Galion-Ubuntu` onto `G:\galion`. It does not delete the existing `Ubuntu` distro or `docker-desktop`. The note is [the Windows-side installer](packaging/windows/wsl-on-g/README.md). It does not build the Galion OS image. That image remains the Ubuntu 26.04 plan in [the packaging note](docs/PACKAGING.md), and it still waits on `galion-init`.
+
 ## How the pieces fit
 
 Galion OS, Galion Research, the Obsidian desktop, and Galion Voice on one Linux machine, and on a Pi 5, are mapped in [Architecture](docs/ARCHITECTURE.md). That page links the notes in the other three repositories. The commit-cited piece map is [docs/STACK-MAP.md](docs/STACK-MAP.md).

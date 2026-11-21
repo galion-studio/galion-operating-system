@@ -10,7 +10,7 @@ Launches for this work stay on the owner's laptop. The target is Rust processes 
 
 Galion OS does not start the other pieces. `galion-init` keeps a boot plan in memory, refuses to run as PID 1, and does not fork or bind. `galion-welcome` is a separate binary. It binds the loopback interface on port 18711 and serves one HTML page. That page lists Galion units and says Open Mind, Research, and Voice are not on the machine until those units exist. Sources: `galion-init/src/welcome.rs` (`WELCOME_PORT`), `docs/PI5-SEED.md`, `docs/ARCHITECTURE.md`, all at `f6bfa929`.
 
-`docs/ARCHITECTURE.md` is the earlier four-piece map (Galion OS, Galion Research, the Obsidian desktop, Galion Voice) and the Pi 5 notes. This file adds Galion App, HORBM, the desktop rows, and the laptop decision. The phase 2 reading of the same commits is [deep-dive/README.md](deep-dive/README.md). The symphony job still pins older commits (`b26ad02e` for `obsidian-open-mind`, `74f9a707` for `hermes-research`). Those pins are not the heads read here.
+`docs/ARCHITECTURE.md` is the earlier four-piece map (Galion OS, Galion Research, the Obsidian desktop, Galion Voice) and the Pi 5 notes. This file adds HORBM, the desktop rows, the laptop decision, and Galion App as an older secondary tree. The owner says the two apps currently in use are Galion Research and Galion One. The phase 2 reading of the same commits is [deep-dive/README.md](deep-dive/README.md). The symphony job still pins older commits (`b26ad02e` for `obsidian-open-mind`, `74f9a707` for `hermes-research`). Those pins are not the heads read here.
 
 ## Commits read
 
@@ -106,7 +106,7 @@ Ultra price copy of $220 / €220 is copy on the page. It is not a checkout. A s
 
 ## 5. The Galion App
 
-Two trees use the domain `galion.app`. The owner says Galion App and Galion One are the two apps currently in use. That sentence is the owner's statement. These git trees do not record which process is running on the laptop. Which process is on the laptop today is **UNVERIFIED**.
+Galion App is an older, secondary tree. The owner says the two apps currently in use are Galion Research and Galion One. Two trees still use the domain `galion.app`. These git trees do not record which process is running on the laptop. Which process is on the laptop today is **UNVERIFIED**.
 
 ### Static pages in Galion OS
 
@@ -124,7 +124,7 @@ The README example sets `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PU
 
 ## 6. The Galion One app
 
-Galion One, as the owner uses the name for the app in use, is `galion-studio/galion-one-voice` at `c7179d1b`. The root README title is "Galion Voice V2". Rust 1.85 or newer. `LOCKS.toml` records an 80 ms tick, 12.5 Hz, and 24 kHz. Consent starts denied. The README says nothing in the tree is deployed. V1 is the one-dot page, a heartbeat, and Piper, Flite, and Vosk. V2 is this program. V3 is later.
+Galion One is one of the two apps the owner says are in use, together with Galion Research. The voice app is `galion-studio/galion-one-voice` at `c7179d1b`. The root README title is "Galion Voice V2". Rust 1.85 or newer. `LOCKS.toml` records an 80 ms tick, 12.5 Hz, and 24 kHz. Consent starts denied. The README says nothing in the tree is deployed. V1 is the one-dot page, a heartbeat, and Piper, Flite, and Vosk. V2 is this program. V3 is later.
 
 Root workspace members in `Cargo.toml`: `galion-tensor`, `galion-sideband`, `galion-openmind`, `galion-console`, `galion-render`, `galion-emotion`, `galion-mimi`, `galion-presence`, `galion-presence-eval`, `galion-heartbeat`, `galion-cascade`, `galion-asr-vosk`, `galion-student-backend`, `galion-ml-voice`, `galion-live-demo`, `galion-symphony`, `galion-consent`, `galion-cores`, `galion-clone-cbx`. The root workspace excludes `runtimes/galion-piper-rt` because it uses `ort`. Weights are gitignored. The root `repository` field points at `https://github.com/galion-studio/Galion-Voice-`. Whether that URL is a repository is **UNVERIFIED**.
 
@@ -290,7 +290,7 @@ Linux defaults in the same voice docs (`$XDG_DATA_HOME/galion`, `~/.local/share/
 ## Gaps to run all of it locally in Rust on G:\galion
 
 1. The research desk is Node. `hermes-research` has no Rust server. `galion-init` does not start it.
-2. Galion App in `galion-app` is Next.js. The galion.app pages in this repository are HTML plus a Python preview on 8765. Neither is a Rust launcher.
+2. The older Galion App tree in `galion-app` is Next.js. The galion.app pages in this repository are HTML plus a Python preview on 8765. Neither is a Rust launcher. Neither is one of the two apps the owner says are in use.
 3. The knowledge V2 site is Eleventy, and `serve.py` is Python. `horbm-memory` is Rust and is not started by Galion OS.
 4. The HORBM brain crate is not in any tree that was cloned. The bridge uses `FakeEngine` and `seam/horbm`. The feature path does not point at `galion-knowledge`. The voice stack does not fetch revision `761a7f22`.
 5. The owner read-only and paused policy is not a crate switch. `horbm-memory import` and `rebuild` write an index. The crate does not call an API model, so the later external-API builder is still absent.
@@ -313,7 +313,7 @@ Linux defaults in the same voice docs (`$XDG_DATA_HOME/galion`, `~/.local/share/
 ## UNVERIFIED
 
 - The string HRRVM as a repository name or a code identifier.
-- Which Galion App process and which Galion One process are running on the laptop. The "two apps in use" line is the owner's statement.
+- Which process is running on the laptop. The owner says the two apps in use are Galion Research and Galion One. Galion App is the older secondary tree. The git trees do not record a process list.
 - The port a `galion-app` `next dev` process binds, and whether anything listens on port 8000.
 - Behaviors described in `galion-app` `ARCHITECTURE.md` and in the `galion-console` README. The files were read. The apps were not run.
 - Contents of `galion-infrastructure`.
