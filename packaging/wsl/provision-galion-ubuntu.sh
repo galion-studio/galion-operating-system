@@ -120,6 +120,7 @@ packages=(
   libpipewire-0.3-0t64
   pipewire-bin
   libasound2-plugins
+  libasound2-dev
 )
 
 assets=(
@@ -193,6 +194,8 @@ print_plan() {
   say 'windows-drive-caches: none'
   say 'entry: sudo bash packaging/wsl/provision-galion-ubuntu.sh'
   say 'audio-clients: libpulse0 pulseaudio-utils libpipewire-0.3-0t64 pipewire-bin libasound2-plugins'
+  say 'alsa-headers: libasound2-dev'
+  say 'home-owner: galion:galion'
   say 'audio-servers: none'
   say 'apt-components: universe multiverse'
   say 'wsl.conf: /etc/wsl.conf'
@@ -304,7 +307,8 @@ ensure_apt_component() {
 }
 
 # fonts-ibm-plex is in multiverse. libasound2-plugins is in universe.
-# Both are part of the WSLg desktop client set.
+# Both are part of the WSLg desktop client set. libasound2-dev is the
+# ALSA header package the voice step compiles against.
 ensure_apt_component universe
 ensure_apt_component multiverse
 
@@ -588,7 +592,12 @@ for xdg_name in "${xdg_names[@]}"; do
 done
 install -o galion -g galion -m 0644 "$here/user-dirs.dirs" /home/galion/.config/user-dirs.dirs
 install -o galion -g galion -m 0644 "$here/user-dirs.conf" /home/galion/.config/user-dirs.conf
+# install -d applies -o to the final path component. Ancestors such as
+# /home/galion/.local are created as root, and the voice step then cannot
+# write ~/.local/share/galion or ~/.local/bin. Hand the home tree to galion.
+chown -R galion:galion /home/galion
 say 'xdg: /home/galion'
+say 'home-owner: galion:galion'
 
 copy_file "$here/wsl.conf" /etc/wsl.conf 0644
 if ! grep -q '^systemd=true$' /etc/wsl.conf; then

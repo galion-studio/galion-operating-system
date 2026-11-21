@@ -165,6 +165,10 @@ EOF
   need_line "$text" 'pulseaudio-utils'
   need_line "$text" 'libpipewire-0.3-0t64'
   need_line "$text" 'pipewire-bin'
+  need_line "$text" 'libasound2-plugins'
+  need_line "$text" 'libasound2-dev'
+  need_line "$text" 'alsa-headers: libasound2-dev'
+  need_line "$text" 'home-owner: galion:galion'
   need_line "$text" 'apt-cache: /var/cache/apt'
   need_line "$text" 'rustup: /opt/galion/rustup'
   need_line "$text" 'cargo: /opt/galion/cargo'
@@ -330,10 +334,22 @@ run_real() {
       || die "gtk $gtk_major css differs"
   done
 
-  local xdg_name
-  for xdg_name in Desktop Downloads Documents Music Pictures Videos .config .local/share .cache; do
+  local xdg_name owner
+  for xdg_name in Desktop Downloads Documents Music Pictures Videos .config .local .local/share .cache; do
     assert_inside_dir "/home/galion/$xdg_name"
   done
+  for xdg_name in /home/galion /home/galion/.local /home/galion/.local/share /home/galion/.config; do
+    owner=$(stat -c '%U:%G' "$xdg_name")
+    if [[ $owner != galion:galion ]]; then
+      die "$xdg_name is owned by $owner"
+    fi
+  done
+  if ! runuser -u galion -- test -w /home/galion/.local; then
+    die 'galion cannot write /home/galion/.local'
+  fi
+  if ! dpkg -s libasound2-dev >/dev/null 2>&1; then
+    die 'libasound2-dev is not installed'
+  fi
   for xdg_name in /var/cache/apt /var/cache/galion /var/cache/galion/node /var/cache/galion/tmp /var/cache/npm /var/cache/pip /opt/galion/rustup /opt/galion/cargo /opt/galion/cargo/target /var/cache/fontconfig; do
     assert_inside_dir "$xdg_name"
   done
