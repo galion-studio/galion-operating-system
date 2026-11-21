@@ -83,7 +83,7 @@ function ConvertTo-GalionWslPath {
 function Repair-GalionWslText {
     param([AllowEmptyString()][string]$Text)
     if ([string]::IsNullOrEmpty($Text)) { return '' }
-    $clean = $Text.Replace(([string][char]0), '')
+    $clean = $Text.Replace(([string][char]0), '').Replace("`r`n", "`n").Replace("`r", "`n")
     if ($clean.Length -gt 8) {
         $spaces = 0
         $checks = 0
@@ -405,7 +405,10 @@ function Get-GalionUbuntuPlan {
         if (Test-GalionProtectedName $name) {
             [void]$notes.Add(('protected-distro: {0} {1}' -f $name, $itemBase))
         }
-        if ($itemBase -ne '' -and (Test-GalionPathUnder $itemBase $script:GalionInstallPath)) {
+        # Test-GalionPathUnder is true for a path equal to the root, so the
+        # distro's own base path looks stored inside itself. Skip that entry.
+        # A different distro inside the target directory is still refused.
+        if ($name -ne 'Galion-Ubuntu' -and $itemBase -ne '' -and (Test-GalionPathUnder $itemBase $script:GalionInstallPath)) {
             [void]$notes.Add(('refused: {0} is stored inside the Galion-Ubuntu directory' -f $name))
             return (New-GalionPlan -ExitCode 1 -Action 'refuse' -Notes $notes -Actions @())
         }
@@ -695,7 +698,11 @@ function Invoke-GalionUbuntuPlan {
         if ($kind -eq 'write') { & $Runners.WriteText ([string]$act['Path']) ([string]$act['Text']); continue }
         if ($kind -eq 'remove') { & $Runners.RemoveTree ([string]$act['Path']); continue }
         if ($kind -eq 'command' -or $kind -eq 'command-best-effort') {
-            $code = [int](& $Runners.Command @($act['Arguments']))
+            # @($array) is the array operator, not a splat. Use a named parameter
+            # so wsl.exe and its arguments stay separate. A joined string makes
+            # PowerShell look for a program named "wsl.exe --import ...".
+            $argv = [string[]]@($act['Arguments'])
+            $code = [int](& $Runners.Command -ArgumentList $argv)
             if ($kind -eq 'command' -and $code -ne 0) {
                 Write-Host ('refused: command {0} exited {1}' -f $id, $code)
                 return 1
@@ -719,7 +726,7 @@ function Get-GalionProfileSnapshotText {
         foreach ($entry in @($dir.GetFileSystemInfos())) {
             if (($entry.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) { continue }
             $rel = $entry.FullName.Substring($rootInfo.FullName.Length).TrimStart('\')
-            if ($entry.PSIsContainer) {
+            if ($entry -is [System.IO.DirectoryInfo]) {
                 [void]$lines.Add($rel + "`t0")
                 $pending.Enqueue([System.IO.DirectoryInfo]$entry)
             }
@@ -947,6 +954,10 @@ function Get-GalionDefaultRunners {
                     [Environment]::SetEnvironmentVariable($name, $null, 'Process')
                 }
             }
+            if (-not (Get-Command $program -ErrorAction SilentlyContinue)) {
+                Write-Host ('refused: command not found: {0}' -f $program)
+                return 1
+            }
             $old = $ErrorActionPreference
             $ErrorActionPreference = 'Continue'
             try {
@@ -954,6 +965,10 @@ function Get-GalionDefaultRunners {
                 $code = $LASTEXITCODE
                 if ($null -eq $code) { $code = 0 }
                 return [int]$code
+            }
+            catch {
+                Write-Host ('command-error: {0}' -f $_)
+                return 1
             }
             finally {
                 $ErrorActionPreference = $old

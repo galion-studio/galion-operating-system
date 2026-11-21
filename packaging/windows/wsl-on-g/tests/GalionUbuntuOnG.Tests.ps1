@@ -184,6 +184,28 @@ Describe 'install plan' {
         (Get-GalionActionIds $present) | Should -Not -Contain 'import'
     }
 
+    It 'does not treat Galion-Ubuntu as stored inside its own directory' {
+        $facts = New-GalionHealthyFacts
+        $facts.Distros = @(
+            @{ Name = 'Ubuntu'; BasePath = 'G:\galion\wsl\ubuntu' },
+            @{ Name = 'docker-desktop'; BasePath = 'C:\ProgramData\Docker\wsl\data' },
+            @{ Name = 'Galion-Ubuntu'; BasePath = 'G:\galion\wsl\Galion-Ubuntu' }
+        )
+        $facts.GalionBasePath = 'G:\galion\wsl\Galion-Ubuntu'
+        $plan = Get-GalionUbuntuPlan -Facts $facts -Pins $script:Pins
+        $plan.ExitCode | Should -Be 0
+        ($plan.Notes -join "`n") | Should -Not -Match 'stored inside the Galion-Ubuntu directory'
+
+        $nested = New-GalionHealthyFacts
+        $nested.Distros = @(
+            @{ Name = 'Ubuntu'; BasePath = 'G:\galion\wsl\ubuntu' },
+            @{ Name = 'Other'; BasePath = 'G:\galion\wsl\Galion-Ubuntu\nested' }
+        )
+        $bad = Get-GalionUbuntuPlan -Facts $nested -Pins $script:Pins
+        $bad.ExitCode | Should -Be 1
+        ($bad.Notes -join "`n") | Should -Match 'Other is stored inside the Galion-Ubuntu directory'
+    }
+
     It 'runs provision again on repair without importing over the distro' {
         $facts = New-GalionHealthyFacts
         $facts.RootfsHashMatch = $true
@@ -271,6 +293,38 @@ Describe 'executor' {
         (Invoke-GalionUbuntuPlan -Plan $other -Runners $runners) | Should -Be 1
         $script:Hits | Should -Be 0
     }
+
+    It 'passes import arguments as separate strings' {
+        $script:Seen = @()
+        $runners = @{
+            Command = {
+                param([Parameter(ValueFromRemainingArguments = $true)][string[]]$ArgumentList)
+                $script:Seen = [string[]]@($ArgumentList)
+                return 0
+            }
+        }
+        $argv = @('wsl.exe', '--import', 'Galion-Ubuntu', 'G:\galion\wsl\Galion-Ubuntu', 'G:\galion\wsl\cache\ubuntu-24.04.5-wsl-amd64.tar.gz', '--version', '2')
+        $plan = [pscustomobject]@{
+            ExitCode = 0
+            Notes    = @()
+            Actions  = @(@{ Id = 'import'; Kind = 'command'; Arguments = $argv })
+        }
+        (Invoke-GalionUbuntuPlan -Plan $plan -Runners $runners) | Should -Be 0
+        $script:Seen.Count | Should -Be $argv.Count
+        $script:Seen[0] | Should -Be 'wsl.exe'
+        ($script:Seen -join ' ') | Should -Be ($argv -join ' ')
+        $script:Seen[0] | Should -Not -Match '--import'
+    }
+
+    It 'records nested profile files from raw .NET directory entries' {
+        $root = Join-Path $TestDrive 'profile'
+        $sub = Join-Path $root 'Desktop'
+        New-Item -ItemType Directory -Path $sub | Out-Null
+        Set-Content -LiteralPath (Join-Path $sub 'notes.txt') -Value 'hello' -NoNewline
+        $text = Get-GalionProfileSnapshotText $root
+        $text | Should -Match 'Desktop\t0'
+        $text | Should -Match 'notes\.txt\t5'
+    }
 }
 
 Describe 'profile snapshot and verify report' {
@@ -318,6 +372,11 @@ Describe 'pins and the Windows entry' {
         (Test-GalionWsl2StatusText "Default Version: 1`n") | Should -BeFalse
         $spaced = (([char[]]'Default Version: 2') | ForEach-Object { "$_ " }) -join ''
         (Test-GalionWsl2StatusText $spaced) | Should -BeTrue
+        $crlf = "Default Distribution: Ubuntu`r`nDefault Version: 2`r`n"
+        (Test-GalionWsl2StatusText $crlf) | Should -BeTrue
+        $utf16 = -join ($crlf.ToCharArray() | ForEach-Object { "$_$([char]0)" })
+        (Test-GalionWsl2StatusText $utf16) | Should -BeTrue
+        (Test-GalionWsl2StatusText ($crlf -replace 'Version: 2', 'Version: 1')) | Should -BeFalse
         (Get-Content -Raw (Join-Path $PSScriptRoot '..\Install-GalionUbuntuOnG.cmd')) | Should -Match 'Install-GalionUbuntuOnG\.ps1'
     }
 
