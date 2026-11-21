@@ -72,6 +72,8 @@ gtk3_ini=$config/gtk-3.0/settings.ini
 gtk4_ini=$config/gtk-4.0/settings.ini
 gtk3_css=$config/gtk-3.0/gtk.css
 gtk4_css=$config/gtk-4.0/gtk.css
+boot_wake=$xdg/galion/boot/sounds/openmind-desktop-sound.rs
+boot_index=$xdg/galion/boot/index.html
 
 out=$(sh "$install_sh" --user --dry-run)
 need_line "$out" "install $desktop_file"
@@ -79,6 +81,8 @@ need_line "$out" "install $icon_file"
 need_line "$out" "install $os_icon"
 need_line "$out" "install $gtk3_ini"
 need_line "$out" "install $gtk4_css"
+need_line "$out" "install $boot_wake"
+need_line "$out" "install $boot_index"
 need_line "$out" "action: install"
 need_line "$out" "scope: user"
 need_line "$out" "written: no"
@@ -122,6 +126,14 @@ done
 for css in "$gtk3_css" "$gtk4_css"; do
   cmp -s "$css" "$ROOT/desktop/gtk/gtk.css"
 done
+if [ ! -f "$boot_wake" ] || [ -L "$boot_wake" ]; then
+  fail "$boot_wake is not a regular file"
+fi
+cmp -s "$boot_wake" "$ROOT/desktop/boot/sounds/openmind-desktop-sound.rs"
+cmp -s "$boot_index" "$ROOT/desktop/boot/index.html"
+if ! grep -q 'Copyright (c) 3000 Galion / galion-studio' "$boot_wake"; then
+  fail "wake tone lost its copyright header"
+fi
 if ! grep -q 'prefers-color-scheme: light' "$ROOT/desktop/gtk/gtk.css"; then
   fail "gtk.css does not follow a light scheme"
 fi
@@ -150,7 +162,7 @@ if [ ! -f "$desktop_file" ] || [ ! -f "$gtk3_ini" ]; then
 fi
 
 sh "$install_sh" --user --uninstall >/dev/null
-for dest in "$desktop_file" "$console_file" "$voice_file" "$icon_file" "$voice_icon" "$os_icon" "$gtk3_ini" "$gtk4_ini" "$gtk3_css" "$gtk4_css"; do
+for dest in "$desktop_file" "$console_file" "$voice_file" "$icon_file" "$voice_icon" "$os_icon" "$gtk3_ini" "$gtk4_ini" "$gtk3_css" "$gtk4_css" "$boot_wake" "$boot_index"; do
   if [ -e "$dest" ]; then
     fail "$dest is still installed"
   fi
@@ -161,6 +173,7 @@ unset XDG_DATA_HOME
 unset XDG_CONFIG_HOME
 fallback=$home/.local/share/applications/galion-voice.desktop
 fallback_ini=$home/.config/gtk-3.0/settings.ini
+fallback_boot=$home/.local/share/galion/boot/index.html
 sh "$install_sh" --user >/dev/null
 if [ ! -f "$fallback" ]; then
   fail "HOME fallback did not install $fallback"
@@ -168,8 +181,11 @@ fi
 if [ ! -f "$fallback_ini" ]; then
   fail "HOME fallback did not install $fallback_ini"
 fi
+if [ ! -f "$fallback_boot" ]; then
+  fail "HOME fallback did not install $fallback_boot"
+fi
 sh "$install_sh" --user --uninstall >/dev/null
-if [ -e "$fallback" ] || [ -e "$fallback_ini" ]; then
+if [ -e "$fallback" ] || [ -e "$fallback_ini" ] || [ -e "$fallback_boot" ]; then
   fail "HOME fallback uninstall left a file"
 fi
 export XDG_DATA_HOME=$xdg
@@ -194,6 +210,7 @@ need_line "$out" "install $system_desktop"
 need_line "$out" "install $system_icon"
 need_line "$out" "install $system_ini"
 need_line "$out" "install $system_css"
+need_line "$out" "install /usr/local/share/galion/boot/README.md"
 need_line "$out" "scope: system"
 need_line "$out" "written: no"
 reject_address "$out"

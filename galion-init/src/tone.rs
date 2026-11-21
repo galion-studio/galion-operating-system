@@ -6,6 +6,10 @@
 /// Frequency named for the planned boot tone.
 pub const BOOT_TONE_HZ: u32 = 432;
 
+/// Vendored wake definition. The hook does not read this file.
+/// [`tone_samples`] stays zero.
+pub const WAKE_TONE_PATH: &str = "desktop/boot/sounds/openmind-desktop-sound.rs";
+
 /// Inputs to the hook. `silence` is a call flag. This module does not read
 /// or write a Silence file. `playback_present` is observed and does not
 /// change the result: a missing device is not fatal and still plays nothing.

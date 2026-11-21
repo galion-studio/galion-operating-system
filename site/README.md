@@ -47,7 +47,7 @@ From the repository root, with the country header available:
 python3 scripts/serve_site.py
 ```
 
-Then open `http://127.0.0.1:8765/`. From this directory, `python3 -m http.server 8765` still serves the HTML. Without `/api/region`, the locale fallback is what runs. Either command serves your own machine. It is not a deployment. Choosing a host, approving a deploy, and any DNS change are the owner's steps. This repository does not do them.
+Then open `http://127.0.0.1:8765/`. The same process serves the vendored boot files at `http://127.0.0.1:8765/boot/` from `desktop/boot/`. It listens on `127.0.0.1` only. From this directory, `python3 -m http.server 8765` still serves the HTML and does not serve `/boot/`. Without `/api/region`, the locale fallback is what runs. Either command serves your own machine. It is not a deployment. Choosing a host, approving a deploy, and any DNS change are the owner's steps. This repository does not do them.
 
 The marks are the SVG files in [`../docs/brand/marks/`](../docs/brand/marks/). The guide is [`../docs/brand/BRANDING-V2.md`](../docs/brand/BRANDING-V2.md).
 

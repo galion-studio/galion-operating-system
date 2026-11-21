@@ -322,6 +322,31 @@ test("local server echoes CF-IPCountry and does not invent a country", async () 
     assert.equal(await region({ "CF-IPCountry": "XX" }), "");
     assert.equal(await region({}), "");
 
+    const boot = await fetch(`http://127.0.0.1:${port}/boot/`);
+    const bootHtml = await boot.text();
+    assert.equal(boot.status, 200);
+    assert.equal(bootHtml.includes("om-rise"), true);
+    assert.equal(bootHtml.includes("animations/one-dot.html"), true);
+
+    const wake = await fetch(`http://127.0.0.1:${port}/boot/sounds/openmind-desktop-sound.rs`);
+    const wakeText = await wake.text();
+    assert.equal(wake.status, 200);
+    assert.equal(wakeText.includes("Copyright (c) 3000 Galion / galion-studio"), true);
+    assert.equal(wakeText.includes('id: "wake"'), true);
+
+    const tones = await fetch(`http://127.0.0.1:${port}/boot/sounds/os-tones.js`);
+    const toneText = await tones.text();
+    assert.equal(tones.status, 200);
+    assert.equal(toneText.includes('id:"boot"'), true);
+    assert.equal(toneText.includes('id:"shutdown"'), true);
+    assert.equal(toneText.includes('id:"wake"'), true);
+
+    const escaped = await fetch(`http://127.0.0.1:${port}/boot/%2e%2e/%2e%2e/LICENSE`);
+    assert.equal(escaped.status, 404);
+
+    const outside = await fetch(`http://127.0.0.1:${port}/boot/sounds/../../LICENSE`);
+    assert.notEqual(outside.status, 200);
+
     const home = await fetch(`http://127.0.0.1:${port}/?currency=eur`);
     const html = await home.text();
     assert.equal(home.status, 200);
