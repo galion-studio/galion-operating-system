@@ -8,6 +8,16 @@
 *.mp3
 *.flac
 *.ogg
+# Synthesised session tones. Not recordings.
+!desktop/boot/sounds/boot.wav
+!desktop/boot/sounds/boot.ogg
+!desktop/boot/sounds/shutdown.wav
+!desktop/boot/sounds/shutdown.ogg
+!desktop/boot/sounds/wake.wav
+!desktop/boot/sounds/wake.ogg
+# Supplied startup sound. Not a voice recording.
+!desktop/boot/sounds/galion-os-startup.mp3
+!desktop/boot/sounds/galion-os-startup.ogg
 *.m4a
 *.onnx
 *.safetensors

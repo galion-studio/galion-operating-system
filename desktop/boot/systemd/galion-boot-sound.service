@@ -1,0 +1,24 @@
+# G.A.L.I.O.N. — General Autonomous Local Intelligence Open Network
+# Developed and distributed by Galion Labs
+# Perpetual Open MIT License
+# Copyright © 2026 Galion Labs. All rights reserved.
+# The licence text is LICENSE. This file does not restate it.
+#
+# The supplied startup sound when the graphical session starts, and the
+# shutdown chord when it stops. @BIN@ is replaced with the installed
+# script path. GALION_BOOT_SOUND=boot selects the synthesised chord.
+# GALION_BOOT_SOUND=wake selects the 160 ms 432 Hz desktop clip.
+
+[Unit]
+Description=Galion session boot and shutdown tones
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=@BIN@ start
+ExecStop=@BIN@ stop
+
+[Install]
+WantedBy=graphical-session.target

@@ -1,0 +1,278 @@
+# G.A.L.I.O.N. — General Autonomous Local Intelligence Open Network
+# Developed and distributed by Galion Labs
+# Perpetual Open MIT License
+# Copyright © 2026 Galion Labs. All rights reserved.
+# The licence text is LICENSE at the repository root. This file does not restate it.
+#
+# Galion OS splash. The cinematic frames play first (5.0 s, 100 frames,
+# assuming about 50 refreshes a second), then the mark, the breathing
+# dot, and the hairline. Shutdown and reboot skip the film and let the
+# dot settle. The 3.2s breath is 160 refreshes at that same rate.
+# Frames come from desktop/boot/cinematic/render_frames.py.
+
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+mark_image = Image("mark-ring.png");
+entry_image = Image("entry.png");
+bullet_image = Image("bullet.png");
+bar_image = Image("bar.png");
+
+for (i = 0; i < 24; i = i + 1)
+  {
+    if (i < 10)
+      dots[i] = Image("dot-0" + i + ".png");
+    else
+      dots[i] = Image("dot-" + i + ".png");
+  }
+
+cin_count = 100;
+for (i = 0; i < cin_count; i = i + 1)
+  {
+    if (i < 10)
+      cin[i] = Image("cin-00" + i + ".png");
+    else
+      cin[i] = Image("cin-0" + i + ".png");
+  }
+
+cin_sprite = Sprite(cin[0]);
+cin_sprite.SetZ(20);
+cin_sprite.SetOpacity(0);
+last_cin = -1;
+
+mark_sprite = Sprite(mark_image);
+mark_sprite.SetZ(1);
+dot_sprite = Sprite(dots[0]);
+dot_sprite.SetZ(2);
+track_sprite = Sprite();
+track_sprite.SetImage(Image.Scale(bar_image, 192, 2));
+track_sprite.SetOpacity(0.18);
+track_sprite.SetZ(3);
+fill_sprite = Sprite();
+fill_sprite.SetOpacity(0);
+fill_sprite.SetZ(4);
+entry_sprite = Sprite(entry_image);
+entry_sprite.SetOpacity(0);
+entry_sprite.SetZ(5);
+prompt_sprite = Sprite();
+prompt_sprite.SetOpacity(0);
+prompt_sprite.SetZ(6);
+answer_sprite = Sprite();
+answer_sprite.SetOpacity(0);
+answer_sprite.SetZ(7);
+
+for (i = 0; i < 16; i = i + 1)
+  {
+    bullets[i] = Sprite(bullet_image);
+    bullets[i].SetOpacity(0);
+    bullets[i].SetZ(8);
+  }
+
+mode = Plymouth.GetMode();
+boot_progress = 0;
+eased = 0;
+refresh_count = 0;
+password_on = 0;
+bullet_count = 0;
+last_bar = -1;
+
+fun paint_bar()
+  {
+    amount = boot_progress;
+    if (mode == "shutdown" || mode == "reboot")
+      amount = eased;
+    if (amount < 0)
+      amount = 0;
+    if (amount > 1)
+      amount = 1;
+    width = Math.Floor(amount * 192);
+    if (width != last_bar)
+      {
+        last_bar = width;
+        if (width < 1)
+          fill_sprite.SetOpacity(0);
+        else
+          {
+            fill_sprite.SetImage(Image.Scale(bar_image, width, 2));
+            fill_sprite.SetOpacity(1);
+          }
+      }
+  }
+
+fun place_core()
+  {
+    x = Window.GetX() + Window.GetWidth() / 2 - mark_image.GetWidth() / 2;
+    y = Window.GetY() + Window.GetHeight() / 2 - mark_image.GetHeight() / 2 - 36;
+    mark_sprite.SetX(x);
+    mark_sprite.SetY(y);
+    dot_sprite.SetX(x);
+    dot_sprite.SetY(y);
+    bar_x = x;
+    bar_y = y + mark_image.GetHeight() + 28;
+    track_sprite.SetX(bar_x);
+    track_sprite.SetY(bar_y);
+    fill_sprite.SetX(bar_x);
+    fill_sprite.SetY(bar_y);
+    entry_x = Window.GetX() + Window.GetWidth() / 2 - entry_image.GetWidth() / 2;
+    entry_y = y + mark_image.GetHeight() + 36;
+    entry_sprite.SetX(entry_x);
+    entry_sprite.SetY(entry_y);
+    if (password_on == 1)
+      {
+        prompt_sprite.SetX(Window.GetX() + Window.GetWidth() / 2 - prompt_sprite.GetImage().GetWidth() / 2);
+        prompt_sprite.SetY(entry_y - prompt_sprite.GetImage().GetHeight() - 12);
+        answer_sprite.SetX(entry_x + 16);
+        answer_sprite.SetY(entry_y + entry_image.GetHeight() / 2 - answer_sprite.GetImage().GetHeight() / 2);
+        row = bullet_count * bullet_image.GetWidth() + (bullet_count - 1) * 10;
+        if (bullet_count < 1)
+          row = 0;
+        bx = Window.GetX() + Window.GetWidth() / 2 - row / 2;
+        by = entry_y + entry_image.GetHeight() / 2 - bullet_image.GetHeight() / 2;
+        for (i = 0; i < 16; i = i + 1)
+          {
+            if (i < bullet_count)
+              {
+                bullets[i].SetOpacity(1);
+                bullets[i].SetX(bx);
+                bullets[i].SetY(by);
+                bx = bx + bullet_image.GetWidth() + 10;
+              }
+            else
+              bullets[i].SetOpacity(0);
+          }
+      }
+  }
+
+fun refresh_callback()
+  {
+    refresh_count = refresh_count + 1;
+    if (mode == "shutdown" || mode == "reboot")
+      {
+        if (refresh_count < 80)
+          eased = 1 - refresh_count / 80;
+        else
+          eased = 0;
+      }
+    else
+      {
+        cycle = Math.Floor(refresh_count / 160);
+        phase = (refresh_count - cycle * 160) / 160;
+        eased = 0.5 - 0.5 * Math.Cos(6.283185307179586 * phase);
+      }
+    if (mode == "shutdown")
+      opacity = 0.72 + 0.28 * eased;
+    else
+      {
+        if (mode == "reboot")
+          opacity = 0.90 + 0.10 * eased;
+        else
+          opacity = 0.78 + 0.22 * eased;
+      }
+    index = Math.Floor(eased * 23 + 0.001);
+    if (index < 0)
+      index = 0;
+    if (index > 23)
+      index = 23;
+    dot_sprite.SetImage(dots[index]);
+    dot_sprite.SetOpacity(opacity);
+    if (password_on == 1)
+      {
+        track_sprite.SetOpacity(0);
+        fill_sprite.SetOpacity(0);
+        last_bar = -1;
+      }
+    else
+      {
+        track_sprite.SetOpacity(0.18);
+        paint_bar();
+      }
+    place_core();
+    show_film = 0;
+    if (password_on == 0 && mode != "shutdown" && mode != "reboot" && refresh_count < 250)
+      show_film = 1;
+    if (show_film == 1)
+      {
+        film_index = Math.Floor(refresh_count * cin_count / 250);
+        if (film_index < 0)
+          film_index = 0;
+        if (film_index > cin_count - 1)
+          film_index = cin_count - 1;
+        if (film_index != last_cin)
+          {
+            last_cin = film_index;
+            tw = Window.GetWidth();
+            th = Window.GetHeight();
+            if (tw < 1)
+              tw = 1;
+            if (th < 1)
+              th = 1;
+            cin_sprite.SetImage(cin[film_index].Scale(tw, th));
+          }
+        cin_sprite.SetX(Window.GetX());
+        cin_sprite.SetY(Window.GetY());
+        cin_sprite.SetOpacity(1);
+      }
+    else
+      cin_sprite.SetOpacity(0);
+  }
+
+fun progress_callback(duration, progress)
+  {
+    boot_progress = progress;
+    if (password_on == 0)
+      paint_bar();
+  }
+
+fun display_normal_callback()
+  {
+    password_on = 0;
+    bullet_count = 0;
+    prompt_sprite.SetOpacity(0);
+    answer_sprite.SetOpacity(0);
+    entry_sprite.SetOpacity(0);
+    for (i = 0; i < 16; i = i + 1)
+      bullets[i].SetOpacity(0);
+    last_bar = -1;
+  }
+
+fun display_password_callback(prompt, bullets_now)
+  {
+    password_on = 1;
+    bullet_count = bullets_now;
+    if (bullet_count < 0)
+      bullet_count = 0;
+    if (bullet_count > 16)
+      bullet_count = 16;
+    prompt_sprite.SetImage(Image.Text(prompt, 0.961, 0.961, 0.969));
+    prompt_sprite.SetOpacity(1);
+    entry_sprite.SetOpacity(1);
+    answer_sprite.SetOpacity(0);
+    place_core();
+  }
+
+fun display_question_callback(prompt, answer)
+  {
+    password_on = 1;
+    bullet_count = 0;
+    prompt_sprite.SetImage(Image.Text(prompt, 0.961, 0.961, 0.969));
+    prompt_sprite.SetOpacity(1);
+    entry_sprite.SetOpacity(1);
+    if (answer == "")
+      answer_sprite.SetOpacity(0);
+    else
+      {
+        answer_sprite.SetImage(Image.Text(answer, 0.961, 0.961, 0.969));
+        answer_sprite.SetOpacity(1);
+      }
+    for (i = 0; i < 16; i = i + 1)
+      bullets[i].SetOpacity(0);
+    place_core();
+  }
+
+Plymouth.SetRefreshFunction(refresh_callback);
+Plymouth.SetBootProgressFunction(progress_callback);
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+Plymouth.SetDisplayQuestionFunction(display_question_callback);
+
+refresh_callback();

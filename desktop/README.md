@@ -37,8 +37,9 @@ sh desktop/install.sh --user --uninstall
 
 [test-install.sh](test-install.sh) runs that script in a temporary XDG home. A green run is not a Raspberry Pi 5 result.
 
-The same install copies [boot/](boot/) into `galion/boot/` under the data directory. Those files are the vendored sounds and animations. The script does not play them.
+The boot splash and the session tones are described in [boot/README.md](boot/README.md). The timeline is [boot/UX.md](boot/UX.md). [install.sh](install.sh) copies them and enables the user sound unit for the next graphical session. It does not play a tone. The Plymouth theme is a separate install and does not rebuild the initramfs. WSL does not show that splash.
+
+The same install copies [boot/](boot/) into `galion/boot/` under the data directory. Those files are the vendored sounds and animations, the Plymouth theme sources, and the cinematic boot page.
 
 The same install runs [ux/install.sh](ux/install.sh). That script copies the session look. It does not start a display manager and it does not play a tone.
-
 The workflow is [.github/workflows/desktop-entries.yml](../.github/workflows/desktop-entries.yml). Permissions are `contents: read`. It does not upload an artifact and it does not publish a release.
