@@ -49,6 +49,29 @@ BeforeAll {
     }
 }
 
+Describe 'protected distros' {
+    It 'treats Ubuntu and docker-desktop as untouchable' {
+        Test-GalionProtectedDistroName 'Ubuntu' | Should -BeTrue
+        Test-GalionProtectedDistroName 'ubuntu' | Should -BeTrue
+        Test-GalionProtectedDistroName 'docker-desktop' | Should -BeTrue
+        Test-GalionProtectedDistroName 'Docker-Desktop' | Should -BeTrue
+        Test-GalionProtectedDistroName 'Galion-Ubuntu' | Should -BeFalse
+        Test-GalionSectorTargets | Should -BeTrue
+    }
+
+    It 'treats G:\galion\wsl\ubuntu as untouchable and leaves Galion-Ubuntu writable' {
+        Test-GalionProtectedWslPath 'G:\galion\wsl\ubuntu' | Should -BeTrue
+        Test-GalionProtectedWslPath 'G:\galion\wsl\Ubuntu\ext4.vhdx' | Should -BeTrue
+        Test-GalionProtectedWslPath 'G:\galion\wsl\ubuntu\ext4.vhdx' | Should -BeTrue
+        Test-GalionProtectedWslPath 'G:\galion\wsl\Galion-Ubuntu' | Should -BeFalse
+        Test-GalionProtectedWslPath 'G:\galion\wsl\Galion-Ubuntu\ext4.vhdx' | Should -BeFalse
+        { Assert-GalionDataPath 'G:\galion\wsl\ubuntu\ext4.vhdx' } | Should -Throw
+        { Assert-GalionOwnedDistro -Name 'Ubuntu' } | Should -Throw
+        { Assert-GalionOwnedDistro -Name 'docker-desktop' } | Should -Throw
+        { Assert-GalionOwnedDistro -Name 'Galion-Ubuntu' } | Should -Not -Throw
+    }
+}
+
 Describe 'path guard' {
     It 'accepts Galion paths on G:' {
         Test-GalionDataPath 'G:\galion' | Should -BeTrue
@@ -269,6 +292,11 @@ Describe 'dry run' {
         $run.Text | Should -Match 'bytes: 388975696'
         $run.Text | Should -Match 'repair: not requested'
         $run.Text | Should -Match 'skip-when-registered:'
+        $run.Text | Should -Match 'protected-distro: Ubuntu'
+        $run.Text | Should -Match 'protected-distro: docker-desktop'
+        $run.Text | Should -Match 'protected-path: G:\\galion\\wsl\\ubuntu'
+        $run.Text | Should -Not -Match 'unregister: wsl --unregister Ubuntu'
+        $run.Text | Should -Not -Match 'unregister: wsl --unregister docker-desktop'
         $run.Text | Should -Not -Match '\d{1,3}(\.\d{1,3}){3}'
         $run.Text | Should -Not -Match 'C:\\'
     }
@@ -279,6 +307,16 @@ Describe 'dry run' {
         $run.Text | Should -Match 'repair: requested'
         $run.Text | Should -Match 'repair-keeps-disk:'
         $run.Text | Should -Match 'written: no'
+    }
+
+    It 'returns from Install-GalionWslOnG without leaving the caller' {
+        $code = Install-GalionWslOnG -DryRun -SkipShutdown
+        $code | Should -Be 0
+        $plan = Get-GalionWslPlan -IsAdmin $true -DriveReady $true -IsAmd64 $true -DistroRegistered $false -InstallDirNonEmpty $false -VhdxPresent $false -Repair $false -WslCommandPresent $false -FeatureWslEnabled $false -FeatureVmEnabled $false -ProfileConfigIsFile $false -TotalMemoryGb 0 -LogicalProcessors 0 -Preview $true -SkipShutdown $true
+        ($plan.Lines -join "`n") | Should -Match 'shutdown: skipped'
+        $plan.Unregister | Should -BeFalse
+        ($plan.Lines -join "`n") | Should -Not -Match 'wsl --unregister Ubuntu'
+        ($plan.Lines -join "`n") | Should -Not -Match 'wsl --unregister docker-desktop'
     }
 
     It 'refuses a real run on this runner' {
@@ -311,6 +349,9 @@ Describe 'repository locks' {
         $raw | Should -Match '\$env:TMP = ''G:\\galion\\tmp\\win'''
         $raw | Should -Not -Match 'setx'
         $raw | Should -Not -Match 'git clone'
+        $raw | Should -Match 'function Install-GalionWslOnG'
+        $raw | Should -Not -Match "unregister', 'Ubuntu'"
+        $raw | Should -Not -Match "unregister', 'docker-desktop'"
         $raw | Should -Not -Match '\d{1,3}(\.\d{1,3}){3}'
         $raw | Should -Not -Match 'C:\\'
     }

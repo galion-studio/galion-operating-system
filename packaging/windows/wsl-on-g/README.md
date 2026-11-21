@@ -7,7 +7,9 @@ Copyright © 2026 Galion Labs. All rights reserved.
 
 The licence text is [LICENSE](../../../LICENSE). This page does not restate it.
 
-Sector W1 is the Windows-side installer. It puts one Ubuntu 24.04 WSL2 guest, named `Galion-Ubuntu`, on the G: drive so the Obsidian desktop and Galion One Voice have one Linux environment on this laptop. The script is [Install-GalionWSL.ps1](Install-GalionWSL.ps1).
+Sector W1 is the Windows-side installer. It puts one Ubuntu 24.04 WSL2 guest, named `Galion-Ubuntu`, on the G: drive so the Obsidian desktop and Galion One Voice have one Linux environment on this laptop. The script is [Install-GalionWSL.ps1](Install-GalionWSL.ps1). W0 calls the function `Install-GalionWslOnG` from that file. W0 owns `Install-GalionUbuntuOnG.ps1` and this sector does not.
+
+The laptop already has a WSL2 distro named `Ubuntu` whose disk is `G:\galion\wsl\ubuntu`, and a distro named `docker-desktop`. This sector never unregisters those names, never imports over them, and never deletes that disk. `wsl --shutdown` stops every WSL2 distro, including those two, and does not delete them. `-SkipShutdown` leaves that stop to the caller. The `.wslconfig` body is global for every WSL2 distro. It does not replace the Ubuntu or docker-desktop disks. A real `.wslconfig` file already in the user profile is left in place.
 
 This is not the Galion OS image. The image plan in [docs/PACKAGING.md](../../../docs/PACKAGING.md) is Ubuntu 26.04, and it still waits on `galion-init`. Ubuntu 24.04 is the release Canonical publishes as a WSL rootfs. Its archive Node.js is 18.19.1, which is below the research app's Node.js 22 line. This installer does not install Node.js and does not start the console, the research app, or Galion Voice.
 
@@ -89,6 +91,20 @@ wsl -d Galion-Ubuntu
 A second run, once `Galion-Ubuntu` is registered and `ext4.vhdx` is present, skips the import and changes nothing. `-Repair` rewrites the config, checks the rootfs hash, and repeats the guest setup. It does not unregister the distro while `ext4.vhdx` is present. It unregisters and imports again only when the name is registered and that disk is missing, or when the install directory is a leftover and the name is not registered.
 
 Exit `0` means the plan was printed or the distro is in place. Exit `1` is a refusal. Exit `3010` means Windows must restart before the import.
+
+## How W0 calls this sector
+
+Dot-source the file, then call `Install-GalionWslOnG`. The function returns `0`, `1`, or `3010` and does not call `exit`, so W0's process keeps running. Do not pass the switches to the dot-source. Pass them to the function.
+
+```powershell
+$env:GALION_WSL_DOTSOURCE = '1'
+. .\packaging\windows\wsl-on-g\Install-GalionWSL.ps1
+$w1 = Install-GalionWslOnG -DryRun:$DryRun -Repair:$Repair -SkipShutdown
+```
+
+`-SkipShutdown` is the switch W0 should pass. W0 runs `wsl --shutdown` once after W1 through W4. That stop includes `Ubuntu` and `docker-desktop` and does not delete them. Without `-SkipShutdown`, this sector runs `wsl --shutdown` itself before and after the import.
+
+`Install-GalionWslOnG` is the only entry W0 needs. It checks Administrator and `G:`, keeps every Galion write under `G:\galion`, and refuses to unregister or delete `Ubuntu` or `docker-desktop`.
 
 ## What a green test is
 

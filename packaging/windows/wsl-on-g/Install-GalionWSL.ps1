@@ -8,7 +8,11 @@
 # ext4 disk, swap file, download, and installer temp files under G:\galion.
 # -DryRun writes nothing. -Repair refreshes that layout and does not replace
 # an ext4.vhdx that is already present.
-# Tests dot-source this file with GALION_WSL_DOTSOURCE=1. The owner does not set that.
+# The existing distros Ubuntu (G:\galion\wsl\ubuntu) and docker-desktop are
+# never unregistered, imported over, or deleted.
+# W0 dot-sources this file and calls Install-GalionWslOnG. That function
+# returns an exit code and does not call exit. Tests set GALION_WSL_DOTSOURCE=1.
+# The owner does not set that variable.
 
 <#
 .SYNOPSIS
@@ -17,11 +21,14 @@
     Run from an elevated Windows PowerShell. The distro name is Galion-Ubuntu.
     Pass -DryRun to print the plan and write nothing. Pass -Repair to refresh
     the G: layout. -Repair does not unregister the distro when ext4.vhdx is present.
+    Pass -SkipShutdown to leave wsl --shutdown to the caller. W0 uses that.
+    Ubuntu and docker-desktop are never deleted or overwritten.
 #>
 [CmdletBinding()]
 param(
     [switch]$DryRun,
-    [switch]$Repair
+    [switch]$Repair,
+    [switch]$SkipShutdown
 )
 
 $script:GalionWslExit = 1
@@ -71,6 +78,57 @@ function Test-GalionDataPath {
         return $false
     }
     if ($normal -notmatch '^[Gg]:\\galion(\\|$)') {
+        return $false
+    }
+    return $true
+}
+
+function Get-GalionDistroName {
+    return 'Galion-Ubuntu'
+}
+
+function Get-GalionProtectedDistroNames {
+    return @('Ubuntu', 'docker-desktop')
+}
+
+function Test-GalionProtectedDistroName {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Name)
+    if ([string]::IsNullOrWhiteSpace($Name)) {
+        return $false
+    }
+    foreach ($item in @(Get-GalionProtectedDistroNames)) {
+        if ($Name.ToLowerInvariant() -eq $item.ToLowerInvariant()) {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Test-GalionProtectedWslPath {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        return $false
+    }
+    $normal = $Path.Replace('/', '\').TrimEnd('\')
+    return ($normal -match '(?i)^G:\\galion\\wsl\\ubuntu(\\|$)')
+}
+
+function Test-GalionSectorTargets {
+    $paths = Get-GalionWslPaths
+    $name = Get-GalionDistroName
+    if ($name -ne 'Galion-Ubuntu') {
+        return $false
+    }
+    if (Test-GalionProtectedDistroName $name) {
+        return $false
+    }
+    if (Test-GalionProtectedWslPath $paths.Install) {
+        return $false
+    }
+    if (Test-GalionProtectedWslPath $paths.Vhdx) {
+        return $false
+    }
+    if (-not (Test-GalionDataPath $paths.Install)) {
         return $false
     }
     return $true
@@ -214,7 +272,8 @@ function New-GalionPlan {
         [bool]$Unregister,
         [bool]$RemoveInstallDir,
         [bool]$PrepareGuest,
-        [string]$ConfigText
+        [string]$ConfigText,
+        [bool]$SkipShutdown = $false
     )
     $data = @()
     $dirs = @()
@@ -236,6 +295,7 @@ function New-GalionPlan {
         RemoveInstallDir = $RemoveInstallDir
         PrepareGuest     = $PrepareGuest
         ConfigText       = $ConfigText
+        SkipShutdown     = [bool]$SkipShutdown
     }
 }
 
@@ -290,6 +350,12 @@ function Add-GalionCommonLines {
     $Lines.Add('c-drive-data: none') | Out-Null
     $Lines.Add('skip-when-registered: a second run does not import again when Galion-Ubuntu is registered and ext4.vhdx is present') | Out-Null
     $Lines.Add('repair-keeps-disk: -Repair does not unregister Galion-Ubuntu when ext4.vhdx is present') | Out-Null
+    foreach ($protectedName in @(Get-GalionProtectedDistroNames)) {
+        $Lines.Add(('protected-distro: {0}' -f $protectedName)) | Out-Null
+    }
+    $Lines.Add('protected-path: G:\galion\wsl\ubuntu') | Out-Null
+    $Lines.Add('protected: Ubuntu and docker-desktop are never unregistered, imported over, or deleted') | Out-Null
+    $Lines.Add('wslconfig-scope: the file applies to every WSL2 distro. It does not replace the Ubuntu or docker-desktop disks.') | Out-Null
 }
 
 function Get-GalionWslPlan {
@@ -307,11 +373,18 @@ function Get-GalionWslPlan {
         [Parameter(Mandatory = $true)][bool]$ProfileConfigIsFile,
         [Parameter(Mandatory = $true)][int]$TotalMemoryGb,
         [Parameter(Mandatory = $true)][int]$LogicalProcessors,
-        [Parameter(Mandatory = $true)][bool]$Preview
+        [Parameter(Mandatory = $true)][bool]$Preview,
+        [bool]$SkipShutdown = $false
     )
     $lines = New-Object 'System.Collections.Generic.List[string]'
     $paths = Get-GalionWslPaths
 
+    if (-not (Test-GalionSectorTargets)) {
+        $lines.Add('refused: Galion-Ubuntu would overlap Ubuntu or docker-desktop. Nothing was written.') | Out-Null
+        $lines.Add('written: no') | Out-Null
+        $lines.Add('c-drive-data: none') | Out-Null
+        return (New-GalionPlan -Action 'refuse' -ExitCode 1 -Lines $lines -EnableFeatures $false -Download $false -WriteConfig $false -Import $false -Unregister $false -RemoveInstallDir $false -PrepareGuest $false -ConfigText '' -SkipShutdown $SkipShutdown)
+    }
     if (-not $IsAdmin) {
         $lines.Add('refused: PowerShell is not running as Administrator. Open PowerShell with Run as administrator and run this script again.') | Out-Null
         $lines.Add('written: no') | Out-Null
@@ -394,7 +467,14 @@ function Get-GalionWslPlan {
             $lines.Add('feature: already available') | Out-Null
         }
         $lines.Add('default-version: wsl --set-default-version 2') | Out-Null
-        $lines.Add('shutdown: wsl --shutdown') | Out-Null
+        if ($SkipShutdown) {
+            $lines.Add('shutdown: skipped') | Out-Null
+            $lines.Add('shutdown-note: the caller runs wsl --shutdown. That stop includes Ubuntu and docker-desktop and does not delete them.') | Out-Null
+        }
+        else {
+            $lines.Add('shutdown: wsl --shutdown') | Out-Null
+            $lines.Add('shutdown-note: wsl --shutdown stops every WSL2 distro, including Ubuntu and docker-desktop, and does not delete them.') | Out-Null
+        }
         if ($unregister) {
             $lines.Add('unregister: wsl --unregister Galion-Ubuntu') | Out-Null
         }
@@ -411,7 +491,7 @@ function Get-GalionWslPlan {
         $config = Get-GalionWslConfigText -MemoryGb $mem -Processors $cpu
     }
 
-    return (New-GalionPlan -Action $action -ExitCode 0 -Lines $lines -EnableFeatures $features -Download $download -WriteConfig $writeConfig -Import $import -Unregister $unregister -RemoveInstallDir $remove -PrepareGuest $guest -ConfigText $config)
+    return (New-GalionPlan -Action $action -ExitCode 0 -Lines $lines -EnableFeatures $features -Download $download -WriteConfig $writeConfig -Import $import -Unregister $unregister -RemoveInstallDir $remove -PrepareGuest $guest -ConfigText $config -SkipShutdown $SkipShutdown)
 }
 
 function Write-GalionLine {
@@ -423,6 +503,19 @@ function Assert-GalionDataPath {
     param([Parameter(Mandatory = $true)][string]$Path)
     if (-not (Test-GalionDataPath $Path)) {
         throw ('path is outside G:\galion: {0}' -f $Path)
+    }
+    if (Test-GalionProtectedWslPath $Path) {
+        throw ('refused: {0} is the existing Ubuntu disk and is never deleted or overwritten' -f $Path)
+    }
+}
+
+function Assert-GalionOwnedDistro {
+    param([Parameter(Mandatory = $true)][string]$Name)
+    if ($Name -ne (Get-GalionDistroName)) {
+        throw ('refused: this sector only changes {0}' -f (Get-GalionDistroName))
+    }
+    if (Test-GalionProtectedDistroName $Name) {
+        throw ('refused: {0} is never unregistered, imported over, or deleted' -f $Name)
     }
 }
 
@@ -666,6 +759,9 @@ function Remove-GalionInstallDirectory {
     if ($dir -ne 'G:\galion\wsl\Galion-Ubuntu') {
         throw 'install directory is not the Galion-Ubuntu folder'
     }
+    if (Test-GalionProtectedWslPath $dir) {
+        throw 'refused: the install directory is the existing Ubuntu disk'
+    }
     if (Test-Path -LiteralPath $dir) {
         Remove-Item -LiteralPath $dir -Recurse -Force
     }
@@ -694,6 +790,22 @@ function Get-GalionRegisteredDistroNames {
         }
     }
     return @($names.ToArray())
+}
+
+function Assert-GalionProtectedDistrosRemain {
+    param([string[]]$Before)
+    $now = @(Get-GalionRegisteredDistroNames)
+    foreach ($name in @($Before)) {
+        $found = $false
+        foreach ($item in @($now)) {
+            if ($item -eq $name) {
+                $found = $true
+            }
+        }
+        if (-not $found) {
+            throw ('refused: protected distro {0} is no longer registered. This sector must not remove it.' -f $name)
+        }
+    }
 }
 
 function Test-GalionProfileConfigIsFile {
@@ -788,6 +900,9 @@ function Invoke-GalionWslExecute {
     foreach ($dir in @($Plan.Directories)) {
         Assert-GalionDataPath $dir
     }
+    if (-not (Test-GalionSectorTargets)) {
+        throw 'refused: Galion-Ubuntu would overlap Ubuntu or docker-desktop'
+    }
     Set-GalionProcessTemp
     foreach ($dir in @($Plan.Directories)) {
         New-GalionDirectory $dir
@@ -811,6 +926,12 @@ function Invoke-GalionWslExecute {
         Write-GalionLine 'reboot: wsl.exe is not available yet. Restart Windows and run this script again.'
         return 3010
     }
+    $protectedBefore = New-Object 'System.Collections.Generic.List[string]'
+    foreach ($existing in @(Get-GalionRegisteredDistroNames)) {
+        if (Test-GalionProtectedDistroName $existing) {
+            $protectedBefore.Add($existing) | Out-Null
+        }
+    }
     if ($Plan.Download) {
         Receive-GalionRootfs
     }
@@ -829,26 +950,38 @@ function Invoke-GalionWslExecute {
     if ($versionCode -ne 0) {
         throw ('wsl --set-default-version 2 exited {0}' -f $versionCode)
     }
-    $stopCode = Invoke-GalionNative -ArgumentList @('wsl', '--shutdown')
-    if ($stopCode -ne 0) {
-        throw ('wsl --shutdown exited {0}' -f $stopCode)
+    if (-not $Plan.SkipShutdown) {
+        $stopCode = Invoke-GalionNative -ArgumentList @('wsl', '--shutdown')
+        if ($stopCode -ne 0) {
+            throw ('wsl --shutdown exited {0}' -f $stopCode)
+        }
+    }
+    else {
+        Write-GalionLine 'shutdown: skipped for the caller'
     }
     if ($Plan.Unregister) {
-        $dropCode = Invoke-GalionNative -ArgumentList @('wsl', '--unregister', 'Galion-Ubuntu')
+        $owned = Get-GalionDistroName
+        Assert-GalionOwnedDistro -Name $owned
+        $dropCode = Invoke-GalionNative -ArgumentList @('wsl', '--unregister', $owned)
         if ($dropCode -ne 0) {
-            throw ('wsl --unregister Galion-Ubuntu exited {0}' -f $dropCode)
+            throw ('wsl --unregister {0} exited {1}' -f $owned, $dropCode)
         }
+        Assert-GalionProtectedDistrosRemain -Before @($protectedBefore.ToArray())
     }
     if ($Plan.RemoveInstallDir) {
         Remove-GalionInstallDirectory
     }
     if ($Plan.Import) {
+        $owned = Get-GalionDistroName
+        Assert-GalionOwnedDistro -Name $owned
+        Assert-GalionDataPath $paths.Install
         $importCode = Invoke-GalionNative -ArgumentList @(
-            'wsl', '--import', 'Galion-Ubuntu', $paths.Install, $paths.Rootfs, '--version', '2'
+            'wsl', '--import', $owned, $paths.Install, $paths.Rootfs, '--version', '2'
         )
         if ($importCode -ne 0) {
             throw ('wsl --import exited {0}. Galion data was not written off G:\galion.' -f $importCode)
         }
+        Assert-GalionProtectedDistrosRemain -Before @($protectedBefore.ToArray())
     }
     if ($Plan.PrepareGuest) {
         $guest = (Get-GalionGuestScript) -replace "`r", ''
@@ -856,15 +989,20 @@ function Invoke-GalionWslExecute {
             $guest = $guest + "`n"
         }
         Set-GalionFile -Path $paths.GuestSetup -Content $guest
+        $owned = Get-GalionDistroName
+        Assert-GalionOwnedDistro -Name $owned
         $wslExe = Resolve-GalionWindowsTool 'wsl'
-        $guest | & $wslExe -d 'Galion-Ubuntu' -u 'root' -- /bin/bash -s | Out-Null
+        $guest | & $wslExe -d $owned -u 'root' -- /bin/bash -s | Out-Null
         $guestCode = [int]$LASTEXITCODE
         if ($guestCode -ne 0) {
             throw ('guest setup exited {0}. Galion-Ubuntu is registered. Run again with -Repair to repeat the guest setup without replacing a present ext4.vhdx.' -f $guestCode)
         }
-        $stopAgain = Invoke-GalionNative -ArgumentList @('wsl', '--shutdown')
-        if ($stopAgain -ne 0) {
-            throw ('wsl --shutdown exited {0}' -f $stopAgain)
+        Assert-GalionProtectedDistrosRemain -Before @($protectedBefore.ToArray())
+        if (-not $Plan.SkipShutdown) {
+            $stopAgain = Invoke-GalionNative -ArgumentList @('wsl', '--shutdown')
+            if ($stopAgain -ne 0) {
+                throw ('wsl --shutdown exited {0}' -f $stopAgain)
+            }
         }
     }
     Set-GalionFile -Path $paths.SrcReadme -Content ((Get-GalionSrcReadme) + "`n")
@@ -885,7 +1023,8 @@ function Invoke-GalionWslExecute {
 function Invoke-GalionWslInstaller {
     param(
         [switch]$DryRun,
-        [switch]$Repair
+        [switch]$Repair,
+        [switch]$SkipShutdown
     )
     $windows = ($env:OS -eq 'Windows_NT')
     if (-not $windows) {
@@ -897,7 +1036,7 @@ function Invoke-GalionWslInstaller {
             $script:GalionWslExit = 1
             return
         }
-        $plan = Get-GalionWslPlan -IsAdmin $true -DriveReady $true -IsAmd64 $true -DistroRegistered $false -InstallDirNonEmpty $false -VhdxPresent $false -Repair $Repair.IsPresent -WslCommandPresent $false -FeatureWslEnabled $false -FeatureVmEnabled $false -ProfileConfigIsFile $false -TotalMemoryGb 0 -LogicalProcessors 0 -Preview $true
+        $plan = Get-GalionWslPlan -IsAdmin $true -DriveReady $true -IsAmd64 $true -DistroRegistered $false -InstallDirNonEmpty $false -VhdxPresent $false -Repair $Repair.IsPresent -WslCommandPresent $false -FeatureWslEnabled $false -FeatureVmEnabled $false -ProfileConfigIsFile $false -TotalMemoryGb 0 -LogicalProcessors 0 -Preview $true -SkipShutdown:$SkipShutdown.IsPresent
         Write-GalionLine 'mode: dry-run'
         Write-GalionLine 'written: no'
         foreach ($line in @($plan.Lines)) {
@@ -915,7 +1054,7 @@ function Invoke-GalionWslInstaller {
         $admin = $false
     }
     if (-not $admin) {
-        $plan = Get-GalionWslPlan -IsAdmin $false -DriveReady $false -IsAmd64 $false -DistroRegistered $false -InstallDirNonEmpty $false -VhdxPresent $false -Repair $Repair.IsPresent -WslCommandPresent $false -FeatureWslEnabled $false -FeatureVmEnabled $false -ProfileConfigIsFile $false -TotalMemoryGb 0 -LogicalProcessors 0 -Preview $false
+        $plan = Get-GalionWslPlan -IsAdmin $false -DriveReady $false -IsAmd64 $false -DistroRegistered $false -InstallDirNonEmpty $false -VhdxPresent $false -Repair $Repair.IsPresent -WslCommandPresent $false -FeatureWslEnabled $false -FeatureVmEnabled $false -ProfileConfigIsFile $false -TotalMemoryGb 0 -LogicalProcessors 0 -Preview $false -SkipShutdown:$SkipShutdown.IsPresent
         if ($DryRun) {
             Write-GalionLine 'mode: dry-run'
         }
@@ -931,7 +1070,7 @@ function Invoke-GalionWslInstaller {
     }
 
     $facts = Get-GalionLiveFacts
-    $plan = Get-GalionWslPlan -IsAdmin $true -DriveReady $facts.DriveReady -IsAmd64 $facts.IsAmd64 -DistroRegistered $facts.DistroRegistered -InstallDirNonEmpty $facts.InstallDirNonEmpty -VhdxPresent $facts.VhdxPresent -Repair $Repair.IsPresent -WslCommandPresent $facts.WslCommandPresent -FeatureWslEnabled $facts.FeatureWslEnabled -FeatureVmEnabled $facts.FeatureVmEnabled -ProfileConfigIsFile $facts.ProfileConfigIsFile -TotalMemoryGb $facts.TotalMemoryGb -LogicalProcessors $facts.LogicalProcessors -Preview $false
+    $plan = Get-GalionWslPlan -IsAdmin $true -DriveReady $facts.DriveReady -IsAmd64 $facts.IsAmd64 -DistroRegistered $facts.DistroRegistered -InstallDirNonEmpty $facts.InstallDirNonEmpty -VhdxPresent $facts.VhdxPresent -Repair $Repair.IsPresent -WslCommandPresent $facts.WslCommandPresent -FeatureWslEnabled $facts.FeatureWslEnabled -FeatureVmEnabled $facts.FeatureVmEnabled -ProfileConfigIsFile $facts.ProfileConfigIsFile -TotalMemoryGb $facts.TotalMemoryGb -LogicalProcessors $facts.LogicalProcessors -Preview $false -SkipShutdown:$SkipShutdown.IsPresent
     if ($DryRun) {
         Write-GalionLine 'mode: dry-run'
         Write-GalionLine 'written: no'
@@ -964,20 +1103,41 @@ function Invoke-GalionWslInstaller {
     $script:GalionWslExit = Invoke-GalionWslExecute -Plan $plan
 }
 
-if ($env:GALION_WSL_DOTSOURCE -eq '1') {
+function Install-GalionWslOnG {
+    <#
+    .SYNOPSIS
+        Sector W1 entry point for W0. Returns 0, 1, or 3010 and does not exit the process.
+    #>
+    [CmdletBinding()]
+    param(
+        [switch]$DryRun,
+        [switch]$Repair,
+        [switch]$SkipShutdown
+    )
+    $ErrorActionPreference = 'Stop'
+    if (Test-Path -LiteralPath 'variable:PSNativeCommandUseErrorActionPreference') {
+        $PSNativeCommandUseErrorActionPreference = $false
+    }
+    try {
+        Invoke-GalionWslInstaller -DryRun:$DryRun -Repair:$Repair -SkipShutdown:$SkipShutdown
+    }
+    catch {
+        Write-GalionLine ('refused: {0}' -f $_.Exception.Message)
+        Write-GalionLine 'c-drive-data: none'
+        $script:GalionWslExit = 1
+    }
+    return [int]$script:GalionWslExit
+}
+
+$galionWslDotSource = ($env:GALION_WSL_DOTSOURCE -eq '1')
+if (-not $galionWslDotSource -and $MyInvocation.InvocationName -eq '.') {
+    $galionWslDotSource = $true
+}
+if (-not $galionWslDotSource -and $MyInvocation.Line -match '^\s*\.\s') {
+    $galionWslDotSource = $true
+}
+if ($galionWslDotSource) {
     return
 }
 
-$ErrorActionPreference = 'Stop'
-if (Test-Path -LiteralPath 'variable:PSNativeCommandUseErrorActionPreference') {
-    $PSNativeCommandUseErrorActionPreference = $false
-}
-try {
-    Invoke-GalionWslInstaller -DryRun:$DryRun -Repair:$Repair
-}
-catch {
-    Write-GalionLine ('refused: {0}' -f $_.Exception.Message)
-    Write-GalionLine 'c-drive-data: none'
-    $script:GalionWslExit = 1
-}
-exit $script:GalionWslExit
+exit (Install-GalionWslOnG -DryRun:$DryRun -Repair:$Repair -SkipShutdown:$SkipShutdown)
