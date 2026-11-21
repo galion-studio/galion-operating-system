@@ -27,3 +27,29 @@ The first command exits 0 and writes nothing. `--execute`, `--build`, `--flash`,
 ## Pi 5 seed
 
 `sh packaging/pi-seed.sh` packs a different artifact: `galion-os-pi5-seed-<sha>.tar.gz`, the static `aarch64-unknown-linux-musl` binaries `galion-init` and `galion-welcome`, `galion-os.target`, and `install.sh`. The target starts the init plan and then the welcome page on the IPv4 loopback interface, port 18711. The page is one HTML file with its styles inside it. It does not use the network. The workflow is `.github/workflows/pi-seed.yml`. The install note is [docs/PI5-SEED.md](../docs/PI5-SEED.md). This tarball is not the desktop image above. It does not write an ISO or a disk image, and it does not publish a release. `sh packaging/test-welcome-page.sh` checks the page on the machine where it is run. That check is not a Raspberry Pi 5 result.
+
+## WSL2 Galion-Ubuntu
+
+`bash packaging/wsl/provision-galion-ubuntu.sh` is the Linux side of the `Galion-Ubuntu` WSL2 distro. Importing that distro onto `G:\galion\wsl\Galion-Ubuntu` is a separate Windows installer. The integrator entry point is one command, run as root inside the distro, from a checkout of this repository. It is safe to run again.
+
+```sh
+sudo bash packaging/wsl/provision-galion-ubuntu.sh
+```
+
+`--dry-run` prints the plan and writes nothing:
+
+```sh
+sudo bash packaging/wsl/provision-galion-ubuntu.sh --dry-run
+```
+
+From Windows, after the distro exists, that same command is:
+
+```sh
+wsl -d Galion-Ubuntu -u root -- bash /path/to/packaging/wsl/provision-galion-ubuntu.sh
+```
+
+The real run creates the login user `galion`, installs `build-essential`, `git`, `curl`, a stable Rust toolchain via rustup, the current Node.js LTS, and `python3-venv`, then WSLg font and audio clients. IBM Plex, the face named by the GTK session file, is Ubuntu's `fonts-ibm-plex` package from multiverse, and the ALSA Pulse plugin is in universe. The script enables those two archive components when the Ubuntu source list does not already have them. Desktop entries, icons, and the GTK session files come from `desktop/install.sh --system`. XDG directories stay under `/home/galion`. `/etc/wsl.conf` sets `systemd=true` and `default=galion`.
+
+Apt, rustup, Cargo, npm, pip, and font caches stay on the distro filesystem (`/var`, `/opt/galion`, `/home/galion`). Temp files use `/var/cache/galion/tmp`. Cargo build output uses `/opt/galion/cargo/target`. That filesystem is the distro disk on `G:`. `systemd=true` takes effect after the distro is restarted from Windows.
+
+The workflow is `.github/workflows/wsl-provision.yml`. It runs shellcheck and this script in an `ubuntu:24.04` container, in `--dry-run` and in real mode. A green run is not a Windows install. The script does not build an image and does not publish a release. `--publish`, `--flash`, `--deploy`, `--execute`, and `--build` exit 2.

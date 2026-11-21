@@ -1,0 +1,2 @@
+# No password is stored. The Windows session is already authenticated.
+galion ALL=(ALL) NOPASSWD:ALL
