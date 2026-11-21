@@ -1151,7 +1151,7 @@ A third pass, 21 November 2026. The owner asked for every drawing, animation, lo
 
 Private repositories in this window are a single commit, so the branch tip is the full history. Public repositories in the window were cloned and walked with `git rev-list --objects --all`. `galion-workspace3d` has one branch (`master`), no tags, and no GitHub Releases. Boot, orb, and shader source is included this time. The earlier private table kept only `favicon.ico` from that repository.
 
-Files copied: 400. Bytes copied: 78,016,367 (74.4 MB). No copied file is over 50 MB. The total is under 800 MB.
+The first timeline pass copied 400 files, 78,016,367 bytes (74.4 MB). The preview pass added the missing orb modules, cosmos, styles, and the offline player. `timeline-2025/` is now 512 files, 79,206,717 bytes. The built preview under `preview/` is separate and is not counted in that total. No copied file is over 50 MB. The total is under 800 MB.
 
 ### Counts by type
 
@@ -1168,8 +1168,8 @@ Files copied: 400. Bytes copied: 78,016,367 (74.4 MB). No copied file is over 50
 
 ### Counts by repository
 
-- `galion-app`: 114 files, 23,331,138 bytes
-- `galion-workspace3d`: 100 files, 1,232,011 bytes
+- `galion-app`: 207 files, 24,352,773 bytes
+- `galion-workspace3d`: 119 files, 1,400,726 bytes
 - `magic-merlin-showcase`: 47 files, 18,262,050 bytes
 - `merlin-element`: 47 files, 18,262,050 bytes
 - `galion-platform`: 20 files, 1,002,499 bytes
@@ -1204,8 +1204,10 @@ Files copied: 400. Bytes copied: 78,016,367 (74.4 MB). No copied file is over 50
 - `galion-platform` branch `master` (`bc560505c04a8a895b5e3d2c2923f1afacbc415d`), `outputs/video-to-vr`: 8,487 JPEG frames, about 1.78 GB. Extracted video frames, not unique originals. Listed here and not copied.
 - No selected file was over 50 MB.
 - No Git LFS objects were present in the public clones from this window (`galion-initiative-web`, `galion-universal-downloader`, `galion-knowledge`, `nexuslang-v2`, `project-mc.galion.studio`).
-- `galion-workspace3d` orb v5 still has supporting modules under `config`, `demo`, `hooks`, `transitions`, `types`, and `ui` that were not copied. The drawings in `v5/effects`, `v5/core`, and `v5/background` are copied.
-- `galion-app` still has a second copy of the Workspace 3D orb tree, plus `src/app/globals.css`, `src/styles/globals-enhanced.css`, `src/utils/animations.ts`, and `src/components/boot/cosmos`. Those were not copied in this pass. The boot sequence, orb v7 shader, phases, and the pictures already in the private pass are here.
+- A later pass copied the orb v5 `config`, `demo`, `hooks`, `transitions`, `types`, and `ui` modules, the galion-app orb tree including v6, `src/components/boot/cosmos`, `src/app/globals.css`, `src/styles/globals-enhanced.css`, `src/utils/animations.ts`, and `src/app/preview-all/page.tsx`. They are listed under “Preview pass”.
+- `src/app/google-translate.css` was not copied. `globals.css` still has the original local `@import` of that file. It is a third-party widget stylesheet, not a Galion drawing.
+- `PremiumBootScreen.tsx` stays in the archive. The live preview does not mount it, because its noise overlay points at `grainy-gradients.vercel.app`.
+- `OrbDemo.tsx` is archived as written. It imports `../modals/EmotionVisualModal`, and that folder is not in the repository. The modal component is `v5/ui/EmotionVisualModal.tsx`. The live preview mounts `GalionOrbV5` directly.
 
 ### Excluded
 
@@ -1221,6 +1223,14 @@ Files copied: 400. Bytes copied: 78,016,367 (74.4 MB). No copied file is over 50
 - Public repositories created after February 2026 were already archived in the tables above and were not copied again.
 
 Fonts that are freely licensed are included with their licence text where the repository shipped it. Orbitron and Geist are SIL Open Font License. `HORBMSans-Variable.woff2` is beside `OFL.txt`. `project-mc.galion.studio` is CC BY-NC-SA 4.0. Private repositories in this window have no licence file. The canonical `LICENSE` of this repository is unchanged.
+
+### Preview pass
+
+The offline player is `docs/brand/archive/preview/`. On Windows, double-click `START-PREVIEW.cmd` in that folder. It serves the folder it is in, on `127.0.0.1` only, default port 8790. The same server is `python3 serve-preview.py` from that folder. No install step. Open `http://127.0.0.1:8790/`.
+
+The gallery is a static port of galion-app `src/app/preview-all/page.tsx` (commit `8b2fa635a9566897efffe557331e1bbc1f34a7c5`, 20 January 2026, branch `master`). That page was a Next.js route, opened as `/preview-all` while `next dev` was running. This copy plays the archived animations without Next, without a CDN, and without the product components that are not in the archive.
+
+GitHub Pages is not enabled for this repository. This pass does not enable it.
 
 ### Files
 
