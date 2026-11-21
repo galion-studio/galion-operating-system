@@ -109,7 +109,7 @@ Service launchers that are not visual sequences: `obsidian-open-mind` `crates/ga
 
 Duplicate copies are one card. The 2D `GalionOSBoot`, wake-up, wake phase, greeting, and orbing phase are byte-identical in `galion-app` and `galion-workspace3d`. The 3D `GalionOSBoot` matches across those trees. Lottie JSON also exists under the platform archive copies; the player uses the `galion-app` `public/animations` files. `LottieBootAnimation` asks for `/animations/galion-boot.json`; the repo file is `galion-os-boot.json`, and the preview serves both names.
 
-The preview copies of the Lottie files that name the font `Inter` also carry a `fonts.list` entry. Without it, lottie-web looks up the font, throws on the missing `fStyle`, and swallows that throw, so the SVG stays empty and the console stays clean. The app wake phase uses `COLORS.LINE_COLOR`; that key was missing from the app palette, so the five wake lines had an invalid gradient and never painted. The workspace palette already had the color.
+The preview copies of the Lottie files that name the font `Inter` also carry a `fonts.list` entry. Without it, lottie-web looks up the font, throws on the missing `fStyle`, and swallows that throw, so the SVG stays empty and the console stays clean. Those same files declare a Gaussian blur with only a blurriness slider. lottie-web 5.13 also reads blur dimensions and repeat-edge, and that read throws and aborts the frame before the shape is drawn. The preview copies include both controls. The app wake phase uses `COLORS.LINE_COLOR`; that key was missing from the app palette, so the five wake lines had an invalid gradient and never painted. The workspace palette already had the color.
 
 ## Repos with no Galion boot sequence
 

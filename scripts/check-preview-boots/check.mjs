@@ -156,18 +156,29 @@ async function checkOne(page, id) {
       return root && root.childElementCount > 0;
     }, { timeout: 15000 });
     if (id.startsWith("lottie")) {
+      // A path can exist while its layer scale is still 0. Wait until something
+      // has a real box, which is the first painted moment, then sample across
+      // the movement that follows.
       await page.waitForFunction(() => {
-        const path = [...document.querySelectorAll("svg path")].some(
-          (node) => (node.getAttribute("d") || "").length > 8
-        );
-        const text = document.querySelectorAll("svg text").length > 0;
-        return path || text;
+        const visible = [...document.querySelectorAll("svg path, svg text")].some((node) => {
+          const box = node.getBoundingClientRect();
+          return box.width > 8 && box.height > 8;
+        });
+        return visible;
       }, { timeout: 8000 });
     }
     const earlyA = await shoot(page, id.startsWith("lottie") ? 40 : 500);
-    const earlyB = await shoot(page, id.startsWith("lottie") ? 400 : 1000);
+    const earlyB = await shoot(page, id.startsWith("lottie") ? 500 : 1000);
     let verdict = judge(id, earlyA, earlyB, id.startsWith("lottie") ? await drawn(page) : { paths: 0, texts: 0 });
     let buf = earlyB.buf;
+    if (!verdict.ok && verdict.reason === "lottie" && verdict.stage >= STAGE_INK) {
+      const later = await shoot(page, 700);
+      const again = judge(id, earlyA, later, await drawn(page));
+      if (again.ok) {
+        verdict = again;
+        buf = later.buf;
+      }
+    }
     if (!verdict.ok && verdict.reason === "blank") {
       const lateA = await shoot(page, 2200);
       const lateB = await shoot(page, 1000);
