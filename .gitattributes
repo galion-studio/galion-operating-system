@@ -1,0 +1,2 @@
+packaging/windows/wsl-on-g/*.ps1 text eol=lf
+packaging/windows/wsl-on-g/*.md text eol=lf

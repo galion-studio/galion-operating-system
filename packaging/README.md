@@ -28,6 +28,10 @@ The first command exits 0 and writes nothing. `--execute`, `--build`, `--flash`,
 
 `sh packaging/pi-seed.sh` packs a different artifact: `galion-os-pi5-seed-<sha>.tar.gz`, the static `aarch64-unknown-linux-musl` binaries `galion-init` and `galion-welcome`, `galion-os.target`, and `install.sh`. The target starts the init plan and then the welcome page on the IPv4 loopback interface, port 18711. The page is one HTML file with its styles inside it. It does not use the network. The workflow is `.github/workflows/pi-seed.yml`. The install note is [docs/PI5-SEED.md](../docs/PI5-SEED.md). This tarball is not the desktop image above. It does not write an ISO or a disk image, and it does not publish a release. `sh packaging/test-welcome-page.sh` checks the page on the machine where it is run. That check is not a Raspberry Pi 5 result.
 
+## Windows laptop
+
+`packaging/windows/wsl-on-g/Install-GalionWSL.ps1` is a different artifact from the image dry run above. It imports the official Ubuntu 24.04 WSL rootfs with `wsl --import` so the distro disk lives on `G:\galion`. `-DryRun` writes nothing. The Pester check is `.github/workflows/wsl-on-g.yml`. A green run of that check is not a Windows install. The note is [packaging/windows/wsl-on-g/README.md](windows/wsl-on-g/README.md). The existing `Ubuntu` 26.04.1 disk at `G:\galion\wsl\ubuntu` and `docker-desktop` are not this distro.
+
 ## WSL2 Galion-Ubuntu
 
 `bash packaging/wsl/provision-galion-ubuntu.sh` is the Linux side of the `Galion-Ubuntu` WSL2 distro. Importing that distro onto `G:\galion\wsl\Galion-Ubuntu` is a separate Windows installer. The integrator entry point is one command, run as root inside the distro, from a checkout of this repository. It is safe to run again.
