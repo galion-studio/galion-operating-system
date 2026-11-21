@@ -69,6 +69,23 @@ expect_files "desktop file" "$(printf '%s\n' \
   applications/galion-research.desktop \
   applications/galion-voice.desktop \
   applications/openmind-desktop.desktop \
+  boot/README.md \
+  boot/animations/dot.rs \
+  boot/animations/frame.rs \
+  boot/animations/host-splash.html \
+  boot/animations/om-rise.css \
+  boot/animations/one-dot-draw.js \
+  boot/animations/one-dot.css \
+  boot/animations/one-dot.html \
+  boot/animations/orb_engine.rs \
+  boot/animations/palette.rs \
+  boot/animations/spring.rs \
+  boot/animations/status-pulse.css \
+  boot/index.html \
+  boot/sounds/console-ui-sound.rs \
+  boot/sounds/galion-sound.ts \
+  boot/sounds/openmind-desktop-sound.rs \
+  boot/sounds/os-tones.js \
   gtk/gtk.css \
   gtk/settings.ini \
   icons/hicolor/scalable/apps/galion-os.svg \
